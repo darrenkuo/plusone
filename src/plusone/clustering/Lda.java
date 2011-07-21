@@ -36,14 +36,14 @@ public class Lda implements ClusteringMethod {
 		if (counter.containsKey(index))
 		    counter.put(index, counter.get(index) + 1);
 		else
-		    counter.put(index, 0);
+		    counter.put(index, 1);
 	    }
 
-	    fileWriter.write("" + counter.size());
+	    fileWriter.write(counter.size() + " ");
 	    //ldaInput += ("" + counter.size());
 	    for(Map.Entry<Integer, Integer> entry : counter.entrySet())
 		//ldaInput += (entry.getKey() + ":" + entry.getValue());
-		fileWriter.write(entry.getKey() + ":" + entry.getValue());
+		fileWriter.write(entry.getKey() + ":" + entry.getValue() + " ");
 
 	    fileWriter.write("\n");
 	    //ldaInput += "\n";
@@ -79,6 +79,7 @@ public class Lda implements ClusteringMethod {
 	}
     }
     
-    public void test(List<PaperAbstract> abstracts) {
+    public void test(List<PaperAbstract> abstracts, double percentUsed) {
+	
     }
 }

@@ -40,7 +40,6 @@ public class Main {
 	    String strLine;
 	    
 	    while ((strLine = br.readLine()) != null) {
-		System.out.println("started the loop with: " + strLine);
 		if (!strLine.equals( "<!--")) {
 		    System.out.println("Bad start...error soon!");
 		    System.out.println("found " + strLine + "instead.");
@@ -85,16 +84,13 @@ public class Main {
 		    abstractText = matcher.group(1);
 		}
 
-		System.out.println("parse results:");
-		System.out.println("index: " + index);
-		System.out.println("in ref: " + Arrays.toString(inRef));
-		System.out.println("out ref: " + Arrays.toString(outRef));
-		System.out.println("abstract: " + abstractText);
-				   
 		strLine = br.readLine();
 
-		results.add(new PaperAbstract(index, inRef, 
-					      outRef, abstractText));
+		PaperAbstract a = new PaperAbstract(index, inRef, 
+						    outRef, abstractText);
+		
+		//System.out.println(a);
+		results.add(a);
 	    }
 	    br.close();
 	} catch(Exception e) {

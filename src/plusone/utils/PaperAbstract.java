@@ -7,6 +7,8 @@ public class PaperAbstract {
     public int[] inReferences;
     public int[] outReferences;
     public String abstractText; 
+    public List<String> trainingWords;
+    public List<String> testingWords;
     
     public PaperAbstract(int index, int[] inReferences, 
 			 int[] outReferences, String abstractText) {
@@ -21,6 +23,19 @@ public class PaperAbstract {
 	    this.outReferences = new int[0];
 
 	this.abstractText = abstractText;
+    }
+
+    public List<String> getAbstractText(double percentUsed) {
+	# TODO: change it to use the array list and generate each time we use it.
+	List<String> results = new ArrayList<String>();
+	Random random = new Random();
+	String[] words = this.abstractText.split(" ");
+	for (int i = 0; i < words.length; i ++) {
+	    if (random.nextDouble() < percentUsed)
+		results.add(words[i]);
+	}
+
+	return results;
     }
 
     public String toString() {
