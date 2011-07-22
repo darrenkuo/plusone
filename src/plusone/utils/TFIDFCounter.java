@@ -38,7 +38,6 @@ public class TFIDFCounter {
 	for (int w = 0; w < this.wordIndexer.size(); w ++) {
 	    this.wordFrequency[w] = new WordAndScore(w, 0, false);
 	}
-	Arrays.sort(this.wordFrequency);
 
 	for (int i = 0; i < this.abstracts.size(); i ++) {
 	    PaperAbstract a = this.abstracts.get(i);
@@ -62,6 +61,14 @@ public class TFIDFCounter {
 	    else
 		this.idf[i] = idf_top - Math.log((double)idf[i]);
 	}
+
+	Arrays.sort(this.wordFrequency);
+
+	for (int i = 0; i < 30; i ++) {//i < this.wordFrequency.length; i ++) {
+	    System.out.println("i: " + i + " word: " + 
+			       this.wordIndexer.get(this.wordFrequency[i].wordID) + " count: " + this.wordFrequency[i].score);
+	}
+
     }
 
     public int tf(int document, int term) {

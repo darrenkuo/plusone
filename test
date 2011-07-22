@@ -2,8 +2,8 @@ ant -f build.xml
 
 # download test.data if it doesn't exist
 
-if [ ! -f /tmp/test.data ]; then
-   cd /tmp/; wget http://inst.eecs.berkeley.edu/~darrenk/test.data
+if [ ! -f /tmp/test.5000.data ]; then
+   cd /tmp/; wget http://inst.eecs.berkeley.edu/~darrenk/test.5000.data
 fi
 
-cd -; java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.data 0.9 0.2
+cd -; java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.9 0.2
