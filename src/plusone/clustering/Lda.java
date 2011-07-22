@@ -3,6 +3,7 @@ package plusone.clustering;
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
+import plusone.utils.TFIDFCounter;
 import plusone.utils.Utils;
 import plusone.utils.WordAndScore;
 
@@ -21,14 +22,22 @@ import org.ejml.simple.SimpleMatrix;
 
 public class Lda implements ClusteringMethod {
 
-    private Indexer<String> wordIndexer = new Indexer<String>();
+    private List<PaperAbstract> documents;
+    private Indexer<String> wordIndexer;
+    private TFIDFCounter tfidf;
 
-    public void analysis(List<PaperAbstract> documents, double trainPercent,
-			 double testWordPercent) {
+    public Lda(List<PaperAbstract> documents, Indexer<String> wordIndexer) {
+	this.documents = documents;
+	this.wordIndexer = wordIndexer;
+	this.tfidf = new TFIDFCounter(this.documents, this.wordIndexer);
+    }	       
+
+    public void analysis(double trainPercent, double testWordPercent) {
 	List<PaperAbstract> trainingSet = 
-	    documents.subList(0, ((int)(documents.size() * trainPercent)));
+	    this.documents.subList(0, 
+				   ((int)(documents.size() * trainPercent)));
 	List<PaperAbstract> testingSet = 
-	    documents.subList((int)(documents.size() * trainPercent) + 1, 
+	    this.documents.subList((int)(documents.size() * trainPercent) + 1,
 			      documents.size());
 
 	this.train(trainingSet);
@@ -88,7 +97,8 @@ public class Lda implements ClusteringMethod {
 	double[][] betaMatrix = readLdaResultFile("lda/final.beta");
 	double[][] gammasMatrix = 
 	    readLdaResultFile("lda/lda.test-gamma.dat");
-	// matrix multiplication
+
+	// matrix multiplication using the EJML package
 	SimpleMatrix beta = new SimpleMatrix(betaMatrix);
 	SimpleMatrix gammas = new SimpleMatrix(gammasMatrix);
 	SimpleMatrix results = gammas.mult(beta);

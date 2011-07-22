@@ -1,0 +1,68 @@
+package plusone.utils;
+
+import java.util.List;
+
+public class TFIDFCounter {
+
+    public static double LOWEST_TFIDF = 2.0;
+
+    private int[][] tf;
+    private double[] idf;
+    private List<PaperAbstract> abstracts;
+    private Indexer<String> wordIndexer;
+
+    /*
+     * tf[document][term] = number of occurence of term in the given
+     * document 
+     * idf[term] = log({number of documents}/{number of
+     * documents that contains that term})
+     */
+    public TFIDFCounter(List<PaperAbstract> abstracts, 
+			Indexer wordIndexer) {
+	this.abstracts = abstracts;
+	this.wordIndexer = wordIndexer;
+
+	this.tf = new int[abstracts.size()][];
+	this.idf = new double[wordIndexer.size()];
+
+	System.out.println("calculating TFIDF");
+	calculateTFIDF();
+    }
+
+    private void calculateTFIDF() {
+	double idf_top =  Math.log((double)this.abstracts.size());
+
+	for (int i = 0; i < this.abstracts.size(); i ++) {
+	    PaperAbstract a = this.abstracts.get(i);
+	    this.tf[i] = new int[wordIndexer.size()];
+	    for (String word : a.abstractText) {
+		tf[i][this.wordIndexer.indexOf(word)] += 1;
+	    }
+	    
+	    for (int j = 0; j < tf[i].length; j ++) {
+		if (this.tf[i][j] > 0) {
+		    this.idf[j] += 1;
+		}
+	    }
+	}
+
+	for (int i = 0; i < idf.length; i ++) {
+	    if (this.idf[i] == 0) 
+		this.idf[i] = LOWEST_TFIDF;
+	    else
+		this.idf[i] = idf_top - Math.log((double)idf[i]);
+	}
+    }
+
+    public int tf(int document, int term) {
+	return tf[document][term];
+    }
+    
+    public double idf(int term) {
+	return idf[term];	
+    }
+
+    public double tfidf(int document, int term) {
+	return tf(document, term) * idf(term);
+    }
+}

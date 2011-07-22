@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class PaperAbstract {
     public int index;
-    public String abstractText;
+    public String[] abstractText;
     public int[] inReferences;
     public int[] outReferences;
     public List<String> inferenceWords;
@@ -18,7 +18,7 @@ public class PaperAbstract {
 			 int[] outReferences, String abstractText,
 			 double percentUsed) {
 	this.index = index;
-	this.abstractText = abstractText;
+	this.abstractText = abstractText.trim().split(" ");
 
 	this.inReferences = inReferences;
 	if (this.inReferences == null) 
@@ -28,7 +28,7 @@ public class PaperAbstract {
 	if (this.outReferences == null)
 	    this.outReferences = new int[0];
 
-	this.outputWords = Arrays.asList(abstractText.trim().split(" "));
+	this.outputWords = Arrays.asList(this.abstractText);
 	if (percentUsed < 1.0) {
 	    generateTestset(percentUsed);
 	}

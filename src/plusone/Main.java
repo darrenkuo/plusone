@@ -1,5 +1,6 @@
 package plusone;
 
+import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
 
 import plusone.clustering.Lda;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 
 public class Main {
 
-    List<PaperAbstract> load_data(String filename) {
+    public List<PaperAbstract> load_data(String filename) {
 	List<PaperAbstract> results = new ArrayList<PaperAbstract>();
 
 	String index_pattern_string = "#INDEX ([\\d]+)";
@@ -86,10 +87,9 @@ public class Main {
 
 		strLine = br.readLine();
 
-		PaperAbstract a = new PaperAbstract(index, inRef, 
-						    outRef, abstractText, 1.0);
-		
-		//System.out.println(a);
+		PaperAbstract a = 
+		    new PaperAbstract(index, inRef, 
+				      outRef, abstractText, 1.0);
 		results.add(a);
 	    }
 	    br.close();
@@ -98,6 +98,16 @@ public class Main {
 	}
 	    
 	return results;
+    }
+
+    public Indexer<String> fillWordIndexer(List<PaperAbstract> documents) {
+	Indexer<String> wordIndexer = new Indexer<String>();
+	for (PaperAbstract a : documents) {
+	    for (String word : a.abstractText) {
+		wordIndexer.addAndGetIndex(word);
+	    }
+	}
+	return wordIndexer;
     }
 
     /*
@@ -130,6 +140,8 @@ public class Main {
 	Main main = new Main();
 
         List<PaperAbstract> documents = main.load_data(data_file);
-	new Lda().analysis(documents, trainPercent, testWordPercent);
+	Indexer<String> wordIndexer = main.fillWordIndexer(documents);
+	new Lda(documents, wordIndexer).analysis(trainPercent, 
+						 testWordPercent);
     }
 }
