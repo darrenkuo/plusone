@@ -87,7 +87,7 @@ public class Main {
 		strLine = br.readLine();
 
 		PaperAbstract a = new PaperAbstract(index, inRef, 
-						    outRef, abstractText);
+						    outRef, abstractText, 1.0);
 		
 		//System.out.println(a);
 		results.add(a);
@@ -120,28 +120,16 @@ public class Main {
 	    System.exit(0);
 	}
 
-	float train_percent = new Float(args[1]);
-	float test_word_percent = new Float(args[2]);
+	float trainPercent = new Float(args[1]);
+	float testWordPercent = new Float(args[2]);
 	
 	System.out.println("data file " + data_file);
-	System.out.println("train percent " + train_percent);
-	System.out.println("test word percent " + test_word_percent);
+	System.out.println("train percent " + trainPercent);
+	System.out.println("test word percent " + testWordPercent);
 
 	Main main = new Main();
 
         List<PaperAbstract> documents = main.load_data(data_file);
-	System.out.println("document set size: " + documents.size());
-
-	List<PaperAbstract> trainingSet = 
-	    documents.subList(0, ((int)(documents.size() * train_percent)));
-	List<PaperAbstract> testingSet = 
-	    documents.subList((int)(documents.size() * train_percent) + 1, 
-			      documents.size());
-	documents = null;
-
-	System.out.println("training set size: " + trainingSet.size());
-	System.out.println("testing set size: " + testingSet.size());
-
-	new Lda().train(trainingSet);
+	new Lda().analysis(documents, trainPercent, testWordPercent);
     }
 }

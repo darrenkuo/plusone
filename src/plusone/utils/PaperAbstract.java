@@ -1,18 +1,24 @@
 package plusone.utils;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class PaperAbstract {
     public int index;
+    public String abstractText;
     public int[] inReferences;
     public int[] outReferences;
-    public String abstractText; 
-    public List<String> trainingWords;
-    public List<String> testingWords;
+    public List<String> inferenceWords;
+    public List<String> predictionWords;
+    public List<String> outputWords;
     
     public PaperAbstract(int index, int[] inReferences, 
-			 int[] outReferences, String abstractText) {
+			 int[] outReferences, String abstractText,
+			 double percentUsed) {
 	this.index = index;
+	this.abstractText = abstractText;
 
 	this.inReferences = inReferences;
 	if (this.inReferences == null) 
@@ -22,20 +28,25 @@ public class PaperAbstract {
 	if (this.outReferences == null)
 	    this.outReferences = new int[0];
 
-	this.abstractText = abstractText;
+	this.outputWords = Arrays.asList(abstractText.trim().split(" "));
+	if (percentUsed < 1.0) {
+	    generateTestset(percentUsed);
+	}
     }
 
-    public List<String> getAbstractText(double percentUsed) {
-	# TODO: change it to use the array list and generate each time we use it.
-	List<String> results = new ArrayList<String>();
+    public void generateTestset(double percentUsed) {
+	this.inferenceWords = new ArrayList<String>();
+	this.predictionWords = new ArrayList<String>();
+
 	Random random = new Random();
-	String[] words = this.abstractText.split(" ");
-	for (int i = 0; i < words.length; i ++) {
-	    if (random.nextDouble() < percentUsed)
-		results.add(words[i]);
+	for (String word : this.outputWords) {
+	    if (percentUsed == 1.0 || random.nextDouble() < percentUsed)
+		this.inferenceWords.add(word);
+	    else
+		this.predictionWords.add(word);
 	}
 
-	return results;
+	this.outputWords = this.inferenceWords;
     }
 
     public String toString() {
