@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 
 public class Main {
 
+    private Indexer<String> wordIndexer;
+
     public List<PaperAbstract> load_data(String filename) {
 	List<PaperAbstract> results = new ArrayList<PaperAbstract>();
 
@@ -32,6 +34,8 @@ public class Main {
 
 	String abstract_pattern_string = "#ABSTRACT ([\\s\\S]+)";
 	Pattern abstract_pattern = Pattern.compile(abstract_pattern_string);
+
+	wordIndexer = new Indexer<String>();
 
 	try {
 	    FileInputStream fstream = new FileInputStream(filename);
@@ -89,7 +93,8 @@ public class Main {
 
 		PaperAbstract a = 
 		    new PaperAbstract(index, inRef, 
-				      outRef, abstractText, 1.0);
+				      outRef, abstractText, 1.0,
+				      wordIndexer);
 		results.add(a);
 	    }
 	    br.close();
@@ -100,14 +105,8 @@ public class Main {
 	return results;
     }
 
-    public Indexer<String> fillWordIndexer(List<PaperAbstract> documents) {
-	Indexer<String> wordIndexer = new Indexer<String>();
-	for (PaperAbstract a : documents) {
-	    for (String word : a.abstractText) {
-		wordIndexer.addAndGetIndex(word);
-	    }
-	}
-	return wordIndexer;
+    public Indexer<String> getWordIndexer() {
+	return this.wordIndexer;
     }
 
     /*
@@ -140,7 +139,7 @@ public class Main {
 	Main main = new Main();
 
         List<PaperAbstract> documents = main.load_data(data_file);
-	Indexer<String> wordIndexer = main.fillWordIndexer(documents);
+	Indexer<String> wordIndexer = main.getWordIndexer();
 	new Lda(documents, wordIndexer).analysis(trainPercent, 
 						 testWordPercent);
     }

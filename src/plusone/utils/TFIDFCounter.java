@@ -1,11 +1,13 @@
 package plusone.utils;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class TFIDFCounter {
 
     public static double LOWEST_TFIDF = 2.0;
 
+    public WordAndScore[] wordFrequency;
     private int[][] tf;
     private double[] idf;
     private List<PaperAbstract> abstracts;
@@ -22,6 +24,7 @@ public class TFIDFCounter {
 	this.abstracts = abstracts;
 	this.wordIndexer = wordIndexer;
 
+	this.wordFrequency = new WordAndScore[wordIndexer.size()];
 	this.tf = new int[abstracts.size()][];
 	this.idf = new double[wordIndexer.size()];
 
@@ -32,11 +35,18 @@ public class TFIDFCounter {
     private void calculateTFIDF() {
 	double idf_top =  Math.log((double)this.abstracts.size());
 
+	for (int w = 0; w < this.wordIndexer.size(); w ++) {
+	    this.wordFrequency[w] = new WordAndScore(w, 0, false);
+	}
+	Arrays.sort(this.wordFrequency);
+
 	for (int i = 0; i < this.abstracts.size(); i ++) {
 	    PaperAbstract a = this.abstracts.get(i);
 	    this.tf[i] = new int[wordIndexer.size()];
-	    for (String word : a.abstractText) {
-		tf[i][this.wordIndexer.indexOf(word)] += 1;
+	    for (Integer wordID : a.abstractText) {
+		this.tf[i][wordID] += 1;
+		this.wordFrequency[wordID].score 
+		    += 1;
 	    }
 	    
 	    for (int j = 0; j < tf[i].length; j ++) {

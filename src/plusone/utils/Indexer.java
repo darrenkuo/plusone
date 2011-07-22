@@ -13,6 +13,7 @@ import java.util.*;
 public class Indexer<E> extends AbstractList<E> implements Serializable
 {
 	private static final long serialVersionUID = -8769544079136550516L;
+	private static final Integer NEGATIVE_ONE = new Integer(-1);
 
 	List<E> objects;
 
@@ -53,6 +54,12 @@ public class Indexer<E> extends AbstractList<E> implements Serializable
 		return index;
 	}
 
+	public Integer fastIndexOf(Object o) {
+	    Integer index = indexes.get(o);
+	    if (index == null) return NEGATIVE_ONE;
+	    return index;
+	}
+
 	/**
 	 * Add an element to the indexer if not already present. In either case,
 	 * returns the index of the given object.
@@ -71,6 +78,19 @@ public class Indexer<E> extends AbstractList<E> implements Serializable
 		objects.add(e);
 		indexes.put(e, newIndex);
 		return newIndex;
+	}
+
+	public Integer fastAddAndGetIndex(E e) {
+	    Integer index = indexes.get(e);
+	    if (index != null) { return index; }
+	    //  Else, add
+	    int newIndex = size();
+	    for (IndexerObserver<E> observer : observers) {
+		observer.handleIndexAdd(e, newIndex);
+	    }
+	    objects.add(e);
+	    indexes.put(e, newIndex);
+	    return newIndex;
 	}
 
 	/**

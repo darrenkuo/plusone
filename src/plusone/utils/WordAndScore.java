@@ -1,11 +1,11 @@
 package plusone.utils;
 
 public class WordAndScore implements Comparable {
-    public int wordID;
+    public Integer wordID;
     public double score;
     public boolean ascending;
 
-    public WordAndScore(int wordID, double score, boolean ascending) {
+    public WordAndScore(Integer wordID, double score, boolean ascending) {
 	this.wordID = wordID;
 	this.score = score;
 	this.ascending = ascending;

@@ -6,4 +6,4 @@ if [ ! -f /tmp/test.data ]; then
    cd /tmp/; wget http://inst.eecs.berkeley.edu/~darrenk/test.data
 fi
 
-cd -; java -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.data 0.9 0.2
+cd -; java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.data 0.9 0.2

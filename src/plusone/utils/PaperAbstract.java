@@ -7,18 +7,23 @@ import java.util.Random;
 
 public class PaperAbstract {
     public int index;
-    public String[] abstractText;
+    public Integer[] abstractText;
     public int[] inReferences;
     public int[] outReferences;
-    public List<String> inferenceWords;
-    public List<String> predictionWords;
-    public List<String> outputWords;
+    public List<Integer> inferenceWords;
+    public List<Integer> predictionWords;
+    public List<Integer> outputWords;
     
     public PaperAbstract(int index, int[] inReferences, 
 			 int[] outReferences, String abstractText,
-			 double percentUsed) {
+			 double percentUsed, Indexer<String> wordIndexer) {
 	this.index = index;
-	this.abstractText = abstractText.trim().split(" ");
+	
+	String[] words = abstractText.trim().split(" ");   
+	this.abstractText = new Integer[words.length];
+	for (int i = 0; i < words.length; i ++) {
+	    this.abstractText[i] = wordIndexer.fastAddAndGetIndex(words[i]);
+	}
 
 	this.inReferences = inReferences;
 	if (this.inReferences == null) 
@@ -28,22 +33,21 @@ public class PaperAbstract {
 	if (this.outReferences == null)
 	    this.outReferences = new int[0];
 
-	this.outputWords = Arrays.asList(this.abstractText);
-	if (percentUsed < 1.0) {
-	    generateTestset(percentUsed);
-	}
+	//if (percentUsed < 1.0)
+	generateTestset(percentUsed, wordIndexer);
     }
 
-    public void generateTestset(double percentUsed) {
-	this.inferenceWords = new ArrayList<String>();
-	this.predictionWords = new ArrayList<String>();
+    public void generateTestset(double percentUsed, 
+				Indexer<String> wordIndexer) {
+	this.inferenceWords = new ArrayList<Integer>();
+	this.predictionWords = new ArrayList<Integer>();
 
 	Random random = new Random();
-	for (String word : this.outputWords) {
+	for (Integer wordID : this.abstractText) {
 	    if (percentUsed == 1.0 || random.nextDouble() < percentUsed)
-		this.inferenceWords.add(word);
+		this.inferenceWords.add(wordID);
 	    else
-		this.predictionWords.add(word);
+		this.predictionWords.add(wordID);
 	}
 
 	this.outputWords = this.inferenceWords;
