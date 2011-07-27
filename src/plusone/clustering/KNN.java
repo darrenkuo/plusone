@@ -83,9 +83,11 @@ public class KNN extends ClusteringTest {
 	    PaperAbstract a = testing.get(document);
 	    Document t = Document.abstractToDocument(a);
 	    //System.out.println("doc t size: " + t.size());
+	    //System.out.println("Testing: " + t);
 
 	    for (Document d : this.model) {
 		double dist = t.distance(d);
+		//System.out.println("Against: " + d);
 		//System.out.println("distance: " + dist);
 		kList.insert(d, dist);
 	    }

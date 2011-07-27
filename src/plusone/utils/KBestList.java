@@ -58,7 +58,7 @@ public class KBestList<T> {
 	
 	PlusoneLinkedList ll = this.start;
 	do {
-	    if (this.score.get(ll.element) > score) {
+	    if (this.score.get(ll.element) <= score) {
 		PlusoneLinkedList n = new PlusoneLinkedList(element);
 		if (ll.previous == null) {
 		    n.next = ll;

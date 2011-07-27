@@ -64,7 +64,7 @@ public class Lda extends ClusteringTest {
 	}
 
 	int k = 5;
-	boolean outputUsedWords = true;
+	boolean outputUsedWords = false;
 	String trainingData = "lda/train.ldain";
 
 	createLdaInput(trainingData, abstracts);
@@ -74,6 +74,9 @@ public class Lda extends ClusteringTest {
 	double[][] betaMatrix = readLdaResultFile("lda/final.beta", 0);
 	double[][] gammasMatrix = 
 	    readLdaResultFile("lda/final.gamma", abstracts.size() - testingAbstracts.size());
+
+	System.out.println("gammasMatrix size: " + gammasMatrix.length);
+	System.out.println("other size: " + gammasMatrix[0].length);
 
 	// matrix multiplication using the EJML package
 	SimpleMatrix beta = new SimpleMatrix(betaMatrix);
@@ -86,6 +89,7 @@ public class Lda extends ClusteringTest {
 	int predicted = 0, total = 0;
 	double tfidfScore = 0.0, idfScore = 0;
 	for (int document = 0; document < predictedWords.length; document ++) {
+	    //System.out.println("document: " + document + " number of predicted words: " + predictedWords[document].length);
 	    for (int predict = 0; predict < predictedWords[document].length; predict ++) {
 		Integer wordID = predictedWords[document][predict];
 		if (testingAbstracts.get(document).predictionWords.isEmpty())
@@ -104,6 +108,7 @@ public class Lda extends ClusteringTest {
 	    }
 	}
 	System.out.println("Predicted " + ((double)predicted/total)*100 + " percent of the words");
+	System.out.println("total attempts: " + total);
 	System.out.println("TFIDF score: " + tfidfScore);
 	System.out.println("IDF score: " + idfScore);
     }
@@ -111,6 +116,7 @@ public class Lda extends ClusteringTest {
     private double[][] readLdaResultFile(String filename, int start) {
 	List<String[]> gammas = new ArrayList<String[]>();
 	double[][] results = null;
+	//System.out.println("reading lda results file starting at : " + start);
 	try {
 	    FileInputStream fstream = new FileInputStream(filename);
 	    DataInputStream in = new DataInputStream(fstream);
@@ -125,6 +131,7 @@ public class Lda extends ClusteringTest {
 		}
 		c ++;
 	    }
+	    //System.out.println("C got to " + c);
 
 	    results = new double[gammas.size()][];
 	    for (int i = 0; i < gammas.size(); i ++) {
@@ -160,11 +167,11 @@ public class Lda extends ClusteringTest {
 		    results[row][i] = queue.poll().wordID;
 		}
 	    } else {
-		System.out.println("Predicting results for row: " + row);
+		//System.out.println("Predicting results for row: " + row);
 		List<WordAndScore> lst = new ArrayList<WordAndScore>();
 		for (int i = 0; i < k && !queue.isEmpty(); i ++) {
 		    WordAndScore cur = queue.poll();
-		    System.out.println("predicted word: " + wordIndexer.get(cur.wordID) + " score: " + cur.score);
+		    //System.out.println("predicted word: " + wordIndexer.get(cur.wordID) + " score: " + cur.score);
 		    if (!abstracts.get(row).inferenceWords.contains(cur))
 			lst.add(cur);
 		    else

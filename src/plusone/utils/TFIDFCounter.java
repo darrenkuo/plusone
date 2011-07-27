@@ -64,7 +64,7 @@ public class TFIDFCounter {
 
 	Arrays.sort(this.wordFrequency);
 
-	for (int i = 0; i < 30; i ++) {//i < this.wordFrequency.length; i ++) {
+	for (int i = 0; i < 30 && i < this.wordFrequency.length; i ++) {
 	    System.out.println("i: " + i + " word: " + 
 			       this.wordIndexer.get(this.wordFrequency[i].wordID) + " ---- count: " + this.wordFrequency[i].score);
 	}

@@ -13,3 +13,4 @@ if (!(-f /tmp/test.5000.data)) then
 endif
 
 java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
+#java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main toy.data 0.8 0.3

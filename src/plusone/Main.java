@@ -150,7 +150,7 @@ public class Main {
 	    new TFIDFCounter(documents, wordIndexer);
 	new Lda(documents, wordIndexer, tfidf).analysis(trainPercent, 
 							testWordPercent);
-	new KNN(10, documents, wordIndexer, tfidf).analysis(trainPercent,
+	new KNN(5, documents, wordIndexer, tfidf).analysis(trainPercent,
 							   testWordPercent);
 	new Baseline(documents, wordIndexer, tfidf).analysis(trainPercent,
 							    testWordPercent);

@@ -2,6 +2,7 @@ package plusone.utils;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -51,15 +52,30 @@ public class Document {
 	return 0;
     }
 
+    public String toString() {
+	Iterator<Integer> keys = this.words.keySet().iterator();
+	String r = "";
+	while (keys.hasNext()) {
+	    Integer key = keys.next();
+	    r += ("key: " + key + " value: " + this.words.get(key) + " ");
+	}
+	return r;    
+    }
+
     public double distance(Document d) {
 	double dist = 0.0, dist1 = 0.0, dist2 = 0.0;
+
+	Set commonKeys = new HashSet();
+	//System.out.println("size1: " + this.words.keySet().size() + " " + this.words.size());
 	Iterator<Integer> myKeysIter = this.getWordIterator();
 	while (myKeysIter.hasNext()) {
 	    Integer key = myKeysIter.next();
+	    commonKeys.add(key);
 	    dist1 += Math.pow(this.getWordCount(key), 2.0);
 	}
 	dist1 = Math.pow(dist1, 0.5);
 
+	//System.out.println("size2: " + d.words.keySet().size());
 	Iterator<Integer> dKeysIter = d.getWordIterator();
 	while (dKeysIter.hasNext()) {
 	    Integer key = dKeysIter.next();
@@ -67,7 +83,6 @@ public class Document {
 	}
 	dist2 = Math.pow(dist2, 0.5);
 
-	Set commonKeys = this.words.keySet();
 	commonKeys.retainAll(d.words.keySet());	
 
 	Iterator<Integer> cKeysIter = commonKeys.iterator();
@@ -75,6 +90,10 @@ public class Document {
 	    Integer cKey = cKeysIter.next();
 	    dist += this.getWordCount(cKey) * d.getWordCount(cKey);
 	}
+	//System.out.println("dist1: " + dist1);
+	//System.out.println("dist2: " + dist2);
+	//System.out.println("dist: " + dist);
+
 	dist /= (dist1 * dist2);
 
 	/*

@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
-import java.io.IOException;
 
 public class Utils {
 
@@ -42,8 +41,9 @@ public class Utils {
 		    System.out.println(s);
 		}
 	    }
+	    p.waitFor();
 	}
-	catch (IOException e) {
+	catch (Exception e) {
 	    System.out.println("exception happened - here's what I know: ");
 	    e.printStackTrace();
 	    System.exit(-1);
