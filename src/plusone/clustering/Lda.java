@@ -21,43 +21,94 @@ import java.util.PriorityQueue;
 
 import org.ejml.simple.SimpleMatrix;
 
-public class Lda implements ClusteringMethod {
+public class Lda extends ClusteringTest {
 
     private List<PaperAbstract> documents;
     private Indexer<String> wordIndexer;
     private TFIDFCounter tfidf;
+    private static final int CLUSTERS = 50;
 
-    public Lda(List<PaperAbstract> documents, Indexer<String> wordIndexer) {
+    public Lda(List<PaperAbstract> documents, Indexer<String> wordIndexer,
+	       TFIDFCounter tfidf) {
+	super("Lda");
 	this.documents = documents;
 	this.wordIndexer = wordIndexer;
-	this.tfidf = new TFIDFCounter(this.documents, this.wordIndexer);
+	this.tfidf = tfidf;
     }	       
 
     public void analysis(double trainPercent, double testWordPercent) {
+	super.analysis(trainPercent, testWordPercent);
+
 	List<PaperAbstract> trainingSet = 
-	    this.documents.subList(0, 
-				   ((int)(documents.size() * trainPercent)));
+	    this.documents.subList(0, ((int)(documents.size() * 
+					     trainPercent)));
 	List<PaperAbstract> testingSet = 
 	    this.documents.subList((int)(documents.size() * trainPercent) + 1,
 			      documents.size());
 
-	this.train(trainingSet);
-	this.test(testingSet, testWordPercent);
+	for (PaperAbstract a : testingSet) {
+	    a.generateTestset(testWordPercent, this.wordIndexer);
+	    //trainingSet.add(a);
+	}
+
+	this.train(this.documents, testingSet);
+	//this.test(testingSet, testWordPercent);
     }
 
-    private void train(List<PaperAbstract> abstracts) {
+    private void train(List<PaperAbstract> abstracts, 
+		       List<PaperAbstract> testingAbstracts) {
 	try {
 	    new File("lda").mkdir();
 	} catch(Exception e) {
 	    e.printStackTrace();
 	}
 
+	int k = 5;
+	boolean outputUsedWords = true;
 	String trainingData = "lda/train.ldain";
+
 	createLdaInput(trainingData, abstracts);
-	Utils.runCommand("lib/lda-c-dist/lda est 1 10 lib/lda-c-dist/settings.txt " + trainingData + " random lda");
+	Utils.runCommand("lib/lda-c-dist/lda est 1 " + CLUSTERS + " lib/lda-c-dist/settings.txt " + trainingData + " random lda", false);
+
+	// new code...
+	double[][] betaMatrix = readLdaResultFile("lda/final.beta", 0);
+	double[][] gammasMatrix = 
+	    readLdaResultFile("lda/final.gamma", abstracts.size() - testingAbstracts.size());
+
+	// matrix multiplication using the EJML package
+	SimpleMatrix beta = new SimpleMatrix(betaMatrix);
+	SimpleMatrix gammas = new SimpleMatrix(gammasMatrix);
+	SimpleMatrix results = gammas.mult(beta);
+       
+	Integer[][] predictedWords = 
+	    this.predictTopKWords(results, testingAbstracts, k, outputUsedWords);
+
+	int predicted = 0, total = 0;
+	double tfidfScore = 0.0, idfScore = 0;
+	for (int document = 0; document < predictedWords.length; document ++) {
+	    for (int predict = 0; predict < predictedWords[document].length; predict ++) {
+		Integer wordID = predictedWords[document][predict];
+		if (testingAbstracts.get(document).predictionWords.isEmpty())
+		    System.out.println("no prediction words in testing set?");
+
+		if (testingAbstracts.get(document).predictionWords
+		    .contains(wordID)) {
+		    predicted ++;
+		    tfidfScore += this.tfidf.tfidf(abstracts.size() - 
+						   testingAbstracts.size() + 
+						   document, wordID);
+		    idfScore += this.tfidf.idf(wordID);
+		}
+
+		total ++;
+	    }
+	}
+	System.out.println("Predicted " + ((double)predicted/total)*100 + " percent of the words");
+	System.out.println("TFIDF score: " + tfidfScore);
+	System.out.println("IDF score: " + idfScore);
     }
 
-    private double[][] readLdaResultFile(String filename) {
+    private double[][] readLdaResultFile(String filename, int start) {
 	List<String[]> gammas = new ArrayList<String[]>();
 	double[][] results = null;
 	try {
@@ -67,8 +118,12 @@ public class Lda implements ClusteringMethod {
 		new BufferedReader(new InputStreamReader(in));
 	    String strLine;
 
+	    int c = 0;
 	    while ((strLine = br.readLine()) != null) {
-		gammas.add(strLine.trim().split(" "));
+		if (c >= start) {
+		    gammas.add(strLine.trim().split(" "));
+		}
+		c ++;
 	    }
 
 	    results = new double[gammas.size()][];
@@ -85,114 +140,11 @@ public class Lda implements ClusteringMethod {
 
 	return results;
     }
-    
-    private void test(List<PaperAbstract> abstracts, double percentUsed) {
-
-	boolean outputUsedWords = false;
-	String testingData = "lda/test.ldain";
-	for (PaperAbstract a : abstracts) {
-	    a.generateTestset(percentUsed, this.wordIndexer);
-	}
-
-	createLdaInput(testingData, abstracts);
-	Utils.runCommand("lib/lda-c-dist/lda inf lib/lda-c-dist/settings.txt lda/final " + testingData + " lda/lda.test");
-
-	double[][] betaMatrix = readLdaResultFile("lda/final.beta");
-	double[][] gammasMatrix = 
-	    readLdaResultFile("lda/lda.test-gamma.dat");
-
-	// matrix multiplication using the EJML package
-	SimpleMatrix beta = new SimpleMatrix(betaMatrix);
-	SimpleMatrix gammas = new SimpleMatrix(gammasMatrix);
-	SimpleMatrix results = gammas.mult(beta);
-
-	Integer[][] predictedWords = 
-	    this.predictTopKWords(results, abstracts, 1, outputUsedWords);
-
-	int predicted = 0, total = 0;
-	double tfidfScore = 0.0, idfScore = 0;
-	for (int document = 0; document < predictedWords.length; document ++) {
-	    for (int predict = 0; predict < predictedWords[document].length; predict ++) {
-		Integer wordID = predictedWords[document][predict];
-		if (abstracts.get(document).predictionWords
-		    .contains(wordID)) {
-		    predicted ++;
-		    tfidfScore += this.tfidf.tfidf(document, wordID);
-		    idfScore += this.tfidf.idf(wordID);
-		}
-
-		total ++;
-	    }
-	}
-	System.out.println("Predicted " + ((double)predicted/total) + " percent of the words");
-	System.out.println("TFIDF score: " + tfidfScore);
-	System.out.println("IDF score: " + idfScore);
-
-	baselineTest(abstracts, 1, outputUsedWords);
-    }
-
-    private void baselineTest(List<PaperAbstract> abstracts, 
-			      int k, boolean usedWord) {
-	// need global word count
-	// somehow get top K words from the global word count
-
-	Integer[][] predictedWords = predictTopKWordsNaive(abstracts, k, 
-							   usedWord);
-	
-	int predicted = 0, total = 0;
-	double tfidfScore = 0.0, idfScore = 0;
-	for (int document = 0; document < predictedWords.length; document ++) {
-	    for (int predict = 0; predict < predictedWords[document].length; predict ++) {
-		Integer wordID = predictedWords[document][predict];
-		if (abstracts.get(document).predictionWords.contains(wordID)) {
-		    predicted ++;
-		    tfidfScore += this.tfidf.tfidf(document, wordID);
-		    idfScore += this.tfidf.idf(wordID);
-		}
-
-		total ++;
-	    }
-	}
-
-	System.out.println("Predicted " + ((double)predicted/total) + " percent of the words");
-	System.out.println("TFIDF score: " + tfidfScore);
-	System.out.println("IDF score: " + idfScore);
-    }
-
-    private Integer[][] predictTopKWordsNaive(List<PaperAbstract> abstracts,
-					  int k, boolean outputUsedWord) {
-	Integer[][] results = new Integer[abstracts.size()][];
-	for (int a = 0; a < abstracts.size(); a ++) {
-	    if (outputUsedWord) {
-		results[a] = 
-		    new Integer[Math.min(this.tfidf.wordFrequency.length, k)];
-		for (int w = 0; w < k && w < this.tfidf.wordFrequency.length; 
-		     w ++) {
-		    results[a][w] = this.tfidf.wordFrequency[w].wordID;
-		}
-	    } else {
-		int c = 0;
-		List<Integer> lst = new ArrayList<Integer>();
-		for (int w = 0; c < k && w < this.tfidf.wordFrequency.length;
-		     w ++) {
-		    Integer curWord = this.tfidf.wordFrequency[w].wordID;
-		    if (!abstracts.get(a).
-			inferenceWords.contains(curWord)) {
-			lst.add(curWord);
-			c ++;
-		    }
-		}
-	       
-		results[a] = (Integer[])lst.toArray(new Integer[lst.size()]);
-	    }
-	}
-	return results;
-    }
 
     private Integer[][] predictTopKWords(SimpleMatrix matrix,
-					      List<PaperAbstract> abstracts,
-					      int k,
-					      boolean outputUsedWords) {
+					 List<PaperAbstract> abstracts,
+					 int k,
+					 boolean outputUsedWords) {
 	Integer[][] results = new Integer[abstracts.size()][];
 	for (int row = 0; row < matrix.numRows(); row ++) {
 	    PriorityQueue<WordAndScore> queue = 
@@ -208,9 +160,11 @@ public class Lda implements ClusteringMethod {
 		    results[row][i] = queue.poll().wordID;
 		}
 	    } else {
+		System.out.println("Predicting results for row: " + row);
 		List<WordAndScore> lst = new ArrayList<WordAndScore>();
 		for (int i = 0; i < k && !queue.isEmpty(); i ++) {
 		    WordAndScore cur = queue.poll();
+		    System.out.println("predicted word: " + wordIndexer.get(cur.wordID) + " score: " + cur.score);
 		    if (!abstracts.get(row).inferenceWords.contains(cur))
 			lst.add(cur);
 		    else

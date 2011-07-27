@@ -1,13 +1,15 @@
 # compile lda code
-cd lib/lda-c-dist; make
+cd lib/lda-c-dist; make;
 
 # compile using ant
-cd -; ant -f build.xml
+cd -; ant -f build.xml;
 
 # download test.data if it doesn't exist
-if [ ! -f /tmp/test.5000.data ]; then
-   cd /tmp/; wget http://inst.eecs.berkeley.edu/~darrenk/test.5000.data
-   cd -;
-fi
 
-java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.9 0.2
+if (!(-f /tmp/test.5000.data)) then
+   cd /tmp/
+   wget http://inst.eecs.berkeley.edu/~darrenk/test.5000.data
+   cd -
+endif
+
+java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3

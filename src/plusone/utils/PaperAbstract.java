@@ -34,7 +34,7 @@ public class PaperAbstract {
 	    this.outReferences = new int[0];
 
 	//if (percentUsed < 1.0)
-	generateTestset(percentUsed, wordIndexer);
+	this.generateTestset(percentUsed, wordIndexer);
     }
 
     public void generateTestset(double percentUsed, 

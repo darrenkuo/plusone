@@ -2,7 +2,10 @@ package plusone;
 
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
+import plusone.utils.TFIDFCounter;
 
+import plusone.clustering.Baseline;
+import plusone.clustering.KNN;
 import plusone.clustering.Lda;
 
 import java.io.BufferedReader;
@@ -140,7 +143,16 @@ public class Main {
 
         List<PaperAbstract> documents = main.load_data(data_file);
 	Indexer<String> wordIndexer = main.getWordIndexer();
-	new Lda(documents, wordIndexer).analysis(trainPercent, 
-						 testWordPercent);
+
+	System.out.println("Total number of words: " + wordIndexer.size());
+
+	TFIDFCounter tfidf =
+	    new TFIDFCounter(documents, wordIndexer);
+	new Lda(documents, wordIndexer, tfidf).analysis(trainPercent, 
+							testWordPercent);
+	new KNN(10, documents, wordIndexer, tfidf).analysis(trainPercent,
+							   testWordPercent);
+	new Baseline(documents, wordIndexer, tfidf).analysis(trainPercent,
+							    testWordPercent);
     }
 }
