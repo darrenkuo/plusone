@@ -2,7 +2,8 @@ package plusone;
 
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
-import plusone.utils.TFIDFCounter;
+//import plusone.utils.TFIDFCounter;
+import plusone.utils.Term;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.KNN;
@@ -19,10 +20,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.text.Document;
+
 public class Main {
 
     private Indexer<String> wordIndexer;
-
+  
     public List<PaperAbstract> load_data(String filename) {
 	List<PaperAbstract> results = new ArrayList<PaperAbstract>();
 
@@ -96,7 +99,7 @@ public class Main {
 
 		PaperAbstract a = 
 		    new PaperAbstract(index, inRef, 
-				      outRef, abstractText, 1.0,
+				      outRef, abstractText, 
 				      wordIndexer);
 		results.add(a);
 	    }
@@ -111,7 +114,32 @@ public class Main {
     public Indexer<String> getWordIndexer() {
 	return this.wordIndexer;
     }
-
+    
+    public static double[] evaluate(List<PaperAbstract> testingSet, Term[] terms, Integer[][] prediction, int size, int k, boolean usedWords){
+    	if (testingSet.size()!=prediction.length)
+    		System.out.println("Number of testing docs is not equal to number of documents");
+    	double[] results = new double[3];
+    	int predicted = 0, total = 0;
+    	double tfidfScore = 0.0, idfScore = 0.0;
+    	double idf_top =  Math.log(size);
+    	for (int i = 0; i < testingSet.size(); i++) {
+    		PaperAbstract doc=testingSet.get(i);
+    	    for (int j = 0; j < prediction[i].length && j<k; j++) {
+    		Integer wordID = prediction[i][j];
+    		if ((doc.predictionWords.contains(wordID)) && (usedWords || (!doc.outputWords.contains(wordID)))) {
+    		    predicted ++;
+    		    double temp=(idf_top-Math.log((double)(terms[wordID].idfRaw()+(doc.outputWords.contains(wordID)?0:1)))); 
+    		    tfidfScore += doc.tf[wordID][1]*temp;
+    		    idfScore += temp;
+    		}
+    		total ++;
+    	    }
+    	}
+    	results[0]=((double)predicted)/((double)total);
+    	results[1]=idfScore;
+    	results[2]=tfidfScore;
+    	return results;
+    }
     /*
      * data - args[1]
      * train percent - args[2]
@@ -141,18 +169,34 @@ public class Main {
 
 	Main main = new Main();
 
-        List<PaperAbstract> documents = main.load_data(data_file);
+    List<PaperAbstract> documents = main.load_data(data_file);
+    List<PaperAbstract> trainingSet=documents.subList(0, ((int)(documents.size() * 
+			     									  trainPercent)));
+    List<PaperAbstract> testingSet = documents.subList((int)(documents.size() * trainPercent) + 1,
+        			      								documents.size());
+        
 	Indexer<String> wordIndexer = main.getWordIndexer();
+	Term[] terms = new Term[wordIndexer.size()];
+	for (int i=0;i<wordIndexer.size();i++){
+		terms[i]=new Term(i, wordIndexer.get(i));
+	}
+//	TFIDFCounter tfidf = new TFIDFCounter(documents, wordIndexer);
+	for (PaperAbstract a:trainingSet){
+		a.generateData(testWordPercent, wordIndexer, terms, false);		
+	}
+	for (PaperAbstract a:testingSet){
+		a.generateData(testWordPercent, wordIndexer, terms, true);
+	}
 
 	System.out.println("Total number of words: " + wordIndexer.size());
-
-	TFIDFCounter tfidf =
-	    new TFIDFCounter(documents, wordIndexer);
-	new Lda(documents, wordIndexer, tfidf).analysis(trainPercent, 
-							testWordPercent);
-	new KNN(5, documents, wordIndexer, tfidf).analysis(trainPercent,
-							   testWordPercent);
-	new Baseline(documents, wordIndexer, tfidf).analysis(trainPercent,
-							    testWordPercent);
+	
+	int k=3;
+	boolean usedWords= false;
+	
+	Integer[][] LdaPredict= (new Lda(documents, trainingSet, testingSet,wordIndexer, terms)).predictTopKWords(k, usedWords);
+	double[] LdaResult = Main.evaluate(testingSet,terms,LdaPredict, documents.size(),k,usedWords);
+//	new KNN(5, documents, wordIndexer, terms).analysis(trainPercent, testWordPercent);
+	Integer[][] BLPredict = (new Baseline(documents, trainingSet, testingSet, wordIndexer, terms)).predict(k, usedWords);
+	double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, documents.size(), k, usedWords);	
     }
 }

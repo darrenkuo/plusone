@@ -2,7 +2,7 @@ package plusone.clustering;
 
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
-import plusone.utils.TFIDFCounter;
+import plusone.utils.Term;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,37 +11,28 @@ public class Baseline extends ClusteringTest {
     
     private List<PaperAbstract> documents;
     private Indexer<String> wordIndexer;
-    private TFIDFCounter tfidf;
+    private Term[] terms;
+    private List<PaperAbstract> trainingSet;
+    private List<PaperAbstract> testingSet;
 
-    public Baseline(List<PaperAbstract> documents, 
-		    Indexer<String> wordIndexer, TFIDFCounter tfidf) {
+    public Baseline(List<PaperAbstract> documents, List<PaperAbstract> trainingSet,
+    				List<PaperAbstract> testingSet,Indexer<String> wordIndexer, Term[] terms) {
 	super("Baseline");
 	this.documents = documents;
 	this.wordIndexer = wordIndexer;
-	this.tfidf = tfidf;
+	this.terms = terms;
+	this.trainingSet=trainingSet;
+	this.testingSet=testingSet;
     }
 
     @Override
-    public void analysis(double trainPercent, double testWordPercent) {
-	super.analysis(trainPercent, testWordPercent);
+    public void analysis(int numPred, boolean usedWord) {
+	super.analysis(numPred, usedWord);
 
-	int k = 5;
-	List<PaperAbstract> trainingSet =
-	    this.documents.subList(0, ((int)(documents.size() * 
-					     trainPercent)));
-	List<PaperAbstract> testingSet = 
-	    this.documents.subList((int)(documents.size() * 
-					 trainPercent) + 1,
-			      documents.size());
-
-	for (PaperAbstract a : testingSet) {
-	    a.generateTestset(testWordPercent, this.wordIndexer);
-	}
-
-	this.baselineTest(testingSet, k, false);
+//	this.baselineTest(testingSet, numPred, usedWord);
     }
 
-    private void baselineTest(List<PaperAbstract> abstracts, 
+/*    private void baselineTest(List<PaperAbstract> abstracts, 
 			      int k, boolean usedWord) {
 	// need global word count
 	// somehow get top K words from the global word count
@@ -51,49 +42,68 @@ public class Baseline extends ClusteringTest {
 	
 	int predicted = 0, total = 0;
 	double tfidfScore = 0.0, idfScore = 0.0;
-	for (int document = 0; document < predictedWords.length; 
-	     document ++) {
-	    for (int predict = 0; predict < predictedWords[document].length; 
-		 predict ++) {
-		Integer wordID = predictedWords[document][predict];
-		if (abstracts.get(document).
-		    predictionWords.contains(wordID)) {
+	double idf_top =  Math.log((double)this.documents.size());
+	for (int i = 0; i < abstracts.size(); i++) {
+		PaperAbstract doc=abstracts.get(i);
+	    for (int j = 0; j < predictedWords[i].length; j++) {
+		Integer wordID = predictedWords[i][j];
+		if (doc.predictionWords.contains(wordID)) {
 		    predicted ++;
-		    tfidfScore += this.tfidf.tfidf(document, wordID);
-		    idfScore += this.tfidf.idf(wordID);
+		    double temp=(idf_top-Math.log((double)(terms[wordID].idfRaw()+(doc.outputWords.contains(wordID)?0:1)))); 
+		    tfidfScore += doc.tf[wordID][1]*temp;
+		    idfScore += temp;
 		}
 		total ++;
 	    }
-	}
-
+	} 
 	System.out.println("Predicted " + ((double)predicted/total) * 100 + 
 			   " percent of the words");
 	System.out.println("TFIDF score: " + tfidfScore);
 	System.out.println("IDF score: " + idfScore);
+    } */
+    
+    
+    private int oneMore(List<Integer> topWords){
+    	int max=-1;
+    	int id = -1;
+    	for (int i=0;i<terms.length;i++)
+    		if (!topWords.contains(i) && terms[i].totalCount>max){
+    			max=terms[i].totalCount;
+    			id =i;
+    		}
+    	if (id!=-1){
+    	topWords.add(id);
+    	}
+    	return id;
     }
-
-    private Integer[][] predictTopKWordsNaive(List<PaperAbstract> abstracts,
-					      int k, 
-					      boolean outputUsedWord) {
-	Integer[][] results = new Integer[abstracts.size()][];
-	for (int a = 0; a < abstracts.size(); a ++) {
+    
+    public Integer[][] predict(int k, boolean outputUsedWord) {
+	Integer[][] results = new Integer[testingSet.size()][];
+	
+	List<Integer> topWords = new ArrayList<Integer>();
+	for (int i=0;i<terms.length && i<k;i++){
+		oneMore(topWords); 
+	}
+	for (int a = 0; a < testingSet.size(); a ++) {
 	    if (outputUsedWord) {
 		results[a] = 
-		    new Integer[Math.min(this.tfidf.
-					 wordFrequency.length, k)];
+		    new Integer[Math.min(terms.length, k)];
 		for (int w = 0; 
-		     w < k && w < this.tfidf.wordFrequency.length; 
+		     w < k && w < terms.length; 
 		     w ++) {
-		    results[a][w] = this.tfidf.wordFrequency[w].wordID;
+		    results[a][w] = topWords.get(w);
 		}
 	    } else {
 		int c = 0;
 		List<Integer> lst = new ArrayList<Integer>();
-		for (int w = 0; c < k && w < this.tfidf.wordFrequency.length;
+		for (int w = 0; c < k && w < this.terms.length;
 		     w ++) {
-		    Integer curWord = this.tfidf.wordFrequency[w].wordID;
-		    if (!abstracts.get(a).
-			inferenceWords.contains(curWord)) {
+			Integer curWord=-1;
+			if (w>=topWords.size())
+				curWord=oneMore(topWords);
+			else
+				curWord = topWords.get(w);
+		    if (testingSet.get(a).tf[curWord][0]==0) {
 			lst.add(curWord);
 			c ++;
 		    }
