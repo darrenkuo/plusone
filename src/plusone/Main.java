@@ -2,12 +2,13 @@ package plusone;
 
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
-//import plusone.utils.TFIDFCounter;
 import plusone.utils.Term;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.KNN;
 import plusone.clustering.Lda;
+
+import java.io.*;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -115,31 +116,55 @@ public class Main {
 	return this.wordIndexer;
     }
     
-    public static double[] evaluate(List<PaperAbstract> testingSet, Term[] terms, Integer[][] prediction, int size, int k, boolean usedWords){
-    	if (testingSet.size()!=prediction.length)
-    		System.out.println("Number of testing docs is not equal to number of documents");
+    public static double[] evaluate(List<PaperAbstract> testingSet, 
+				    Term[] terms, 
+				    Integer[][] prediction, 
+				    int size, int k, boolean usedWords, 
+				    Indexer<String> wordIndexer){
+
+    	if (testingSet.size() != prediction.length)
+	    System.out.println("Number of testing docs is not equal to number of documents");
+
     	double[] results = new double[3];
     	int predicted = 0, total = 0;
     	double tfidfScore = 0.0, idfScore = 0.0;
     	double idf_top =  Math.log(size);
+
     	for (int i = 0; i < testingSet.size(); i++) {
-    		PaperAbstract doc=testingSet.get(i);
+	    PaperAbstract doc=testingSet.get(i);
     	    for (int j = 0; j < prediction[i].length && j<k; j++) {
     		Integer wordID = prediction[i][j];
-    		if ((doc.predictionWords.contains(wordID)) && (usedWords || (!doc.outputWords.contains(wordID)))) {
+    		if ((doc.predictionWords.contains(wordID)) && 
+		    (usedWords || (!doc.outputWords.contains(wordID)))) {
+		    
     		    predicted ++;
-    		    double temp=(idf_top-Math.log((double)(terms[wordID].idfRaw()+(doc.outputWords.contains(wordID)?0:1)))); 
-    		    tfidfScore += doc.tf[wordID][1]*temp;
+    		    double temp=(idf_top - 
+				 Math.log((double)(terms[wordID].idfRaw() + 
+						   (doc.outputWords.
+						    contains(wordID)?0:1)))); 
+
+		    tfidfScore += doc.getTf1(wordID) * temp;
     		    idfScore += temp;
     		}
     		total ++;
     	    }
     	}
+
+	System.out.println("predicted: " + predicted);
+	System.out.println("total: " + total);
+
     	results[0]=((double)predicted)/((double)total);
     	results[1]=idfScore;
     	results[2]=tfidfScore;
     	return results;
     }
+
+    public static void printResults(double[] results) {
+	System.out.println("Predicted: " + results[0]);
+	System.out.println("idf score: " + results[1]);
+	System.out.println("tfidf score: " + results[2]);
+    }
+
     /*
      * data - args[1]
      * train percent - args[2]
@@ -169,20 +194,21 @@ public class Main {
 
 	Main main = new Main();
 
-    List<PaperAbstract> documents = main.load_data(data_file);
-    List<PaperAbstract> trainingSet=documents.subList(0, ((int)(documents.size() * 
-			     									  trainPercent)));
-    List<PaperAbstract> testingSet = documents.subList((int)(documents.size() * trainPercent) + 1,
-        			      								documents.size());
+	List<PaperAbstract> documents = main.load_data(data_file);
+	List<PaperAbstract> trainingSet = 
+	    documents.subList(0, ((int)(documents.size() * trainPercent)));
+	List<PaperAbstract> testingSet = 
+	    documents.subList((int)(documents.size() * trainPercent) + 1,
+			      documents.size());
         
 	Indexer<String> wordIndexer = main.getWordIndexer();
 	Term[] terms = new Term[wordIndexer.size()];
 	for (int i=0;i<wordIndexer.size();i++){
 		terms[i]=new Term(i, wordIndexer.get(i));
 	}
-//	TFIDFCounter tfidf = new TFIDFCounter(documents, wordIndexer);
+
 	for (PaperAbstract a:trainingSet){
-		a.generateData(testWordPercent, wordIndexer, terms, false);		
+		a.generateData(testWordPercent, wordIndexer, terms, false);
 	}
 	for (PaperAbstract a:testingSet){
 		a.generateData(testWordPercent, wordIndexer, terms, true);
@@ -190,13 +216,37 @@ public class Main {
 
 	System.out.println("Total number of words: " + wordIndexer.size());
 	
-	int k=3;
-	boolean usedWords= false;
-	
-	Integer[][] LdaPredict= (new Lda(documents, trainingSet, testingSet,wordIndexer, terms)).predictTopKWords(k, usedWords);
-	double[] LdaResult = Main.evaluate(testingSet,terms,LdaPredict, documents.size(),k,usedWords);
-//	new KNN(5, documents, wordIndexer, terms).analysis(trainPercent, testWordPercent);
-	Integer[][] BLPredict = (new Baseline(documents, trainingSet, testingSet, wordIndexer, terms)).predict(k, usedWords);
-	double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, documents.size(), k, usedWords);	
+	int k=2;
+	boolean usedWords= true;
+
+	// Lda
+	Integer[][] LdaPredict= new Lda(documents, trainingSet, testingSet,
+					wordIndexer, terms).
+	    predict(k, usedWords);
+	double[] LdaResult = Main.evaluate(testingSet, terms, LdaPredict, 
+					   documents.size(), k, usedWords, 
+					   main.getWordIndexer());
+	System.out.println("LDA results");
+	Main.printResults(LdaResult);
+
+	// KNN
+	Integer[][] KNNPredict = new KNN(documents, trainingSet, testingSet, 
+					 wordIndexer, terms).
+	    predict(k, usedWords);
+	double[] KNNResult = Main.evaluate(testingSet, terms, KNNPredict, 
+					   documents.size(), k, usedWords, 
+					   main.getWordIndexer());	
+	System.out.println("KNN results");
+	Main.printResults(KNNResult);
+
+	// Baseline
+	Integer[][] BLPredict = new Baseline(documents, trainingSet, 
+					     testingSet, wordIndexer, terms).
+	    predict(k, usedWords);
+	double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, 
+					  documents.size(), k, usedWords, 
+					  main.getWordIndexer());	
+	System.out.println("Baseline results");
+	Main.printResults(BLResult);
     }
 }

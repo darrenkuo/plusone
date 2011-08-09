@@ -7,9 +7,7 @@ public abstract class ClusteringTest implements ClusteringMethod {
 	this.testName = testName;
     }
     
-    public void analysis(int numPred, boolean usedWord) {
-	System.out.println("===============BEGINNING OF " + testName +
-			   " Test=======================");
+    public Integer[][] predict(int k, boolean outputUsedWord) {
+	return null;
     }
-
 }

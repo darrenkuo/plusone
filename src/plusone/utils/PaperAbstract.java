@@ -2,6 +2,7 @@ package plusone.utils;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -16,7 +17,10 @@ public class PaperAbstract {
     public List<Integer> predictionWords;
     public List<Integer> outputWords;
     boolean test;
-    public int[][] tf; 	//tf[i][0]=occurance of word i in training part, tf[i][1]= total occurance
+    //public int[][] tf; 	//tf[i][0]=occurance of word i in training part, tf[i][1]= total occurance
+    public HashMap<Integer, Integer> trainingTf;
+    public HashMap<Integer, Integer> testingTf;
+
     public int uniqueWords; // # of unique words in training text
     public List<Integer> wordSet;
     
@@ -65,27 +69,37 @@ public class PaperAbstract {
     	this.outputWords = new ArrayList<Integer>();
     	this.predictionWords = new ArrayList<Integer>();
     	this.test=test;
-    	tf=new int[wordIndexer.size()][2];
+    	//this.tf = new int[wordIndexer.size()][2];
+	this.trainingTf = new HashMap<Integer, Integer>();
+	if (test)
+	    this.testingTf = new HashMap<Integer, Integer>();
     	
     	Random random = new Random();
     	for (Integer wordID : this.abstractText) {
-    	    if ((!test) || random.nextDouble() < percentUsed){
+    	    if ((!test) || random.nextDouble() > percentUsed){
     		this.outputWords.add(wordID);
-    		if (tf[wordID][0]==0)
+    		if (!this.trainingTf.containsKey(wordID))
     		{
-    			terms[wordID].addDoc(this, false);
-    			uniqueWords++;
-    			wordSet.add(wordID);
+		    terms[wordID].addDoc(this, false);
+		    uniqueWords++;
+		    wordSet.add(wordID);
+		    this.trainingTf.put(wordID, 0);
     		}
-    		tf[wordID][0]++;
+		this.trainingTf.put(wordID, this.trainingTf.get(wordID) + 1);
+    		//tf[wordID][0]++;
     		terms[wordID].totalCount++;
     	    }
     	    else{
     		this.predictionWords.add(wordID);
-    		if (tf[wordID][0]==tf[wordID][1])
-    			terms[wordID].addDoc(this,true);
+    		//if (tf[wordID][0]==tf[wordID][1])
+		if (!testingTf.containsKey(wordID)) {
+		    terms[wordID].addDoc(this,true);
+		    this.testingTf.put(wordID, 0);
+		}
+
+		this.testingTf.put(wordID, this.testingTf.get(wordID) + 1);
     	    }
-    	    tf[wordID][1]++;
+    	    //tf[wordID][1]++;
     	}
 
 //    	this.outputWords = this.inferenceWords;
@@ -101,5 +115,15 @@ public class PaperAbstract {
 	return results;
     }
 
-    
+    public Integer getTf0(int wordID) {
+	return this.trainingTf.containsKey(wordID) ? this.trainingTf.get(wordID) : 0;
+    }
+
+    public Integer getTf1(int wordID) {
+	Integer tf0 = getTf0(wordID);
+	if (!this.test) {
+	    return tf0;
+	}
+	return tf0 + (this.testingTf.containsKey(wordID) ? this.testingTf.get(wordID) : 0);
+    }
 }

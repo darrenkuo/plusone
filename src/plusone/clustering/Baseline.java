@@ -4,6 +4,8 @@ import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
 import plusone.utils.Term;
 
+import java.io.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,25 +68,40 @@ public class Baseline extends ClusteringTest {
     private int oneMore(List<Integer> topWords){
     	int max=-1;
     	int id = -1;
-    	for (int i=0;i<terms.length;i++)
-    		if (!topWords.contains(i) && terms[i].totalCount>max){
-    			max=terms[i].totalCount;
-    			id =i;
-    		}
-    	if (id!=-1){
-    	topWords.add(id);
+    	for (int i=0;i<terms.length;i++) {
+	    if (!topWords.contains(i) && terms[i].totalCount>max){
+		max = terms[i].totalCount;
+		id = i;
+	    }
+	}
+	
+    	if (id!=-1) {
+	    topWords.add(id);
     	}
     	return id;
     }
     
     public Integer[][] predict(int k, boolean outputUsedWord) {
 	Integer[][] results = new Integer[testingSet.size()][];
+
+	FileWriter fstream = null;
+	BufferedWriter out = null;
+
+	try {
+	    fstream = new FileWriter("/tmp/baseline.new");
+	    out = new BufferedWriter(fstream);
+	} catch(Exception e) {
+	    e.printStackTrace();
+	}
+
 	
 	List<Integer> topWords = new ArrayList<Integer>();
 	for (int i=0;i<terms.length && i<k;i++){
-		oneMore(topWords); 
+	    
+	    oneMore(topWords);
 	}
 	for (int a = 0; a < testingSet.size(); a ++) {
+	    String predictedWordsString = "INDEX: " + testingSet.get(a).index + " ";
 	    if (outputUsedWord) {
 		results[a] = 
 		    new Integer[Math.min(terms.length, k)];
@@ -98,20 +115,35 @@ public class Baseline extends ClusteringTest {
 		List<Integer> lst = new ArrayList<Integer>();
 		for (int w = 0; c < k && w < this.terms.length;
 		     w ++) {
-			Integer curWord=-1;
-			if (w>=topWords.size())
-				curWord=oneMore(topWords);
-			else
-				curWord = topWords.get(w);
-		    if (testingSet.get(a).tf[curWord][0]==0) {
+		    Integer curWord = -1;
+		    if (w >= topWords.size())
+			curWord=oneMore(topWords);
+		    else
+			curWord = topWords.get(w);
+
+		    //if (testingSet.get(a).tf[curWord][0]==0) {
+		    if (testingSet.get(a).getTf0(curWord) == 0) {
 			lst.add(curWord);
 			c ++;
+			predictedWordsString += wordIndexer.get(curWord) + " " + this.terms[curWord].totalCount + " ";					
 		    }
 		}
 	       
 		results[a] = (Integer[])lst.toArray(new Integer[lst.size()]);
 	    }
+	    try {
+		out.write(predictedWordsString + "\n");
+	    } catch(IOException e) {
+		e.printStackTrace();
+	    }
 	}
+	
+	try {
+	    out.close();
+	} catch(Exception e) {
+	    e.printStackTrace();
+	}
+
 	return results;
     }
 }
