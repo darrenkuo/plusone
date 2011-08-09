@@ -124,7 +124,7 @@ public class Lda extends ClusteringTest {
 		if (!outputUsedWords && testingSet.get(row).getTf0(col) > 0)
 	    		continue;
 	    	if (queue.size() < k || 
-		    matrix.get(row,col)>queue.peek().score){
+		    matrix.get(row,col) > queue.peek().score){
 		    if (queue.size()>=k)
 			queue.poll();
 		    queue.add(new WordAndScore(col, 

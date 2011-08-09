@@ -24,7 +24,7 @@ public class KNN extends ClusteringTest {
     private Indexer<String> wordIndexer;
     private List<Document> model;
     private Term[] terms;
-    private int K_CLOSEST = 5;
+    private int K_CLOSEST = 10;
 
     public KNN(List<PaperAbstract> documents,
 	       List<PaperAbstract> trainingSet,
@@ -74,13 +74,17 @@ public class KNN extends ClusteringTest {
 	    Document t = Document.abstractToDocument(a);
 	    KBestList<Document> kList = getKClosest(t);
 	    
-	    List<Integer> lst = predictTopKWordsWithKList(kList, a, k, outputUsedWord);
+	    List<Integer> lst = predictTopKWordsWithKList(kList, a, k, 
+							  outputUsedWord);
 	    array[document] = (Integer[])lst.toArray(new Integer[lst.size()]);
 	}
 	return array;
     }
 	
-    private List<Integer> predictTopKWordsWithKList(KBestList<Document> kList, PaperAbstract testDoc, int k, boolean outputUsedWord) {
+    private List<Integer> predictTopKWordsWithKList(KBestList<Document> kList,
+						    PaperAbstract testDoc, 
+						    int k, 
+						    boolean outputUsedWord) {
 	List<Integer> predictedWords = new ArrayList<Integer>();
 	Document d = new Document();
 	Iterator<Document> iter = kList.iterator();
@@ -104,9 +108,10 @@ public class KNN extends ClusteringTest {
 	Collections.sort(wordsList);
 
 	for (WordAndScore pair : wordsList) {
-	    if (outputUsedWord || 
-		(!testDoc.predictionWords.contains(pair.wordID)))
+	    if (outputUsedWord ||
+		testDoc.getTf0(pair.wordID) == 0)
 		predictedWords.add(pair.wordID);
+	    
 	    if (predictedWords.size() == k)
 		return predictedWords;
 	}

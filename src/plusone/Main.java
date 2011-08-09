@@ -216,7 +216,7 @@ public class Main {
 
 	System.out.println("Total number of words: " + wordIndexer.size());
 	
-	int k=2;
+	int k = 5;
 	boolean usedWords= true;
 
 	// Lda
