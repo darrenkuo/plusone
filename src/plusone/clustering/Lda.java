@@ -43,9 +43,10 @@ public class Lda extends ClusteringTest {
 	this.testingSet=testingSet;
 	this.wordIndexer = wordIndexer;
 	this.terms = terms;
+	this.train();
     }	       
 
-    private void train(int k, boolean outputUsedWords) {
+    private void train() {
 	try {
 	    new File("lda").mkdir();
 	} catch(Exception e) {
@@ -113,10 +114,16 @@ public class Lda extends ClusteringTest {
 	return results;
     }
 
-    public Integer[][] predict(int k, boolean outputUsedWords) {
-	this.train(k, outputUsedWords);
+    public Integer[][] predict(int k, boolean outputUsedWords, File outputDirectory) {
 	SimpleMatrix matrix = gammas.mult(beta);
 	Integer[][] results = new Integer[testingSet.size()][];
+
+	PlusoneFileWriter writer = null;
+	if (outputDirectory != null) {
+	    writer = new PlusoneFileWriter(new File(outputDirectory, 
+						    "lda-" + k + "-" + outputUsedWords + ".predict"));
+	}
+
 	for (int row = 0; row < matrix.numRows(); row ++) {
 	    PriorityQueue<WordAndScore> queue = 
 		new PriorityQueue<WordAndScore>(k+1);
@@ -128,15 +135,24 @@ public class Lda extends ClusteringTest {
 		    if (queue.size()>=k)
 			queue.poll();
 		    queue.add(new WordAndScore(col, 
-					       matrix.get(row,col), false));
+					       matrix.get(row,col), true));
 	    	}
 	    }
 
 	    results[row] = new Integer[Math.min(k, queue.size())];
 	    for (int i = 0; i < k && !queue.isEmpty(); i ++) {
-		results[row][i] = queue.poll().wordID;
+		Integer wordID = queue.poll().wordID;
+		if (outputDirectory != null)
+		    writer.write(this.wordIndexer.get(wordID) + " ");
+		results[row][i] = wordID; 
 	    }
+	    if (outputDirectory != null)
+		writer.write("\n");
 	}
+
+	if (outputDirectory != null)
+	    writer.close();
+
 	return results;
     }
 

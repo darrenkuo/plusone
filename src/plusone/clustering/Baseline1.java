@@ -9,47 +9,25 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Baseline extends ClusteringTest {
+public class Baseline1 extends Baseline {
     
-    protected List<PaperAbstract> documents;
-    protected Indexer<String> wordIndexer;
-    protected Term[] terms;
-    protected List<PaperAbstract> trainingSet;
-    protected List<PaperAbstract> testingSet;
-
-    public Baseline(List<PaperAbstract> documents, List<PaperAbstract> trainingSet,
-    				List<PaperAbstract> testingSet,Indexer<String> wordIndexer, Term[] terms) {
-	super("Baseline");
-	this.documents = documents;
-	this.wordIndexer = wordIndexer;
-	this.terms = terms;
-	this.trainingSet=trainingSet;
-	this.testingSet=testingSet;
+    public Baseline1(List<PaperAbstract> documents, 
+		     List<PaperAbstract> trainingSet,
+		     List<PaperAbstract> testingSet,
+		     Indexer<String> wordIndexer, 
+		     Term[] terms) {
+	super(documents, trainingSet, testingSet,
+	      wordIndexer, terms);
+	this.testName = "baseline1";
     }
 
-    protected int oneMore(List<Integer> topWords){
-    	int max=-1;
-    	int id = -1;
-    	for (int i=0;i<terms.length;i++) {
-	    if (!topWords.contains(i) && terms[i].totalCount>max){
-		max = terms[i].totalCount;
-		id = i;
-	    }
-	}
-	
-    	if (id!=-1) {
-	    topWords.add(id);
-    	}
-    	return id;
-    }
-    
     public Integer[][] predict(int k, boolean outputUsedWord, File outputDirectory) {
 	Integer[][] results = new Integer[testingSet.size()][];
 
 	PlusoneFileWriter writer = null;
 	if (outputDirectory != null) {
 	    writer = new PlusoneFileWriter(new File(outputDirectory,
-						    "Baseline-" + k + "-" + 
+						    "Baseline1-" + k + "-" + 
 						    outputUsedWord + 
 						    ".predict"));
 	}
@@ -81,7 +59,7 @@ public class Baseline extends ClusteringTest {
 		    else
 			curWord = topWords.get(w);
 
-		    if (testingSet.get(a).getTf0(curWord) == 0) {
+		    if (testingSet.get(a).getTf0(curWord) > 0) {
 			if (outputDirectory != null)
 			    writer.write(this.wordIndexer.get(curWord) + " ");
 			lst.add(curWord);

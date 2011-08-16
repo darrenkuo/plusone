@@ -1,6 +1,7 @@
 package plusone.utils;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -9,6 +10,15 @@ public class PlusoneFileWriter {
     public PlusoneFileWriter(String filename) {
 	try {
 	    FileWriter fstream = new FileWriter(filename);
+	    out = new BufferedWriter(fstream);
+	}catch (Exception e) {
+	    System.err.println("Error: " + e.getMessage());
+	}
+    }
+
+    public PlusoneFileWriter(File file) {
+	try {
+	    FileWriter fstream = new FileWriter(file);
 	    out = new BufferedWriter(fstream);
 	}catch (Exception e) {
 	    System.err.println("Error: " + e.getMessage());

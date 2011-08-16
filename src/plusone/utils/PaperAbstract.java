@@ -3,8 +3,13 @@ package plusone.utils;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Random;
+import java.util.Set;
 
 import plusone.utils.Term;
 
@@ -20,6 +25,7 @@ public class PaperAbstract {
     //public int[][] tf; 	//tf[i][0]=occurance of word i in training part, tf[i][1]= total occurance
     public HashMap<Integer, Integer> trainingTf;
     public HashMap<Integer, Integer> testingTf;
+    private double length;
 
     public int uniqueWords; // # of unique words in training text
     public List<Integer> wordSet;
@@ -33,6 +39,7 @@ public class PaperAbstract {
 	this.abstractText = new Integer[words.length];
 	uniqueWords=0;
 	wordSet=new ArrayList<Integer>();
+	length=0;
 	for (int i = 0; i < words.length; i ++) {
 	    this.abstractText[i] = wordIndexer.fastAddAndGetIndex(words[i]);
 	}
@@ -101,6 +108,19 @@ public class PaperAbstract {
     	    }
     	    //tf[wordID][1]++;
     	}
+    	
+    	double length=0.0;
+    	
+    	Set<Map.Entry<Integer, Integer>> words = this.trainingTf.entrySet();
+    	
+    	Iterator<Map.Entry<Integer,Integer>> iterator= words.iterator();
+    	
+    	while (iterator.hasNext()){
+    		Map.Entry<Integer, Integer> entry = iterator.next();
+    		int count=entry.getValue();
+    		length+=count*count;
+    	}
+    	this.length = Math.sqrt(length);
 
 //    	this.outputWords = this.inferenceWords;
     	
@@ -125,5 +145,29 @@ public class PaperAbstract {
 	    return tf0;
 	}
 	return tf0 + (this.testingTf.containsKey(wordID) ? this.testingTf.get(wordID) : 0);
+    }
+    
+    public double getLength(){
+    	return length;
+    }
+    
+
+    
+    public double similarity(PaperAbstract a){
+    	double dist = 0.0;
+    	
+    	Set<Map.Entry<Integer, Integer>> words = this.trainingTf.entrySet();
+    	
+    	Iterator<Map.Entry<Integer,Integer>> iterator= words.iterator();
+    	
+    	while (iterator.hasNext()){
+    		Map.Entry<Integer, Integer> entry = iterator.next();
+    		int wordId=entry.getKey();
+    		int count=entry.getValue();
+    		if (a.trainingTf.containsKey(wordId))
+    			dist+=count*a.trainingTf.get(wordId);
+    		
+    	}
+    	return dist;
     }
 }

@@ -2,10 +2,13 @@ package plusone;
 
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
+import plusone.utils.PlusoneFileWriter;
 import plusone.utils.Term;
 
 import plusone.clustering.Baseline;
+import plusone.clustering.Baseline1;
 import plusone.clustering.KNN;
+import plusone.clustering.KNNWithCitation;
 import plusone.clustering.Lda;
 
 import java.io.*;
@@ -150,8 +153,8 @@ public class Main {
     	    }
     	}
 
-	System.out.println("predicted: " + predicted);
-	System.out.println("total: " + total);
+	//System.out.println("predicted: " + predicted);
+	//System.out.println("total: " + total);
 
     	results[0]=((double)predicted)/((double)total);
     	results[1]=idfScore;
@@ -163,6 +166,14 @@ public class Main {
 	System.out.println("Predicted: " + results[0]);
 	System.out.println("idf score: " + results[1]);
 	System.out.println("tfidf score: " + results[2]);
+    }
+
+    public static void printResults(File output, double[] results) {
+	PlusoneFileWriter writer = new PlusoneFileWriter(output);
+	writer.write("Predicted: " + results[0] + "\n");
+	writer.write("idf score: " + results[1] + "\n");
+	writer.write("tfidf score: " + results[2] + "\n");
+	writer.close();
     }
 
     /*
@@ -186,67 +197,146 @@ public class Main {
 	}
 
 	float trainPercent = new Float(args[1]);
-	float testWordPercent = new Float(args[2]);
+	//float testWordPercent = new Float(args[2]);
 	
 	System.out.println("data file " + data_file);
 	System.out.println("train percent " + trainPercent);
-	System.out.println("test word percent " + testWordPercent);
+	//System.out.println("test word percent " + testWordPercent);
 
 	Main main = new Main();
 
-	List<PaperAbstract> documents = main.load_data(data_file);
+	double[] testWordPercents = {0.1, 0.3, 0.5, 0.7, 0.9};
+	int[] ks = {1, 5, 10, 15, 20};
+	int[] closest_k = {5, 20, 50, 75, 100, 150, 200};
+
+	List<PaperAbstract> documents = main.load_data(data_file);	
 	List<PaperAbstract> trainingSet = 
 	    documents.subList(0, ((int)(documents.size() * trainPercent)));
 	List<PaperAbstract> testingSet = 
 	    documents.subList((int)(documents.size() * trainPercent) + 1,
 			      documents.size());
-        
+	
 	Indexer<String> wordIndexer = main.getWordIndexer();
-	Term[] terms = new Term[wordIndexer.size()];
-	for (int i=0;i<wordIndexer.size();i++){
-		terms[i]=new Term(i, wordIndexer.get(i));
-	}
-
-	for (PaperAbstract a:trainingSet){
-		a.generateData(testWordPercent, wordIndexer, terms, false);
-	}
-	for (PaperAbstract a:testingSet){
-		a.generateData(testWordPercent, wordIndexer, terms, true);
-	}
 
 	System.out.println("Total number of words: " + wordIndexer.size());
+
+	Term[] terms = new Term[wordIndexer.size()];
+	for (int i = 0; i < wordIndexer.size(); i++) {
+	    terms[i] = new Term(i, wordIndexer.get(i));
+	}
 	
-	int k = 5;
-	boolean usedWords= true;
 
-	// Lda
-	Integer[][] LdaPredict= new Lda(documents, trainingSet, testingSet,
-					wordIndexer, terms).
-	    predict(k, usedWords);
-	double[] LdaResult = Main.evaluate(testingSet, terms, LdaPredict, 
-					   documents.size(), k, usedWords, 
-					   main.getWordIndexer());
-	System.out.println("LDA results");
-	Main.printResults(LdaResult);
+	for (int twp = 0; twp < testWordPercents.length; twp++) {
+	    double testWordPercent = testWordPercents[twp];
+	    
+	    for (PaperAbstract a:trainingSet){
+		a.generateData(testWordPercent, wordIndexer, terms, false);
+	    }
+	    for (PaperAbstract a:testingSet){
+		a.generateData(testWordPercent, wordIndexer, terms, true);
+	    }
+	    
+	    //Lda lda = new Lda(documents, trainingSet, testingSet, wordIndexer, terms);
+	    //Baseline base = new Baseline(documents, trainingSet, testingSet, wordIndexer, terms);
+	    Baseline1 base1 = new Baseline1(documents, trainingSet, testingSet, wordIndexer, terms);
 
-	// KNN
-	Integer[][] KNNPredict = new KNN(documents, trainingSet, testingSet, 
-					 wordIndexer, terms).
-	    predict(k, usedWords);
-	double[] KNNResult = Main.evaluate(testingSet, terms, KNNPredict, 
-					   documents.size(), k, usedWords, 
-					   main.getWordIndexer());	
-	System.out.println("KNN results");
-	Main.printResults(KNNResult);
+	    File twpDir = null;
+	    try {
+		twpDir = new File(new File("experiment"), testWordPercent + "");
+		twpDir.mkdir();
+	    } catch(Exception e) {
+		e.printStackTrace();
+	    }
+		
+	    for (int ki = 0; ki < ks.length; ki++) {
+		int k = ks[ki];
 
-	// Baseline
-	Integer[][] BLPredict = new Baseline(documents, trainingSet, 
-					     testingSet, wordIndexer, terms).
-	    predict(k, usedWords);
-	double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, 
-					  documents.size(), k, usedWords, 
-					  main.getWordIndexer());	
-	System.out.println("Baseline results");
-	Main.printResults(BLResult);
+		File kDir = null;
+		try {
+		    kDir = new File(twpDir, k + "");
+		    kDir.mkdir();
+		} catch(Exception e) {
+		    e.printStackTrace();
+		}
+
+		for (int c = 0; c < 2; c++) {
+		    boolean usedWords = true ? c == 0 : false;
+
+		    System.out.println("processing testwordpercent: " + testWordPercent + 
+				       " k: " + k + " usedWords: " + usedWords);
+
+		    File outputDir = null;
+		    try {
+			outputDir = new File(kDir, usedWords + "");
+			outputDir.mkdir();
+		    } catch(Exception e) {
+			e.printStackTrace();
+		    }		    
+
+		    /*
+		    // Lda
+		    Integer[][] LdaPredict = lda.predict(k, usedWords, outputDir);
+		    double[] LdaResult = Main.evaluate(testingSet, terms, LdaPredict, 
+						       documents.size(), k, usedWords, 
+						       main.getWordIndexer());
+		    //System.out.println("LDA results");
+		    File ldaOut = new File(outputDir, "lda.out");
+		    Main.printResults(ldaOut, LdaResult);
+		    */
+		    for (int ck = 0; ck < closest_k.length; ck ++) {
+			int closest_num = closest_k[ck];
+			// KNN with citation
+			/*
+			KNNWithCitation knnc = new KNNWithCitation(closest_num, documents, 
+								  trainingSet, testingSet, 
+								  wordIndexer, terms);
+			
+			Integer[][] KNNCPredict = knnc.predict(k, usedWords, outputDir);
+			double[] KNNCResult = Main.evaluate(testingSet, terms, KNNCPredict, 
+							    documents.size(), k, usedWords, 
+							    main.getWordIndexer());
+			//System.out.println("KNN results");
+			File knncOut = new File(outputDir, "knnc-" + closest_num + ".out");
+			Main.printResults(knncOut, KNNCResult);
+			*/
+			/*
+			// knn
+
+			KNN knn = new KNN(closest_num, documents, 
+					  trainingSet, testingSet, 
+					  wordIndexer, terms);
+			
+			Integer[][] KNNPredict = knn.predict(k, usedWords, outputDir);
+			double[] KNNResult = Main.evaluate(testingSet, terms, KNNPredict, 
+							   documents.size(), k, usedWords, 
+							   main.getWordIndexer());
+			//System.out.println("KNN results");
+			File knnOut = new File(outputDir, "knn-" + closest_num + ".out");
+			Main.printResults(knnOut, KNNResult);
+			*/
+		    }
+
+		    /*
+		    // Baseline
+		    Integer[][] BLPredict = base.predict(k, usedWords, outputDir);
+		    double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, 
+						      documents.size(), k, usedWords, 
+						      main.getWordIndexer());	
+		    //System.out.println("Baseline results");
+		    File baseOut = new File(outputDir, "baseline.out");
+		    Main.printResults(baseOut, BLResult);
+		    */
+
+		    // Baseline1
+		    Integer[][] BLPredict1 = base1.predict(k, usedWords, outputDir);
+		    double[] BLResult1 = Main.evaluate(testingSet, terms, BLPredict1, 
+						      documents.size(), k, usedWords, 
+						      main.getWordIndexer());	
+		    //System.out.println("Baseline results");
+		    File baseOut1 = new File(outputDir, "baseline1.out");
+		    Main.printResults(baseOut1, BLResult1);
+		}
+	    }
+	}
     }
 }
