@@ -151,8 +151,6 @@ public class PaperAbstract {
     	return length;
     }
     
-
-    
     public double similarity(PaperAbstract a){
     	double dist = 0.0;
     	
@@ -169,5 +167,11 @@ public class PaperAbstract {
     		
     	}
     	return dist;
+    }
+
+    public boolean equals(Object obj) {
+	if (obj instanceof PaperAbstract)
+	    return this.index == (PaperAbstract)obj.index;
+	return false;
     }
 }

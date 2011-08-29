@@ -228,7 +228,7 @@ public class Main {
 
 	for (int twp = 0; twp < testWordPercents.length; twp++) {
 	    double testWordPercent = testWordPercents[twp];
-	    
+
 	    for (PaperAbstract a:trainingSet){
 		a.generateData(testWordPercent, wordIndexer, terms, false);
 	    }
@@ -335,6 +335,7 @@ public class Main {
 		    //System.out.println("Baseline results");
 		    File baseOut1 = new File(outputDir, "baseline1.out");
 		    Main.printResults(baseOut1, BLResult1);
+		    base1.reset();
 		}
 	    }
 	}
