@@ -1,3 +1,5 @@
+#!/bin/csh
+
 # compile lda code
 cd lib/lda-c-dist; make;
 

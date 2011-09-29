@@ -1,0 +1,5 @@
+*.o
+/Plusone.jar
+/build
+/dist
+/experiment
