@@ -10,6 +10,7 @@ import plusone.clustering.Baseline1;
 import plusone.clustering.KNN;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.Lda;
+import plusone.clustering.KNNRandomWalkPredictor;
 
 import java.io.*;
 
@@ -314,6 +315,19 @@ public class Main {
 			File knnOut = new File(outputDir, "knn-" + closest_num + ".out");
 			Main.printResults(knnOut, KNNResult);
 			*/
+
+                        /*
+                        KNNRandomWalkPredictor knnRWPredictor =
+                            new KNNRandomWalkPredictor(closest_num, documents,
+                                                       trainingSet, testingSet,
+                                                       wordIndexer, terms, 1, 0.5, 1);
+                        Integer[][] knnRWPredictions = knnRWPredictor.predict(k, usedWords, outputDir);
+                        double[] knnRWResult = Main.evaluate(testingSet, terms, knnRWPredictions,
+                                                             documents.size(), k, usedWords,
+                                                             main.getWordIndexer());
+			File knnRWOut = new File(outputDir, "knnrw-" + closest_num + ".out");
+			Main.printResults(knnRWOut, knnRWResult);
+                        */
 		    }
 
 		    /*

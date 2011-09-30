@@ -3,10 +3,10 @@
 setenv basedir $PWD
 
 # compile lda code
-cd lib/lda-c-dist; make;
+cd lib/lda-c-dist; make || exit
 
 # compile using ant
-cd $basedir; ant -f build.xml;
+cd $basedir; ant -f build.xml || exit
 
 # download test.data if it doesn't exist
 
