@@ -2,8 +2,10 @@ package plusone.utils;
 
 import java.lang.Math;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import plusone.utils.PaperAbstract;
 
 public class SparseWordIntVec {
@@ -27,14 +29,17 @@ public class SparseWordIntVec {
         }
     }
 
-    public Integer[] topK(int k) {
+    public Integer[] topKExcluding(int k, PaperAbstract excl) {
         PriorityQueue<WordAndScore> q = new PriorityQueue<WordAndScore>();
         for (Map.Entry<Integer, Integer> entry : coords.entrySet())
-            q.add(new WordAndScore(entry.getKey(), entry.getValue(), true));
+            if (excl == null || excl.getTf0(entry.getKey()) == 0)
+                q.add(new WordAndScore(entry.getKey(), entry.getValue(), true));
         int kk = Math.min(k, q.size());
         Integer[] ret = new Integer[kk];
         for (int i = 0; i < kk; ++ i)
             ret[i] = q.poll().wordID;
         return ret;
     }
+
+    public Integer[] topK(int k) { return topKExcluding(k, null); }
 }

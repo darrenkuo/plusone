@@ -30,4 +30,7 @@ public class Term {
     public int idfRaw(){
 	return doc_train.size();
     }
+
+    public List<PaperAbstract> getDocTrain() { return doc_train; }
+    public List<PaperAbstract> getDocTest() { return doc_train; }
 }

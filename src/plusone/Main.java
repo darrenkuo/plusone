@@ -7,9 +7,11 @@ import plusone.utils.Term;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.Baseline1;
+import plusone.clustering.ClusteringTest;
 import plusone.clustering.KNN;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.Lda;
+import plusone.clustering.DTRandomWalkPredictor;
 import plusone.clustering.KNNRandomWalkPredictor;
 
 import java.io.*;
@@ -328,6 +330,19 @@ public class Main {
 			File knnRWOut = new File(outputDir, "knnrw-" + closest_num + ".out");
 			Main.printResults(knnRWOut, knnRWResult);
                         */
+
+                        ClusteringTest dtRWPredictor =
+                            new DTRandomWalkPredictor(documents,
+                                                      trainingSet, testingSet,
+                                                      wordIndexer, terms,
+                                                      3, /* <- walk length */
+                                                      10  /* <- num sample walks */);
+                        Integer[][] dtRWPredictions = dtRWPredictor.predict(k, usedWords, outputDir);
+                        double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
+                                                            documents.size(), k, usedWords,
+                                                            main.getWordIndexer());
+			File dtRWOut = new File(outputDir, "dtrw-" + closest_num + ".out");
+			Main.printResults(dtRWOut, dtRWResult);
 		    }
 
 		    /*
