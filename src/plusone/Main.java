@@ -240,7 +240,7 @@ public class Main {
 	    }
 	    
 	    //Lda lda = new Lda(documents, trainingSet, testingSet, wordIndexer, terms);
-	    //Baseline base = new Baseline(documents, trainingSet, testingSet, wordIndexer, terms);
+	    Baseline base = new Baseline(documents, trainingSet, testingSet, wordIndexer, terms);
 	    Baseline1 base1 = new Baseline1(documents, trainingSet, testingSet, wordIndexer, terms);
 
 	    File twpDir = null;
@@ -331,21 +331,20 @@ public class Main {
 			Main.printResults(knnRWOut, knnRWResult);
                         */
 
-                        ClusteringTest dtRWPredictor =
-                            new DTRandomWalkPredictor(documents,
-                                                      trainingSet, testingSet,
-                                                      wordIndexer, terms,
-                                                      3, /* <- walk length */
-                                                      10  /* <- num sample walks */);
-                        Integer[][] dtRWPredictions = dtRWPredictor.predict(k, usedWords, outputDir);
-                        double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
-                                                            documents.size(), k, usedWords,
-                                                            main.getWordIndexer());
-			File dtRWOut = new File(outputDir, "dtrw-" + closest_num + ".out");
-			Main.printResults(dtRWOut, dtRWResult);
 		    }
+                    ClusteringTest dtRWPredictor =
+                        new DTRandomWalkPredictor(documents,
+                                                  trainingSet, testingSet,
+                                                  wordIndexer, terms,
+                                                  1, /* <- walk length */
+                                                  300  /* <- num sample walks */);
+                    Integer[][] dtRWPredictions = dtRWPredictor.predict(k, usedWords, outputDir);
+                    double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
+                                                        documents.size(), k, usedWords,
+                                                        main.getWordIndexer());
+                    File dtRWOut = new File(outputDir, "dtrw.out");
+                    Main.printResults(dtRWOut, dtRWResult);
 
-		    /*
 		    // Baseline
 		    Integer[][] BLPredict = base.predict(k, usedWords, outputDir);
 		    double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, 
@@ -354,7 +353,6 @@ public class Main {
 		    //System.out.println("Baseline results");
 		    File baseOut = new File(outputDir, "baseline.out");
 		    Main.printResults(baseOut, BLResult);
-		    */
 
 		    // Baseline1
 		    Integer[][] BLPredict1 = base1.predict(k, usedWords, outputDir);

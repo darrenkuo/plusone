@@ -69,12 +69,16 @@ public class DTRandomWalkPredictor extends ClusteringTest {
         PaperAbstract abs = start;
         for (int i = 0; i < walkLength; ++i) {
             List<Integer> words = abs.outputWords;
-            if (words.size() == 0)
+            if (words.size() == 0) {
+                if (i != 0) throw new Error("assertion failed");
                 return null;
+            }
             Integer word = words.get(rand.nextInt(words.size()));
             List<PaperAbstract> wordDocs = terms[word].getDocTrain();
-            if (wordDocs.size() == 0)
+            if (wordDocs.size() == 0) {
+                if (i != 0) throw new Error("assertion failed");
                 return null;
+            }
             abs = wordDocs.get(rand.nextInt(wordDocs.size()));
         }
         return abs;
