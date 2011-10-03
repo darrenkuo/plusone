@@ -107,7 +107,7 @@ public class Main {
 		PaperAbstract a = 
 		    new PaperAbstract(index, inRef, 
 				      outRef, abstractText, 
-				      wordIndexer);
+				      wordIndexer, results.size());
 		results.add(a);
 	    }
 	    br.close();
@@ -159,6 +159,9 @@ public class Main {
 	//System.out.println("predicted: " + predicted);
 	//System.out.println("total: " + total);
 
+	/* FIXME: We probably should divide by k here, rather than the total
+	 * number of predictions made; otherwise we reward methods that make
+	 * less predictions.  -James */
     	results[0]=((double)predicted)/((double)total);
     	results[1]=idfScore;
     	results[2]=tfidfScore;

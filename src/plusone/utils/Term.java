@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Random;
 
 public class Term {
+    /* Warning: doc_train might not do what you think (it can contain testing
+     * documents).  See generateData in PaperAbstract. */
     List<PaperAbstract> doc_train;
     List<PaperAbstract> doc_test;
     int Id;
@@ -33,4 +35,13 @@ public class Term {
 
     public List<PaperAbstract> getDocTrain() { return doc_train; }
     public List<PaperAbstract> getDocTest() { return doc_train; }
+
+    public SparseIntIntVec makeTrainingDocVec() {
+	SparseIntIntVec ret = new SparseIntIntVec();
+	for (PaperAbstract doc : doc_train) {
+	    if (!doc.test)
+		ret.addSingle(doc.indexInGlobalList, 1);
+	}
+	return ret;
+    }
 }

@@ -13,8 +13,10 @@ cd $basedir; ant -f build.xml || exit
 if (!(-f /tmp/test.5000.data)) then
    cd /tmp/
    wget http://inst.eecs.berkeley.edu/~darrenk/test.5000.data
-   cd cd $basedir
+   cd $basedir
 endif
+
+mkdir -p experiment
 
 #java -agentlib:hprof=cpu=samples -Xmx6000m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
 #java -agentlib:hprof=heap=sites -Xmx128m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
