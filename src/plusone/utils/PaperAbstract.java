@@ -171,7 +171,7 @@ public class PaperAbstract {
 
     public boolean equals(Object obj) {
 	if (obj instanceof PaperAbstract)
-	    return this.index == (PaperAbstract)obj.index;
+	    return this.index == ((PaperAbstract)obj).index;
 	return false;
     }
 }
