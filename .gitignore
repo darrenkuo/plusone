@@ -1,0 +1,6 @@
+*.o
+/Plusone.jar
+/build
+/dist
+/experiment
+/lib/lda-c-dist/lda

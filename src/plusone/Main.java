@@ -7,9 +7,12 @@ import plusone.utils.Term;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.Baseline1;
+import plusone.clustering.ClusteringTest;
 import plusone.clustering.KNN;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.Lda;
+import plusone.clustering.DTRandomWalkPredictor;
+import plusone.clustering.KNNRandomWalkPredictor;
 
 import java.io.*;
 
@@ -104,7 +107,7 @@ public class Main {
 		PaperAbstract a = 
 		    new PaperAbstract(index, inRef, 
 				      outRef, abstractText, 
-				      wordIndexer);
+				      wordIndexer, results.size());
 		results.add(a);
 	    }
 	    br.close();
@@ -156,6 +159,9 @@ public class Main {
 	//System.out.println("predicted: " + predicted);
 	//System.out.println("total: " + total);
 
+	/* FIXME: We probably should divide by k here, rather than the total
+	 * number of predictions made; otherwise we reward methods that make
+	 * less predictions.  -James */
     	results[0]=((double)predicted)/((double)total);
     	results[1]=idfScore;
     	results[2]=tfidfScore;
@@ -237,7 +243,7 @@ public class Main {
 	    }
 	    
 	    //Lda lda = new Lda(documents, trainingSet, testingSet, wordIndexer, terms);
-	    //Baseline base = new Baseline(documents, trainingSet, testingSet, wordIndexer, terms);
+	    Baseline base = new Baseline(documents, trainingSet, testingSet, wordIndexer, terms);
 	    Baseline1 base1 = new Baseline1(documents, trainingSet, testingSet, wordIndexer, terms);
 
 	    File twpDir = null;
@@ -314,9 +320,34 @@ public class Main {
 			File knnOut = new File(outputDir, "knn-" + closest_num + ".out");
 			Main.printResults(knnOut, KNNResult);
 			*/
-		    }
 
-		    /*
+                        /*
+                        KNNRandomWalkPredictor knnRWPredictor =
+                            new KNNRandomWalkPredictor(closest_num, documents,
+                                                       trainingSet, testingSet,
+                                                       wordIndexer, terms, 1, 0.5, 1);
+                        Integer[][] knnRWPredictions = knnRWPredictor.predict(k, usedWords, outputDir);
+                        double[] knnRWResult = Main.evaluate(testingSet, terms, knnRWPredictions,
+                                                             documents.size(), k, usedWords,
+                                                             main.getWordIndexer());
+			File knnRWOut = new File(outputDir, "knnrw-" + closest_num + ".out");
+			Main.printResults(knnRWOut, knnRWResult);
+                        */
+
+		    }
+                    ClusteringTest dtRWPredictor =
+                        new DTRandomWalkPredictor(documents,
+                                                  trainingSet, testingSet,
+                                                  wordIndexer, terms,
+                                                  1, /* <- walk length */
+                                                  300  /* <- num sample walks */);
+                    Integer[][] dtRWPredictions = dtRWPredictor.predict(k, usedWords, outputDir);
+                    double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
+                                                        documents.size(), k, usedWords,
+                                                        main.getWordIndexer());
+                    File dtRWOut = new File(outputDir, "dtrw.out");
+                    Main.printResults(dtRWOut, dtRWResult);
+
 		    // Baseline
 		    Integer[][] BLPredict = base.predict(k, usedWords, outputDir);
 		    double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, 
@@ -325,7 +356,6 @@ public class Main {
 		    //System.out.println("Baseline results");
 		    File baseOut = new File(outputDir, "baseline.out");
 		    Main.printResults(baseOut, BLResult);
-		    */
 
 		    // Baseline1
 		    Integer[][] BLPredict1 = base1.predict(k, usedWords, outputDir);

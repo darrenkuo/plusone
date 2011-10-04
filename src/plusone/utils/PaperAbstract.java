@@ -14,7 +14,7 @@ import java.util.Set;
 import plusone.utils.Term;
 
 public class PaperAbstract {
-    public int index;
+    public int index, indexInGlobalList;
     public Integer[] abstractText;
     public int[] inReferences;
     public int[] outReferences;
@@ -32,8 +32,10 @@ public class PaperAbstract {
     
     public PaperAbstract(int index, int[] inReferences, 
 			 int[] outReferences, String abstractText,
-			 Indexer<String> wordIndexer) {
+			 Indexer<String> wordIndexer,
+			 int indexInGlobalList) {
 	this.index = index;
+	this.indexInGlobalList = indexInGlobalList;
 	
 	String[] words = abstractText.trim().split(" ");   
 	this.abstractText = new Integer[words.length];
@@ -87,6 +89,10 @@ public class PaperAbstract {
     		this.outputWords.add(wordID);
     		if (!this.trainingTf.containsKey(wordID))
     		{
+		    /* FIXME: Adding testing documents to a field called
+		     * doc_train (which Term.addDoc does) seems to be asking
+		     * for trouble.  I have almost written code that trained on
+		     * testing documents because of this.  -James */
 		    terms[wordID].addDoc(this, false);
 		    uniqueWords++;
 		    wordSet.add(wordID);
