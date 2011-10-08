@@ -182,6 +182,28 @@ public class Main {
 	writer.close();
     }
 
+    static double[] parseDoubleList(String s) {
+	String[] tokens = s.split(",");
+	double[] ret = new double[tokens.length];
+	for (int i = 0; i < tokens.length; ++ i) {
+	    ret[i] = Double.valueOf(tokens[i]);
+	}
+	return ret;
+    }
+
+    static int[] parseIntList(String s) {
+	String[] tokens = s.split(",");
+	int[] ret = new int[tokens.length];
+	for (int i = 0; i < tokens.length; ++ i) {
+	    ret[i] = Integer.valueOf(tokens[i]);
+	}
+	return ret;
+    }
+
+    static Boolean testIsEnabled(String testName) {
+	return Boolean.getBoolean("plusone.enableTest." + testName);
+    }
+
     /*
      * data - args[1]
      * train percent - args[2]
@@ -211,9 +233,13 @@ public class Main {
 
 	Main main = new Main();
 
-	double[] testWordPercents = {0.1, 0.3, 0.5, 0.7, 0.9};
-	int[] ks = {1, 5, 10, 15, 20};
-	int[] closest_k = {5, 20, 50, 75, 100, 150, 200};
+	/* These values can be set on the command line.  For example, to set
+	 * testWordPercents to {0.4,0.5}, pass the command-line argument
+	 * -Dplusone.testWordPercents=0.4,0.5 to java (before the class name).
+	 */
+	double[] testWordPercents = parseDoubleList(System.getProperty("plusone.testWordPercents", "0.1,0.3,0.5,0.7,0.9"));
+	int[] ks = parseIntList(System.getProperty("plusone.kValues", "1,5,10,15,20"));
+	int[] closest_k = parseIntList(System.getProperty("plusone.closestKValues", "5,20,50,75,100,150,200"));
 
 	List<PaperAbstract> documents = main.load_data(data_file);	
 	List<PaperAbstract> trainingSet = 
@@ -281,91 +307,99 @@ public class Main {
 
 		    /*
 		    // Lda
-		    Integer[][] LdaPredict = lda.predict(k, usedWords, outputDir);
+		    if (testIsEnabled("lda")) {
+		    Integer[][] LdaPredict = Lda.predict(k, usedWords, outputDir);
 		    double[] LdaResult = Main.evaluate(testingSet, terms, LdaPredict, 
 						       documents.size(), k, usedWords, 
 						       main.getWordIndexer());
 		    //System.out.println("LDA results");
 		    File ldaOut = new File(outputDir, "lda.out");
 		    Main.printResults(ldaOut, LdaResult);
+		    }
 		    */
 		    for (int ck = 0; ck < closest_k.length; ck ++) {
 			int closest_num = closest_k[ck];
 			// KNN with citation
-			/*
-			KNNWithCitation knnc = new KNNWithCitation(closest_num, documents, 
-								  trainingSet, testingSet, 
-								  wordIndexer, terms);
-			
-			Integer[][] KNNCPredict = knnc.predict(k, usedWords, outputDir);
-			double[] KNNCResult = Main.evaluate(testingSet, terms, KNNCPredict, 
-							    documents.size(), k, usedWords, 
-							    main.getWordIndexer());
-			//System.out.println("KNN results");
-			File knncOut = new File(outputDir, "knnc-" + closest_num + ".out");
-			Main.printResults(knncOut, KNNCResult);
-			*/
-			/*
+			if (testIsEnabled("knnc")) {
+			    KNNWithCitation knnc = new KNNWithCitation(closest_num, documents, 
+								       trainingSet, testingSet, 
+								       wordIndexer, terms);
+			    
+			    Integer[][] KNNCPredict = knnc.predict(k, usedWords, outputDir);
+			    double[] KNNCResult = Main.evaluate(testingSet, terms, KNNCPredict, 
+								documents.size(), k, usedWords, 
+								main.getWordIndexer());
+			    //System.out.println("KNN results");
+			    File knncOut = new File(outputDir, "knnc-" + closest_num + ".out");
+			    Main.printResults(knncOut, KNNCResult);
+			}
+
 			// knn
+			if (testIsEnabled("knn")) {
+			    KNN knn = new KNN(closest_num, documents, 
+					      trainingSet, testingSet, 
+					      wordIndexer, terms);
+			    
+			    Integer[][] KNNPredict = knn.predict(k, usedWords, outputDir);
+			    double[] KNNResult = Main.evaluate(testingSet, terms, KNNPredict, 
+							       documents.size(), k, usedWords, 
+							       main.getWordIndexer());
+			    //System.out.println("KNN results");
+			    File knnOut = new File(outputDir, "knn-" + closest_num + ".out");
+			    Main.printResults(knnOut, KNNResult);
+			}
 
-			KNN knn = new KNN(closest_num, documents, 
-					  trainingSet, testingSet, 
-					  wordIndexer, terms);
-			
-			Integer[][] KNNPredict = knn.predict(k, usedWords, outputDir);
-			double[] KNNResult = Main.evaluate(testingSet, terms, KNNPredict, 
-							   documents.size(), k, usedWords, 
-							   main.getWordIndexer());
-			//System.out.println("KNN results");
-			File knnOut = new File(outputDir, "knn-" + closest_num + ".out");
-			Main.printResults(knnOut, KNNResult);
-			*/
-
-                        /*
-                        KNNRandomWalkPredictor knnRWPredictor =
-                            new KNNRandomWalkPredictor(closest_num, documents,
-                                                       trainingSet, testingSet,
-                                                       wordIndexer, terms, 1, 0.5, 1);
-                        Integer[][] knnRWPredictions = knnRWPredictor.predict(k, usedWords, outputDir);
-                        double[] knnRWResult = Main.evaluate(testingSet, terms, knnRWPredictions,
-                                                             documents.size(), k, usedWords,
-                                                             main.getWordIndexer());
-			File knnRWOut = new File(outputDir, "knnrw-" + closest_num + ".out");
-			Main.printResults(knnRWOut, knnRWResult);
-                        */
+                        if (testIsEnabled("knnrw")) {
+			    KNNRandomWalkPredictor knnRWPredictor =
+				new KNNRandomWalkPredictor(closest_num, documents,
+							   trainingSet, testingSet,
+							   wordIndexer, terms, 1, 0.5, 1);
+			    Integer[][] knnRWPredictions = knnRWPredictor.predict(k, usedWords, outputDir);
+			    double[] knnRWResult = Main.evaluate(testingSet, terms, knnRWPredictions,
+								 documents.size(), k, usedWords,
+								 main.getWordIndexer());
+			    File knnRWOut = new File(outputDir, "knnrw-" + closest_num + ".out");
+			    Main.printResults(knnRWOut, knnRWResult);
+                        }
 
 		    }
-                    ClusteringTest dtRWPredictor =
-                        new DTRandomWalkPredictor(documents,
-                                                  trainingSet, testingSet,
-                                                  wordIndexer, terms,
-                                                  1); /* <- walk length */
-                                                  //300  /* <- num sample walks */);
-                    Integer[][] dtRWPredictions = dtRWPredictor.predict(k, usedWords, outputDir);
-                    double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
-                                                        documents.size(), k, usedWords,
-                                                        main.getWordIndexer());
-                    File dtRWOut = new File(outputDir, "dtrw.out");
-                    Main.printResults(dtRWOut, dtRWResult);
+		    if (testIsEnabled("dtrw")) {
+			ClusteringTest dtRWPredictor =
+			    new DTRandomWalkPredictor(documents,
+						      trainingSet, testingSet,
+						      wordIndexer, terms,
+						      1); /* <- walk length */
+						      //300  /* <- num sample walks */);
+			Integer[][] dtRWPredictions = dtRWPredictor.predict(k, usedWords, outputDir);
+			double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
+							    documents.size(), k, usedWords,
+							    main.getWordIndexer());
+			File dtRWOut = new File(outputDir, "dtrw.out");
+			Main.printResults(dtRWOut, dtRWResult);
+		    }
 
 		    // Baseline
-		    Integer[][] BLPredict = base.predict(k, usedWords, outputDir);
-		    double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, 
-						      documents.size(), k, usedWords, 
-						      main.getWordIndexer());	
-		    //System.out.println("Baseline results");
-		    File baseOut = new File(outputDir, "baseline.out");
-		    Main.printResults(baseOut, BLResult);
+		    if (testIsEnabled("baseline")) {
+			Integer[][] BLPredict = base.predict(k, usedWords, outputDir);
+			double[] BLResult = Main.evaluate(testingSet, terms, BLPredict, 
+							  documents.size(), k, usedWords, 
+							  main.getWordIndexer());	
+			//System.out.println("Baseline results");
+			File baseOut = new File(outputDir, "baseline.out");
+			Main.printResults(baseOut, BLResult);
+		    }
 
 		    // Baseline1
-		    Integer[][] BLPredict1 = base1.predict(k, usedWords, outputDir);
-		    double[] BLResult1 = Main.evaluate(testingSet, terms, BLPredict1, 
-						      documents.size(), k, usedWords, 
-						      main.getWordIndexer());	
-		    //System.out.println("Baseline results");
-		    File baseOut1 = new File(outputDir, "baseline1.out");
-		    Main.printResults(baseOut1, BLResult1);
-		    base1.reset();
+		    if (testIsEnabled("baseline1")) {
+			Integer[][] BLPredict1 = base1.predict(k, usedWords, outputDir);
+			double[] BLResult1 = Main.evaluate(testingSet, terms, BLPredict1, 
+							   documents.size(), k, usedWords, 
+							   main.getWordIndexer());	
+			//System.out.println("Baseline results");
+			File baseOut1 = new File(outputDir, "baseline1.out");
+			Main.printResults(baseOut1, BLResult1);
+			base1.reset();
+		    }
 		}
 	    }
 	}

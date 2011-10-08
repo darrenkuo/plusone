@@ -1,6 +1,6 @@
-#!/bin/csh
+#!/bin/sh
 
-setenv basedir $PWD
+export basedir=$PWD
 
 # compile lda code
 cd lib/lda-c-dist; make || exit
@@ -10,16 +10,28 @@ cd $basedir; ant -f build.xml || exit
 
 # download test.data if it doesn't exist
 
-if (!(-f /tmp/test.5000.data)) then
+if test ! -f /tmp/test.5000.data; then
    cd /tmp/
    wget http://inst.eecs.berkeley.edu/~darrenk/test.5000.data
    cd $basedir
-endif
+fi
 
 mkdir -p experiment
 
+args=\
+"-Dplusone.testWordPercents=0.1,0.3,0.5,0.7,0.9 \
+ -Dplusone.kValues=1,5,10,15,20 \
+ -Dplusone.closestKValues=5,20,50,75,100,150,200 \
+ -Dplusone.enableTest.lda=false \
+ -Dplusone.enableTest.knnc=false \
+ -Dplusone.enableTest.knn=false \
+ -Dplusone.enableTest.knnrw=false \
+ -Dplusone.enableTest.dtrw=false \
+ -Dplusone.enableTest.baseline=true \
+ -Dplusone.enableTest.baseline1=true"
+
 #java -agentlib:hprof=cpu=samples -Xmx6000m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
 #java -agentlib:hprof=heap=sites -Xmx128m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
-java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
+java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main /tmp/test.5000.data 0.8 0.3
 #java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main toy.data 0.8 0.3
 #java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/wiki.data 0.8 0.3
