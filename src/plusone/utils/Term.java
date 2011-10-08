@@ -33,14 +33,18 @@ public class Term {
 	return doc_train.size();
     }
 
+    public double trainingIdf(int nDocs) {
+        return Math.log(nDocs / (double)idfRaw());
+    }
+
     public List<PaperAbstract> getDocTrain() { return doc_train; }
     public List<PaperAbstract> getDocTest() { return doc_train; }
 
-    public SparseIntIntVec makeTrainingDocVec() {
-	SparseIntIntVec ret = new SparseIntIntVec();
+    public SparseVec makeTrainingDocVec(boolean useFreqs) {
+	SparseVec ret = new SparseVec();
 	for (PaperAbstract doc : doc_train) {
 	    if (!doc.test)
-		ret.addSingle(doc.indexInGlobalList, 1);
+		ret.addSingle(doc.indexInGlobalList, useFreqs ? doc.getTf0(Id) : 1.0);
 	}
 	return ret;
     }

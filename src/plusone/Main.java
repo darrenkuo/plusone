@@ -339,8 +339,8 @@ public class Main {
                         new DTRandomWalkPredictor(documents,
                                                   trainingSet, testingSet,
                                                   wordIndexer, terms,
-                                                  1, /* <- walk length */
-                                                  300  /* <- num sample walks */);
+                                                  1); /* <- walk length */
+                                                  //300  /* <- num sample walks */);
                     Integer[][] dtRWPredictions = dtRWPredictor.predict(k, usedWords, outputDir);
                     double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
                                                         documents.size(), k, usedWords,

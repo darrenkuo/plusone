@@ -6,7 +6,7 @@ import java.util.Random;
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
-import plusone.utils.SparseIntIntVec;
+import plusone.utils.SparseVec;
 import plusone.utils.Term;
 
 public class KNNRandomWalkPredictor extends KNN {
@@ -52,9 +52,9 @@ public class KNNRandomWalkPredictor extends KNN {
 
             /* Add together documents at the end of nSampleWalks random
              * walks. */
-            SparseIntIntVec v = new SparseIntIntVec();
+            SparseVec v = new SparseVec();
             for (int i = 0; i < nSampleWalks; ++ i)
-                v.plusEquals(new SparseIntIntVec(trainingSet.get(walk(a))));
+                v.plusEquals(new SparseVec(trainingSet.get(walk(a)).trainingTf));
 
             ret[document] = v.topK(k);
 	    for (int i = 0; i < ret[document].length; ++ i) {

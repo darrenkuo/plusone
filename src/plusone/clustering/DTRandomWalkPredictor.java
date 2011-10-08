@@ -8,7 +8,7 @@ import plusone.utils.Document;
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
-import plusone.utils.SparseIntIntVec;
+import plusone.utils.SparseVec;
 import plusone.utils.Term;
 
 /** Does a random walk on the document-topic graph to find words.
@@ -72,14 +72,14 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	     document ++) {
 	    PaperAbstract a = testingSet.get(document);
 
-            SparseIntIntVec words;
+            SparseVec words;
 	    if (stochastic) {
 		/* Add together words at the end of nSampleWalks random walks. */
-		words = new SparseIntIntVec();
+		words = new SparseVec();
 		for (int i = 0; i < nSampleWalks; ++ i) {
 		    PaperAbstract endOfWalk = stochWalk(a);
 		    if (null == endOfWalk) continue;
-		    words.plusEquals(new SparseIntIntVec(endOfWalk));
+		    words.plusEquals(new SparseVec(endOfWalk.trainingTf));
 		}
 	    } else {
 		words = detWalk(a);
@@ -115,20 +115,22 @@ public class DTRandomWalkPredictor extends ClusteringTest {
         return abs;
     }
 
-    protected SparseIntIntVec detWalk(PaperAbstract start) {
-	SparseIntIntVec words = new SparseIntIntVec(start);
+    protected SparseVec detWalk(PaperAbstract start) {
+	SparseVec words = new SparseVec(start.trainingTf);
+        int nDocs = trainingSet.size() + testingSet.size();
 	for (int i = 0; i < walkLength; ++i) {
 	    /* Walk from words to docs. */
-	    SparseIntIntVec docs = new SparseIntIntVec();
-	    for (Map.Entry<Integer, Integer> pair : words.pairs()) {
-		SparseIntIntVec docsForThisWord = terms[pair.getKey()].makeTrainingDocVec();
-		docsForThisWord.dotEquals(pair.getValue());
+	    SparseVec docs = new SparseVec();
+	    for (Map.Entry<Integer, Double> pair : words.pairs()) {
+                Term term = terms[pair.getKey()];
+		SparseVec docsForThisWord = term.makeTrainingDocVec(true);
+                docsForThisWord.dotEquals(pair.getValue() * term.trainingIdf(nDocs));
 		docs.plusEquals(docsForThisWord);
 	    }
 	    /* Walk from docs to words. */
-	    words = new SparseIntIntVec();
-	    for (Map.Entry<Integer, Integer> pair : docs.pairs()) {
-		SparseIntIntVec wordsForThisDoc = new SparseIntIntVec(trainingSet.get(pair.getKey()));
+	    words = new SparseVec();
+	    for (Map.Entry<Integer, Double> pair : docs.pairs()) {
+		SparseVec wordsForThisDoc = trainingSet.get(pair.getKey()).makeTrainingWordVec(true, nDocs, terms);
 		wordsForThisDoc.dotEquals(pair.getValue());
 		words.plusEquals(wordsForThisDoc);
 	    }

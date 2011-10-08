@@ -180,4 +180,11 @@ public class PaperAbstract {
 	    return this.index == ((PaperAbstract)obj).index;
 	return false;
     }
+
+    public SparseVec makeTrainingWordVec(boolean useFreqs, int nDocs, Term[] terms) {
+        SparseVec ret = new SparseVec();
+        for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet())
+            ret.addSingle(entry.getKey(), (useFreqs ? entry.getValue() : 1.0) * terms[entry.getKey()].trainingIdf(nDocs));
+        return ret;
+    }
 }
