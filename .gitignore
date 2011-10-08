@@ -2,5 +2,5 @@
 /Plusone.jar
 /build
 /dist
-/experiment
+/experiment-*
 /lib/lda-c-dist/lda

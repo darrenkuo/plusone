@@ -16,19 +16,22 @@ if test ! -f /tmp/test.5000.data; then
    cd $basedir
 fi
 
-mkdir -p experiment
+out_dir=experiment-$(date -u +%F.%T%Z)
+mkdir $out_dir || exit
+echo Output will go in $out_dir
 
 args=\
-"-Dplusone.testWordPercents=0.1,0.3,0.5,0.7,0.9 \
- -Dplusone.kValues=1,5,10,15,20 \
- -Dplusone.closestKValues=5,20,50,75,100,150,200 \
+"-Dplusone.testWordPercents=0.3,0.6 \
+ -Dplusone.kValues=1,15 \
+ -Dplusone.closestKValues=20,100 \
  -Dplusone.enableTest.lda=false \
  -Dplusone.enableTest.knnc=false \
  -Dplusone.enableTest.knn=false \
  -Dplusone.enableTest.knnrw=false \
- -Dplusone.enableTest.dtrw=false \
+ -Dplusone.enableTest.dtrw=true \
  -Dplusone.enableTest.baseline=true \
- -Dplusone.enableTest.baseline1=true"
+ -Dplusone.enableTest.baseline1=true \
+ -Dplusone.outPath=$out_dir"
 
 #java -agentlib:hprof=cpu=samples -Xmx6000m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
 #java -agentlib:hprof=heap=sites -Xmx128m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3

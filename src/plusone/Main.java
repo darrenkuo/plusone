@@ -205,15 +205,14 @@ public class Main {
     }
 
     /*
-     * data - args[1]
-     * train percent - args[2]
-     * test word percent - args[3]
-     * 
+     * data - args[0]
+     * train percent - args[1]
+     * test word percent - args[2] (currently ignored)
      */
     public static void main(String[] args) {
 	if (args.length < 3) {
 	    System.out.println("Please specify correct arguments:");
-	    System.out.println("java -cp Plusone.jar Main <data file name> <float percent of the data for training> <float percent of the words for testing>");
+	    System.out.println("java -cp Plusone.jar Main <data file name> <float percent of the data for training> <float percent of the words for testing (currently ignored)>");
 	    System.exit(0);
 	}
 	
@@ -226,6 +225,7 @@ public class Main {
 
 	float trainPercent = new Float(args[1]);
 	//float testWordPercent = new Float(args[2]);
+	String experimentPath = System.getProperty("plusone.outPath", "experiment");
 	
 	System.out.println("data file " + data_file);
 	System.out.println("train percent " + trainPercent);
@@ -274,7 +274,7 @@ public class Main {
 
 	    File twpDir = null;
 	    try {
-		twpDir = new File(new File("experiment"), testWordPercent + "");
+		twpDir = new File(new File(experimentPath), testWordPercent + "");
 		twpDir.mkdir();
 	    } catch(Exception e) {
 		e.printStackTrace();
@@ -374,7 +374,7 @@ public class Main {
 			double[] dtRWResult = Main.evaluate(testingSet, terms, dtRWPredictions,
 							    documents.size(), k, usedWords,
 							    main.getWordIndexer());
-			File dtRWOut = new File(outputDir, "dtrw.out");
+			File dtRWOut = new File(outputDir, "dtrw-" + k + "-" + usedWords + ".out");
 			Main.printResults(dtRWOut, dtRWResult);
 		    }
 
