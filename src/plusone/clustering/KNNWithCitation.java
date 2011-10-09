@@ -21,13 +21,13 @@ import java.util.Set;
 public class KNNWithCitation extends KNN {
 
     public KNNWithCitation(int K_CLOSEST, 
-			   List<PaperAbstract> documents,
 			   List<PaperAbstract> trainingSet,
 			   List<PaperAbstract> testingSet,
 			   Indexer<String> wordIndexer,
+			   Indexer<PaperAbstract> paperIndexer,
 			   Term[] terms) {
-	super(K_CLOSEST, documents, trainingSet, testingSet, 
-	      wordIndexer, terms);
+	super(K_CLOSEST, trainingSet, testingSet, 
+	      wordIndexer, paperIndexer, terms);
 	this.testName = "knnc";
     }
 
@@ -47,8 +47,13 @@ public class KNNWithCitation extends KNN {
 	for (int document = 0; document < this.testingSet.size(); 
 	     document ++) {
 	    PaperAbstract a = testingSet.get(document);
+	    /**
+	     * First get 1.5 * k nearest neighbor using similarity
+	     * function, then rank neighbor by number of in
+	     * references. Lastly, take the top k for prediction.
+	     */
 	    Integer[] kList = this.kNbr(a, (int)(this.K_CLOSEST * 1.5));
-	    kList = this.kCitation(kList, this.K_CLOSEST);
+	    kList = this.kCitation(a, kList, this.K_CLOSEST);
 	    
 	    List<Integer> lst = this.predictTopKWordsWithKList(kList, a, k, 
 							       outputUsedWord);
@@ -71,12 +76,14 @@ public class KNNWithCitation extends KNN {
 
     }
 
-    public Integer[] kCitation(Integer[] lst, int K_CLOSEST) {
+    public Integer[] kCitation(PaperAbstract b, Integer[] lst, 
+			       int K_CLOSEST) {
 	//System.out.println("kList length: " + lst.length);
 	PriorityQueue<WordAndScore> queue = 
 	    new PriorityQueue<WordAndScore>(K_CLOSEST + 1);
 	for (Integer ID : lst) {
-	    PaperAbstract a = trainingSet.get(ID);
+	    //PaperAbstract a = trainingSet.get(ID);
+	    PaperAbstract a = this.paperIndexer.get(ID);
 	    double count = (double)a.inReferences.length;
 	    if (queue.size() < K_CLOSEST || count > queue.peek().score) {
 		if (queue.size() >= K_CLOSEST) {

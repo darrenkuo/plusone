@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Random;
 
 public class Term {
-    List<PaperAbstract> doc_train;
-    List<PaperAbstract> doc_test;
-    int Id;
+    public List<PaperAbstract> doc_train;
+    public List<PaperAbstract> doc_test;
+    public int Id;
     public String word;
     public int totalCount;
     
     public Term(int Id, String word) {
-	this.Id=Id;
-	this.word=word;
+	this.Id = Id;
+	this.word = word;
 	doc_train = new ArrayList<PaperAbstract>();
 	doc_test= new ArrayList<PaperAbstract>();
 	totalCount = 0;

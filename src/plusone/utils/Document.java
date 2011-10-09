@@ -127,7 +127,7 @@ public class Document {
 
     public static Document abstractToDocument(PaperAbstract a) {
 	Document d = new Document();
-	for (Integer w : a.outputWords) {
+	for (Integer w : a.modelWords) {
 	    d.addWord(w);
 	}
 	return d;

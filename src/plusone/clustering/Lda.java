@@ -128,7 +128,8 @@ public class Lda extends ClusteringTest {
 	    PriorityQueue<WordAndScore> queue = 
 		new PriorityQueue<WordAndScore>(k+1);
 	    for (int col = 0; col < matrix.numCols(); col ++) {
-		if (!outputUsedWords && testingSet.get(row).getTf0(col) > 0)
+		if (!outputUsedWords && testingSet.get(row).
+		    getModelTf(col) > 0)
 	    		continue;
 	    	if (queue.size() < k || 
 		    matrix.get(row,col) > queue.peek().score){
@@ -164,8 +165,9 @@ public class Lda extends ClusteringTest {
 	for (PaperAbstract paper : papers) {
 
 	    fileWriter.write(paper.uniqueWords + " ");
-	    for(int entry : paper.wordSet)
-		fileWriter.write(entry + ":" + paper.getTf0(entry) + " ");
+	    for(int entry : paper.modelWords)
+		fileWriter.write(entry + ":" + 
+				 paper.getModelTf(entry) + " ");
 
 	    fileWriter.write("\n");
 	}

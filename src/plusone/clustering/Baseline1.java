@@ -79,7 +79,7 @@ public class Baseline1 extends Baseline {
 		    if (curWord == -1)
 			break;
 
-		    if (testingSet.get(a).getTf0(curWord) > 0) {
+		    if (testingSet.get(a).getModelTf(curWord) > 0) {
 			if (outputDirectory != null)
 			    writer.write(this.wordIndexer.get(curWord) + " ");
 			lst.add(curWord);

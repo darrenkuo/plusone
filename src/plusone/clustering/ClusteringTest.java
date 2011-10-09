@@ -2,7 +2,7 @@ package plusone.clustering;
 
 public abstract class ClusteringTest implements ClusteringMethod {
 
-    String testName;
+    public String testName;
     public ClusteringTest(String testName) {
 	this.testName = testName;
     }
