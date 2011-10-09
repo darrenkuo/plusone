@@ -4,16 +4,22 @@ cd lib/lda-c-dist; make;
 # compile using ant
 cd -; ant -f build.xml;
 
+set data = "med.out.1";
+#set data = "test.5000.data";
+
 # download test.data if it doesn't exist
 
-if (!(-f /tmp/test.5000.data)) then
+if (!(-f /tmp/$data.`whoami`)) then
    cd /tmp/
-   wget http://inst.eecs.berkeley.edu/~darrenk/test.5000.data
+   wget http://inst.eecs.berkeley.edu/~darrenk/$data --output-document=$data.`whoami`   
    cd -
 endif
 
-#java -agentlib:hprof=cpu=samples -Xmx6000m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
-#java -agentlib:hprof=heap=sites -Xmx128m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
-java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/test.5000.data 0.8 0.3
-#java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main toy.data 0.8 0.3
-#java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main /tmp/wiki.data 0.8 0.3
+# options to sample cpu
+# -agentlib:hprof=cpu=samples
+# -agentlib:hprof=heap=sites
+
+# options for memory
+# -Xmx4096m
+
+java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main experiment_old /tmp/$data.`whoami` 0.8
