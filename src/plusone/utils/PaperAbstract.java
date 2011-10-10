@@ -14,7 +14,7 @@ import java.util.Set;
 import plusone.utils.Term;
 
 public class PaperAbstract {
-    public int index;
+    public int index, indexInGlobalList;
     public Integer[] abstractText;
     public int[] inReferences;
     public int[] outReferences;
@@ -38,8 +38,10 @@ public class PaperAbstract {
 
     public PaperAbstract(int index, int[] inReferences, 
 			 int[] outReferences, String abstractText,
-			 Indexer<String> wordIndexer) {
+			 Indexer<String> wordIndexer,
+			 int indexInGlobalList) {
 	this.index = index;
+	this.indexInGlobalList = indexInGlobalList;
 	
 	String[] words = abstractText.trim().split(" ");   
 	this.abstractText = new Integer[words.length];
@@ -78,13 +80,6 @@ public class PaperAbstract {
 	uniqueWords = tf.keySet().size();
 
 	Iterator<Integer> iter = tf.keySet().iterator();
-	/*
-	List<Integer> lst = new ArrayList<Integer>();
-	while (iter.hasNext()) {
-	    lst.add(0, iter.next());
-	}
-	iter = lst.iterator();
-	*/
 	int c = 0;
 	while (iter.hasNext()) {
 	    Integer word = iter.next();
@@ -109,17 +104,7 @@ public class PaperAbstract {
 	    norm += count * count;
     	}
     	norm = Math.sqrt(norm);
-
-	//check();
     }
-
-    /*
-    public void check() {
-	for (Integer w : answerWords) {
-	    if (word
-	}
-    }
-    */
 
     public String toString() {
 	String results = "";
@@ -168,7 +153,17 @@ public class PaperAbstract {
 
     public boolean equals(Object obj) {
 	if (obj instanceof PaperAbstract)
-	    return index == ((PaperAbstract)obj).index;
+	    return this.index == ((PaperAbstract)obj).index;
 	return false;
+    }
+
+    public SparseVec makeTrainingWordVec(boolean useFreqs, 
+					 int nDocs, Term[] terms) {
+        SparseVec ret = new SparseVec();
+        for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet())
+            ret.addSingle(entry.getKey(), 
+			  (useFreqs ? entry.getValue() : 1.0) * 
+			  terms[entry.getKey()].trainingIdf(nDocs));
+        return ret;
     }
 }

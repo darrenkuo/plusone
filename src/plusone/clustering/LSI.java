@@ -56,16 +56,17 @@ public class LSI extends ClusteringTest {
 	this.testingSet = testingSet;
 	this.wordIndexer = wordIndexer;
 	this.terms = terms;
-	mu=new double[DIMENSION][documents.size()];
-	beta=new double[DIMENSION][terms.length];
-	sigma= new double[DIMENSION];
+	mu = new double[DIMENSION][documents.size()];
+	beta = new double[DIMENSION][terms.length];
+	sigma = new double[DIMENSION];
 	DocTerm = new LinkedList[documents.size()];
 	TermDoc = new LinkedList[terms.length];
-	for (int i=0;i<documents.size();i++){
-	    PaperAbstract doc=documents.get(i);
-	    DocTerm[i]= new LinkedList<Entry>();
+	for (int i = 0; i < documents.size(); i ++){
+	    PaperAbstract doc = documents.get(i);
+	    DocTerm[i] = new LinkedList<Entry>();
 
-	    Set<Map.Entry<Integer, Integer>> words = doc.trainingTf.entrySet();
+	    Set<Map.Entry<Integer, Integer>> words = 
+		doc.trainingTf.entrySet();
 
 	    Iterator<Map.Entry<Integer,Integer>> iterator = words.iterator();
 
@@ -73,10 +74,10 @@ public class LSI extends ClusteringTest {
 		Map.Entry<Integer, Integer> entry = iterator.next();
 		int key = entry.getKey();
 		int cnt = entry.getValue();
-		Entry temp=new Entry(i,key,cnt);
+		Entry temp = new Entry(i,key,cnt);
 		DocTerm[i].add(temp);
-		if (TermDoc[key]==null){
-		    TermDoc[key]=new LinkedList<Entry>();
+		if (TermDoc[key] == null){
+		    TermDoc[key] = new LinkedList<Entry>();
 		}
 		TermDoc[key].add(temp);
 	    }
@@ -114,72 +115,79 @@ public class LSI extends ClusteringTest {
     }
     public double evalDiff(double[] x, double[] y){
 	double result=0;
-	for (int i=0;i<DocTerm.length;i++)
-	    for (Entry t:DocTerm[i]){
-		result+=Math.pow(t.value-x[t.docID]*y[t.termID],2);
+	for (int i = 0;i < DocTerm.length; i ++) {
+	    for (Entry t : DocTerm[i]) {
+		result += Math.pow(t.value - x[t.docID] * y[t.termID], 2);
 	    }
-	return result;
-    }
-    
-    public double dotProduct(double[] a,double[] b){
-	double result=0;
-	for (int i=0;i<a.length;i++){
-	    result+=a[i]*b[i];
 	}
 	return result;
     }
     
-    public void Iterate(double[] x,double[] y,int k){
-	for (int i=0;i<x.length;i++)
-	    x[i]=1.0;
-	for (int j=0;j<y.length;j++)
-	    y[j]=1.0;
+    public double dotProduct(double[] a, double[] b){
+	double result = 0;
+	for (int i = 0; i < a.length; i ++){
+	    result += a[i] * b[i];
+	}
+	return result;
+    }
+    
+    public void Iterate(double[] x, double[] y, int k){
+	for (int i = 0; i < x.length; i ++)
+	    x[i] = 1.0;
+	for (int j = 0; j < y.length; j ++)
+	    y[j] = 1.0;
 	
 	double xnorm;
 	double ynorm;
-	double diff = dotProduct(x,x)*dotProduct(y,y);
-	//System.out.println(diff);
-	int rounds=0;
+	double diff = dotProduct(x, x) * dotProduct(y, y);
+	int rounds = 0;
 	boolean converge = false;
 	while (!converge){
-	    ynorm=dotProduct(y,y);
-	    if (ynorm<=0.0001)
-		break;
-	    double[] subtract=new double[k+1];
-	    for (int i=0;i<k;i++){
-		subtract[i]=dotProduct(beta[i],y);
-	    }
-	    for (int i=0;i<x.length;i++){
-		double value=0;
-		for (Entry t:DocTerm[i]){
-		    value+=t.value*y[t.termID];
-		}
-		for (int j=0;j<k;j++)
-		    value-=mu[j][i]*sigma[j]*subtract[j];
-		x[i]=value/ynorm;
-	    }
-	    xnorm=dotProduct(x,x);
-	    if (xnorm<=0.0001)
-		break;
-	    for (int i=0;i<k;i++)
-		subtract[i]=dotProduct(mu[i],x);
-	    for (int i=0;i<y.length;i++){
-		double value =0;
-		if (TermDoc[i]!=null)
-		    for (Entry t:TermDoc[i]){
-			value+=t.value*x[t.docID];
-		    }
-		for (int j=0;j<k;j++)
-		    value-=beta[j][i]*sigma[j]*subtract[j];
+	    ynorm = dotProduct(y, y);
 
-		y[i]=value/xnorm;
+	    if (ynorm <= 0.0001)
+		break;
+
+	    double[] subtract = new double[k+1];
+	    for (int i = 0; i < k; i ++){
+		subtract[i] = dotProduct(beta[i], y);
 	    }
-	    rounds++;
-	    double temp=dotProduct(x,x)*dotProduct(y,y);
-	    //  System.out.println(Math.abs(diff-temp)*100);
-	    if (Math.abs(diff-temp)<.00001*diff)
-		converge=true;
-	    diff=temp;
+	    for (int i = 0; i < x.length; i ++){
+		double value = 0;
+		for (Entry t : DocTerm[i]) {
+		    value += t.value * y[t.termID];
+		}
+		for (int j = 0; j < k; j ++)
+		    value -= mu[j][i] * sigma[j] * subtract[j];
+		x[i] = value / ynorm;
+	    }
+
+	    xnorm = dotProduct(x, x);
+	    if (xnorm <= 0.0001)
+		break;
+
+	    for (int i = 0; i < k; i ++)
+		subtract[i] = dotProduct(mu[i], x);
+
+	    for (int i = 0; i < y.length; i ++){
+		double value = 0;
+		if (TermDoc[i] != null) {
+		    for (Entry t : TermDoc[i]) {
+			value += t.value * x[t.docID];
+		    }
+		}
+		for (int j = 0; j < k; j ++)
+		    value -= beta[j][i] * sigma[j] * subtract[j];
+
+		y[i] = value / xnorm;
+	    }
+	    rounds ++;
+
+	    double temp = dotProduct(x, x) * dotProduct(y, y);
+	    //  System.out.println(Math.abs(diff - temp) * 100);
+	    if (Math.abs(diff - temp) < .00001 * diff)
+		converge = true;
+	    diff = temp;
 	}
 	//System.out.println(rounds);
     }
@@ -190,65 +198,74 @@ public class LSI extends ClusteringTest {
 	     t.value-=x[t.docID]*y[t.termID];
 	         }
 		 }*/
-    public void orthog(double[] x1,double[] y1,double[] x2, double[] y2){
-	double length=0;
-	for (int i=0;i<x1.length;i++)
-	    length+=x1[i]*x2[i];
-	for (int i=0;i<x2.length;i++)
-	    x2[i]-=length*x1[i];
+    public void orthog(double[] x1, double[] y1, double[] x2, double[] y2){
+	double length = 0;
+	for (int i = 0; i < x1.length; i ++)
+	    length += x1[i] * x2[i];
+
+	for (int i = 0; i < x2.length; i ++)
+	    x2[i] -= length * x1[i];
 	length=0;
-	for (int i=0;i<y1.length;i++)
-	    length+=y1[i]*y2[i];
-	for (int i=0;i<y2.length;i++)
-	    y2[i]-=length*y1[i];
+
+	for (int i = 0; i < y1.length; i ++)
+	    length += y1[i] * y2[i];
+
+	for (int i = 0; i < y2.length; i ++)
+	    y2[i] -= length * y1[i];
     }
-    public double normalize(double[] x,double[] y){
-	double lengthx=0;
-	for (int i=0;i<x.length;i++)
-	    lengthx+=x[i]*x[i];
-	lengthx=Math.sqrt(lengthx);
-	for (int i=0;i<x.length;i++)
-	    x[i]/=lengthx;
-	double lengthy=0;
-	for (int i=0;i<y.length;i++)
-	    lengthy+=y[i]*y[i];
-	lengthy=Math.sqrt(lengthy);
-	for (int i=0;i<y.length;i++)
-	    y[i]/=lengthy;
-	return lengthx*lengthy;
+
+    public double normalize(double[] x, double[] y) {
+	double lengthx = 0;
+	for (int i = 0; i < x.length; i ++)
+	    lengthx += x[i] * x[i];
+	lengthx = Math.sqrt(lengthx);
+
+	for (int i = 0; i < x.length; i ++)
+	    x[i] /= lengthx;
+
+	double lengthy = 0;
+	for (int i = 0; i < y.length; i ++)
+	    lengthy += y[i] * y[i];
+	lengthy = Math.sqrt(lengthy);
+
+	for (int i = 0; i < y.length; i ++)
+	    y[i] /= lengthy;
+	return lengthx * lengthy;
     }
+
     public void train(){
 	for (int k = 0; k < DIMENSION; k ++){
-	    Iterate(mu[k],beta[k],k);
+	    Iterate(mu[k], beta[k], k);
 	    for (int i = 0; i < k; i ++) {
-		orthog(mu[i],beta[i],mu[k],beta[k]);
+		orthog(mu[i], beta[i], mu[k], beta[k]);
 	    }
 	    //    subtract(mu[k],beta[k]);
-	    sigma[k] = normalize(mu[k],beta[k]); 
+	    sigma[k] = normalize(mu[k], beta[k]); 
 	}
 	//System.out.println(mu[0][0]+" "+mu[0][1]+" "+beta[0][0]+" "+beta[0][1]+" "+mu[1][0]+" "+mu[1][1]+" "+beta[1][0]+" "+beta[1][1]+" "+sigma[0]+" "+sigma[1]);
     }
     
     
-    private double similarity(int docId, int termId){
-	double result=0;
-	for (int i=0;i<DIMENSION;i++)
-	    result+=mu[i][docId]*sigma[i]*beta[i][termId];
+    private double similarity(int docId, int termId) {
+	double result = 0;
+	for (int i = 0; i < DIMENSION; i ++)
+	    result += mu[i][docId] * sigma[i] * beta[i][termId];
 	return result;
     }
-    private Integer[] predict(int k, boolean outputUsedWord,int Id, File outputDirectory){
+
+    private Integer[] predict(int k, boolean outputUsedWord,
+			      int Id, File outputDirectory){
 	PriorityQueue<WordAndScore> queue = 
 	    new PriorityQueue<WordAndScore>(k+1);
-	for (int j = 0; j<terms.length;j++) {
+	for (int j = 0; j < terms.length; j ++) {
 	    if (!outputUsedWord && documents.get(Id).getModelTf(j) > 0)
 		continue;
 	    double score = similarity(Id,j);
 	    if (queue.size() < k || 
 		score > queue.peek().score){
-		if (queue.size()>=k)
+		if (queue.size() >= k)
 		    queue.poll();
-		queue.add(new WordAndScore(j, 
-					   score, true));
+		queue.add(new WordAndScore(j, score, true));
 	    }
 	}
 
@@ -259,13 +276,14 @@ public class LSI extends ClusteringTest {
 	}
 
 	return results;
-
     }
+
     public Integer[][] predict(int k, boolean outputUsedWord,
 			       File outputDirectory) {
 	Integer[][] result = new Integer[this.testingSet.size()][];
-	for (int i=trainingSet.size();i<documents.size();i++){
-	    result[i-trainingSet.size()]=predict(k,outputUsedWord,i,outputDirectory);
+	for (int i = trainingSet.size(); i < documents.size(); i ++){
+	    result[i - trainingSet.size()] = 
+		predict(k, outputUsedWord, i ,outputDirectory);
 	}
 	return result;
     }

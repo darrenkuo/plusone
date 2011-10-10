@@ -25,7 +25,13 @@ public class PlusoneFileWriter {
 	}
     }
 
+    /* Constructs a PlusoneFileWriter that does nothing. */
+    public PlusoneFileWriter() {
+        out = null;
+    }
+
     public void write(String content) {
+        if (out == null) return;
 	try {
 	    out.write(content);
 	} catch(IOException e) {
@@ -34,6 +40,7 @@ public class PlusoneFileWriter {
     }
 
     public void close() {
+        if (out == null) return;
 	try {
 	    out.close();
 	} catch(IOException e) {

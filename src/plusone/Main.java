@@ -13,8 +13,8 @@ import plusone.clustering.KNNWithCitation;
 import plusone.clustering.KNNWithCitationBF;
 import plusone.clustering.Lda;
 import plusone.clustering.LSI;
-
-import java.io.*;
+import plusone.clustering.DTRandomWalkPredictor;
+import plusone.clustering.KNNRandomWalkPredictor;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -41,10 +41,12 @@ public class Main {
     public List<PaperAbstract> testingSet;
 
     // Clustering Methods
-    private Baseline base;
-    private Baseline1 base1;
+    private Baseline baseline;
+    private Baseline1 baseline1;
     private KNN knn;
     private LSI lsi;
+    private DTRandomWalkPredictor dtRWPredictor;
+    private KNNRandomWalkPredictor knnRWPredictor;
 
     public List<PaperAbstract> load_data(String filename) {
 	this.documents = new ArrayList<PaperAbstract>();
@@ -120,8 +122,9 @@ public class Main {
 		strLine = br.readLine();
 
 		PaperAbstract a = 
-		    new PaperAbstract(index, inRef, outRef, abstractText, 
-				      wordIndexer);
+		    new PaperAbstract(index, inRef, outRef, 
+				      abstractText, wordIndexer,
+				      documents.size());
 		documents.add(a);
 
 		paperIndexMap.put(index, paperIndexer.addAndGetIndex(a));
@@ -218,6 +221,10 @@ public class Main {
     	    }
     	}
 
+	/* FIXME: We probably should divide by k here, rather than the total
+	 * number of predictions made; otherwise we reward methods that make
+	 * less predictions.  -James */
+	
 	return new double[]{(double)predicted/(double)total,
 			    idfScore, tfidfScore}; 
    }
@@ -241,33 +248,64 @@ public class Main {
 				     Term[] terms,
 				     File outputDir, int k,
 				     boolean usedWord) {
-	base = new Baseline(documents, trainingSet, testingSet, 
-			    wordIndexer, terms);
-	base1 = new Baseline1(documents, trainingSet, testingSet, 
-			      wordIndexer, terms);
+
+	if (testIsEnabled("baseline")) {
+	    baseline = new Baseline(documents, trainingSet, testingSet, 
+				wordIndexer, terms);
+	    runClusteringMethod(trainingSet, testingSet, terms, baseline,
+				outputDir, k, usedWord);
+	    
+	}
 	
-	runClusteringMethod(trainingSet, testingSet, terms, base, outputDir,
-			    k, usedWord);
-	runClusteringMethod(trainingSet, testingSet, terms, base1, outputDir,
-			    k, usedWord);
+	if (testIsEnabled("baseline1")) {
+	    baseline1 = new Baseline1(documents, trainingSet, testingSet, 
+				  wordIndexer, terms);
+	    
+	    runClusteringMethod(trainingSet, testingSet, terms, baseline1, 
+				outputDir, k, usedWord);
+	}
+
+	if (testIsEnabled("dtrw")) {
+	    dtRWPredictor =
+		new DTRandomWalkPredictor(documents,
+					  trainingSet, testingSet,
+					  wordIndexer, terms,
+					  1);
+	    runClusteringMethod(trainingSet, testingSet, terms, 
+				dtRWPredictor, outputDir, k, usedWord);
+	}
 
 	int[] closest_k = {1, 3, 5, 10, 25, 50, 100, 
 			   250, 500, 1000, 10000, 100000};
 
 	for (int ck = 0; ck < closest_k.length; ck ++) {
-	    knn = new KNN(closest_k[ck], trainingSet, testingSet, 
-			  wordIndexer, paperIndexer, terms);
-	    runClusteringMethod(trainingSet, testingSet, terms, 
-				knn, outputDir, k, usedWord);
+	    if (testIsEnabled("knn")) {
+		knn = new KNN(closest_k[ck], trainingSet, testingSet, 
+			      wordIndexer, paperIndexer, terms);
+		runClusteringMethod(trainingSet, testingSet, terms, 
+				    knn, outputDir, k, usedWord);
+	    }
+		
+	    if (testIsEnabled("knnrw")) {
+		knnRWPredictor =
+		    new KNNRandomWalkPredictor(closest_k[ck], documents,
+					       trainingSet, testingSet,
+					       wordIndexer, paperIndexer,
+					       terms, 1, 0.5, 1);
+		runClusteringMethod(trainingSet, testingSet, terms, 
+				    knnRWPredictor, outputDir, k, usedWord);
+	    }
 	}
 
 	int[] dimensions = {10, 20, 50, 100, 150};
 	for (int dk = 0; dk < dimensions.length; dk ++) {
-	    lsi = new LSI(dimensions[dk], documents,
-			  trainingSet, testingSet,
-			  wordIndexer, terms);
-	    runClusteringMethod(trainingSet, testingSet, terms,
-				lsi, outputDir, k, usedWord);
+	    if (testIsEnabled("lsi")) {
+		lsi = new LSI(dimensions[dk], documents,
+			      trainingSet, testingSet,
+			      wordIndexer, terms);
+		runClusteringMethod(trainingSet, testingSet, terms,
+				    lsi, outputDir, k, usedWord);
+	    }
 	}
     }
 
@@ -286,25 +324,41 @@ public class Main {
 	Main.printResults(out, result);
     }
 
+    static double[] parseDoubleList(String s) {
+	String[] tokens = s.split(",");
+	double[] ret = new double[tokens.length];
+	for (int i = 0; i < tokens.length; ++ i) {
+	    ret[i] = Double.valueOf(tokens[i]);
+	}
+	return ret;
+    }
+
+    static int[] parseIntList(String s) {
+	String[] tokens = s.split(",");
+	int[] ret = new int[tokens.length];
+	for (int i = 0; i < tokens.length; ++ i) {
+	    ret[i] = Integer.valueOf(tokens[i]);
+	}
+	return ret;
+    }
+
+    static Boolean testIsEnabled(String testName) {
+	return Boolean.getBoolean("plusone.enableTest." + testName);
+    }
+
     /*
-     * data - args[1]
-     * train percent - args[2]
-     * test word percent - args[3]
-     * 
+     * data - args[0]
+     * train percent - args[1]
+     * test word percent - args[2] (currently ignored)
      */
     public static void main(String[] args) {
 	if (args.length < 3) {
 	    System.out.println("Please specify correct arguments:");
-	    System.out.println("java -cp Plusone.jar Main <data file name> <float percent of the data for training> <float percent of the words for testing>");
+	    System.out.println("java -cp Plusone.jar Main <data file name> <float percent of the data for training> <float percent of the words for testing (currently ignored)>");
 	    System.exit(0);
 	}
 
-	String output_folder = args[0];
-	String data_file = args[1];
-
-	if (!new File(output_folder).exists()) {
-	    new File(output_folder).mkdir();
-	}
+	String data_file = args[0];
 
 	if (!new File(data_file).exists()) {
 	    System.out.println("Data file does not exist.");
@@ -313,81 +367,28 @@ public class Main {
 
 	Main main = new Main();
 	List<PaperAbstract> documents = main.load_data(data_file);
-	float trainPercent = new Float(args[2]);
-
-	boolean query = false;
-
-	int[] ks = {1, 5, 10, 15, 20};
+	float trainPercent = new Float(args[1]);
+	String experimentPath = System.getProperty("plusone.outPath", 
+						   "experiment");
 	
-	if (args.length == 4)
-	    query = new Boolean(args[3]);
-
-	if (query) {
-	    main.splitByTrainPercent(trainPercent);
-	    List<PaperAbstract> trainingSet = main.trainingSet;
-	    List<PaperAbstract> testingSet = main.testingSet;	
-	
-	    Indexer<String> wordIndexer = main.getWordIndexer();
-	    Indexer<PaperAbstract> paperIndexer = main.getPaperIndexer();
-	    
-	    System.out.println("Total number of words: " + wordIndexer.size());
-	    System.out.println("Total number of papers: " + paperIndexer.size());
-
-	    double testWordPercent = 0.0;
-
-	    Term[] terms = new Term[wordIndexer.size()];
-	    for (int i = 0; i < wordIndexer.size(); i++) {
-		terms[i] = new Term(i, wordIndexer.get(i));
-	    }
-	    
-	    for (PaperAbstract a:trainingSet){
-		a.generateData(testWordPercent, terms, false);
-	    }
-
-	    for (PaperAbstract a:testingSet){
-		a.generateData(testWordPercent, null, true);
-	    }
-
-	    File twpDir = null;
-	    try {
-		twpDir = new File(new File(output_folder), testWordPercent + "");
-		twpDir.mkdir();
-	    } catch(Exception e) {
-		e.printStackTrace();
-	    }
-		
-	    for (int ki = 0; ki < ks.length; ki++) {
-		int k = ks[ki];
-
-		File kDir = null;
-		try {
-		    kDir = new File(twpDir, k + "");
-		    kDir.mkdir();
-		} catch(Exception e) {
-		    e.printStackTrace();
-		}
-
-		boolean usedWord = false;
-		
-		System.out.println("!processing testwordpercent: " + testWordPercent + 
-				   " k: " + k + " usedWord: " + usedWord);
-
-		File outputDir = null;
-		try {
-		    outputDir = new File(kDir, usedWord + "");
-		    outputDir.mkdir();
-		} catch(Exception e) {
-		    e.printStackTrace();
-		}		    
+	System.out.println("data file " + data_file);
+	System.out.println("train percent " + trainPercent);
+	//System.out.println("test word percent " + testWordPercent);
 
 
-		main.runClusteringMethods(trainingSet, testingSet, terms,
-					  outputDir, k, usedWord);
-	    }
-	    System.exit(0);
-	}
-    
-	double[] testWordPercents = {0.5};//{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+	/* These values can be set on the command line.  For example, to set
+	 * testWordPercents to {0.4,0.5}, pass the command-line argument
+	 * -Dplusone.testWordPercents=0.4,0.5 to java (before the class name)
+	 */
+	double[] testWordPercents = 
+	    parseDoubleList(System.getProperty("plusone.testWordPercents", 
+					       "0.1,0.3,0.5,0.7,0.9"));
+	int[] ks = 
+	    parseIntList(System.getProperty("plusone.kValues", 
+					    "1,5,10,15,20"));
+	int[] closest_k = 
+	    parseIntList(System.getProperty("plusone.closestKValues", 
+					    "5,20,50,75,100,150,200"));
 
 	main.splitByTrainPercent(trainPercent);
 	List<PaperAbstract> trainingSet = main.trainingSet;
@@ -407,23 +408,24 @@ public class Main {
 		terms[i] = new Term(i, wordIndexer.get(i));
 	    }
 	    
-	    for (PaperAbstract a:trainingSet){
+	    for (PaperAbstract a : trainingSet){
 		a.generateData(testWordPercent, terms, false);
 	    }
 	    
-	    for (PaperAbstract a:testingSet){
+	    for (PaperAbstract a : testingSet){
 		a.generateData(testWordPercent, null, true);
 	    }
 
 	    File twpDir = null;
 	    try {
-		twpDir = new File(new File(output_folder), testWordPercent + "");
+		twpDir = new File(new File(experimentPath), 
+				  testWordPercent + "");
 		twpDir.mkdir();
 	    } catch(Exception e) {
 		e.printStackTrace();
 	    }
 		
-	    for (int ki = 0; ki < ks.length; ki++) {
+	    for (int ki = 0; ki < ks.length; ki ++) {
 		int k = ks[ki];
 
 		File kDir = null;
@@ -436,7 +438,8 @@ public class Main {
 
 		boolean usedWord = false;
 
-		System.out.println("processing testwordpercent: " + testWordPercent + 
+		System.out.println("processing testwordpercent: " + 
+				   testWordPercent + 
 				   " k: " + k + " usedWord: " + usedWord);
 
 		File outputDir = null;

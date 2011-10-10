@@ -1,19 +1,45 @@
+#!/bin/sh
+
+export basedir=$PWD
+
 # compile lda code
-cd lib/lda-c-dist; make;
+cd lib/lda-c-dist; make || exit
 
 # compile using ant
-cd -; ant -f build.xml;
+cd $basedir; ant -f build.xml || exit
 
-set data = "med.out.1";
-#set data = "test.5000.data";
+# data = {'med.out.1', 'test.5000.data'}
+data="med.out.1";
+userdata=$data.`whoami`
+
+echo $userdata
 
 # download test.data if it doesn't exist
 
-if (!(-f /tmp/$data.`whoami`)) then
+if test ! -f /tmp/$data.`whoami`; then
    cd /tmp/
-   wget http://inst.eecs.berkeley.edu/~darrenk/$data --output-document=$data.`whoami`   
-   cd -
-endif
+   wget http://inst.eecs.berkeley.edu/~darrenk/$data --output-document=$userdata
+   cd $basedir
+fi
+
+
+out_dir=experiment-$(date -u +%F.%T%Z)
+mkdir $out_dir || exit
+echo Output will go in $out_dir
+
+args=\
+"-Dplusone.testWordPercents=0.1,0.3,0.5,0.7,0.9 \
+ -Dplusone.kValues=1,5,10,15,20 \
+ -Dplusone.closestKValues=5,20,50,75,100,150,200 \
+ -Dplusone.enableTest.lda=false \
+ -Dplusone.enableTest.knnc=false \
+ -Dplusone.enableTest.knn=true \
+ -Dplusone.enableTest.knnrw=false \
+ -Dplusone.enableTest.dtrw=false \
+ -Dplusone.enableTest.baseline=true \
+ -Dplusone.enableTest.baseline1=true \
+ -Dplusone.enableTest.lsi=true \
+ -Dplusone.outPath=$out_dir"
 
 # options to sample cpu
 # -agentlib:hprof=cpu=samples
@@ -22,4 +48,4 @@ endif
 # options for memory
 # -Xmx4096m
 
-java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar plusone.Main experiment_old /tmp/$data.`whoami` 0.8
+java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main /tmp/$userdata 0.8 0.3
