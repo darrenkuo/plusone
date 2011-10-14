@@ -313,7 +313,7 @@ public class Main {
 				    ClusteringTest test, File outputDir,
 				    int k, boolean usedWord) {
 	Integer[][] predict = test.predict(k, usedWord, outputDir);
-	double[] result = this.evaluate(testingSet, terms, predict,
+	double[] result = Main.evaluate(testingSet, terms, predict,
 					testingSet.size() + 
 					trainingSet.size(),
 					k, usedWord,
