@@ -80,6 +80,8 @@ public class PaperAbstract {
 	int c = 0;
 	while (iter.hasNext()) {
 	    Integer word = iter.next();
+	    if (terms != null)
+		terms[word].addDoc(this, test);
 	    if (test && c < percentUsed * tf.keySet().size()) {
 		answerWords.add(word);
 		this.testingTf.put(word, tf.get(word));

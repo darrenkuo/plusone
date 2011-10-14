@@ -267,7 +267,7 @@ public class Main {
 		new DTRandomWalkPredictor(documents,
 					  trainingSet, testingSet,
 					  wordIndexer, terms,
-					  1);
+					  4);
 	    runClusteringMethod(trainingSet, testingSet, terms, 
 				dtRWPredictor, outputDir, k, usedWord);
 	}

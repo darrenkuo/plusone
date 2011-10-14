@@ -58,4 +58,8 @@ public class SparseVec {
     public Iterable<Map.Entry<Integer, Double>> pairs() {
 	return coords.entrySet();
     }
+    
+    public final int cSize() {
+	return coords.size();
+    }
 }
