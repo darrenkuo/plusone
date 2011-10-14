@@ -417,7 +417,8 @@ public class Main {
 
 	    if (testIsEnabled("dtrw")) {
 		int rwLength =
-		    Integer.getInteger("plusone.randowWalkLength", 4);
+		    Integer.getInteger("plusone.randomWalkLength", 4);
+		System.out.println("Random walk length: " + rwLength);
 		main.dtRWPredictor =
 		    new DTRandomWalkPredictor(main.documents,
 			    main.trainingSet, main.testingSet,
