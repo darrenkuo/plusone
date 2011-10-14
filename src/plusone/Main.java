@@ -207,8 +207,8 @@ public class Main {
     		    predicted ++;
 		    double logVal = (double) (terms[wordID].idfRaw() +
 					      (doc.answerWords.
-					       contains(wordID) ? 0.0 
-					       : 1.0));
+					       contains(wordID) ? 1.0 
+					       : 0.0));
 		    logVal = Math.log(logVal);
 
 		    tfidfScore += doc.getTf(wordID) * (idf_top - logVal);
