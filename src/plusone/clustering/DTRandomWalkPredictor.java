@@ -99,7 +99,9 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 
             ret[document] = firstKExcluding(words, k, outputUsedWord ? null : a);
 	    for (int i = 0; i < ret[document].length; ++ i) {
-                writer.write(wordIndexer.get(ret[document][i]) + " " );
+		String wordS = wordIndexer.get(ret[document][i]);
+		if (wordS == null) wordS = "<null>";
+                writer.write(wordS + " " );
 	    }
             writer.write("\n");
 	}
