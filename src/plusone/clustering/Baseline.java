@@ -2,7 +2,6 @@ package plusone.clustering;
 
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
-import plusone.utils.PlusoneFileWriter;
 import plusone.utils.Term;
 
 import java.io.File;

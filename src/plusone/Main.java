@@ -10,7 +10,7 @@ import plusone.clustering.Baseline1;
 import plusone.clustering.ClusteringTest;
 import plusone.clustering.KNN;
 import plusone.clustering.KNNWithCitation;
-import plusone.clustering.KNNWithCitationBF;
+//import plusone.clustering.KNNWithCitationBF;
 import plusone.clustering.Lda;
 import plusone.clustering.LSI;
 import plusone.clustering.DTRandomWalkPredictor;
@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -48,7 +47,7 @@ public class Main {
     private DTRandomWalkPredictor dtRWPredictor;
     private KNNRandomWalkPredictor knnRWPredictor;
 
-    public List<PaperAbstract> load_data(String filename) {
+    public void load_data(String filename) {
 	this.documents = new ArrayList<PaperAbstract>();
 
 	String index_pattern_string = "#INDEX ([\\d]+)";
@@ -169,8 +168,6 @@ public class Main {
 	}
 	System.out.println("inref zero: " + inref_zero);
 	System.out.println("total number of papers: " + documents.size());
-		
-	return documents;
     }
 
     public void splitByTrainPercent(double trainPercent) {
@@ -274,9 +271,10 @@ public class Main {
 	    runClusteringMethod(trainingSet, testingSet, terms, 
 				dtRWPredictor, outputDir, k, usedWord);
 	}
-
-	int[] closest_k = {1, 3, 5, 10, 25, 50, 100, 
-			   250, 500, 1000, 10000, 100000};
+	
+	int[] closest_k = 
+	    parseIntList(System.getProperty("plusone.closestKValues", 
+					    "1,3,5,10,25,50,100,250,500,1000,10000,100000"));
 
 	for (int ck = 0; ck < closest_k.length; ck ++) {
 	    if (testIsEnabled("knn")) {
@@ -366,7 +364,7 @@ public class Main {
 	}
 
 	Main main = new Main();
-	List<PaperAbstract> documents = main.load_data(data_file);
+	main.load_data(data_file);
 	float trainPercent = new Float(args[1]);
 	String experimentPath = System.getProperty("plusone.outPath", 
 						   "experiment");
@@ -386,9 +384,6 @@ public class Main {
 	int[] ks = 
 	    parseIntList(System.getProperty("plusone.kValues", 
 					    "1,5,10,15,20"));
-	int[] closest_k = 
-	    parseIntList(System.getProperty("plusone.closestKValues", 
-					    "5,20,50,75,100,150,200"));
 
 	main.splitByTrainPercent(trainPercent);
 	List<PaperAbstract> trainingSet = main.trainingSet;

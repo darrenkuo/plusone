@@ -3,12 +3,9 @@ package plusone.utils;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Random;
 import java.util.Set;
 
 import plusone.utils.Term;

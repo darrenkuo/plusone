@@ -3,10 +3,8 @@ package plusone.utils;
 import java.lang.Iterable;
 import java.lang.Math;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 import plusone.utils.PaperAbstract;
 
 public class SparseVec {
