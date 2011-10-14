@@ -54,6 +54,10 @@ public class SparseVec {
     }
 
     public Integer[] topK(int k) { return topKExcluding(k, null); }
+    
+    public Integer[] descending() {
+	return topK(coords.size());
+    }
 
     public Iterable<Map.Entry<Integer, Double>> pairs() {
 	return coords.entrySet();

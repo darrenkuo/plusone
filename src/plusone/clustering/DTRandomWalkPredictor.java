@@ -1,6 +1,7 @@
 package plusone.clustering;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -22,6 +23,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     protected boolean stochastic;
     protected int nSampleWalks;
     protected static Random rand = new Random();
+    protected List<Integer[]> predictions;
 
     public DTRandomWalkPredictor(List<PaperAbstract> documents,
                                  List<PaperAbstract> trainingSet,
@@ -40,6 +42,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
         this.walkLength = walkLength;
         this.stochastic = stochastic;
         this.nSampleWalks = nSampleWalks;
+        train();
     }
 
     public DTRandomWalkPredictor(List<PaperAbstract> documents,
@@ -60,18 +63,13 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 				 int nSampleWalks) {
 	this(documents, trainingSet, testingSet, wordIndexer, terms, walkLength, true, nSampleWalks);
     }
-
-    public Integer[][] predict(int k, boolean outputUsedWord, File outputDirectory) {
-	PlusoneFileWriter writer =
-	    makePredictionWriter(k, outputUsedWord, outputDirectory,
-				 stochastic ? Integer.toString(walkLength) + "-" + Integer.toString(nSampleWalks)
-				            : "det");
-        Integer[][] ret = new Integer[testingSet.size()][];
-	for (int document = 0; document < testingSet.size(); 
-	     document ++) {
+    
+    protected void train() {
+	predictions = new ArrayList<Integer[]>();
+	for (int document = 0; document < testingSet.size(); document ++) {
 	    PaperAbstract a = testingSet.get(document);
 
-            SparseVec words;
+	    SparseVec words;
 	    if (stochastic) {
 		/* Add together words at the end of nSampleWalks random walks. */
 		words = new SparseVec();
@@ -83,8 +81,23 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	    } else {
 		words = detWalk(a);
 	    }
+	    predictions.add(words.descending());
+	}
+    }
 
-            ret[document] = words.topKExcluding(k, outputUsedWord ? null : a);
+    public Integer[][] predict(int k, boolean outputUsedWord, File outputDirectory) {
+	PlusoneFileWriter writer =
+	    makePredictionWriter(k, outputUsedWord, outputDirectory,
+				 stochastic ? Integer.toString(walkLength) + "-" + Integer.toString(nSampleWalks)
+				            : "det");
+        Integer[][] ret = new Integer[testingSet.size()][];
+	for (int document = 0; document < testingSet.size(); 
+	     document ++) {
+	    PaperAbstract a = testingSet.get(document);
+
+	    Integer[] words = predictions.get(document);
+
+            ret[document] = firstKExcluding(words, k, outputUsedWord ? null : a);
 	    for (int i = 0; i < ret[document].length; ++ i) {
                 writer.write(wordIndexer.get(ret[document][i]) + " " );
 	    }
@@ -95,6 +108,17 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	return ret;
     }
 
+    Integer[] firstKExcluding(Integer[] l, Integer k, PaperAbstract excl) {
+	List<Integer> ret = new ArrayList<Integer>();
+	for (int i = 0; i < l.length && ret.size() < k; ++i) {
+	    Integer word = l[i];
+	    if (excl == null || excl.getModelTf(word) == 0) {
+		ret.add(word);
+	    }
+	}
+	return ret.toArray(new Integer[1]);
+    }
+    
     protected PaperAbstract stochWalk(PaperAbstract start) {
         PaperAbstract abs = start;
         for (int i = 0; i < walkLength; ++i) {

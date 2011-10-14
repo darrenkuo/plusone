@@ -263,11 +263,6 @@ public class Main {
 	}
 
 	if (testIsEnabled("dtrw")) {
-	    dtRWPredictor =
-		new DTRandomWalkPredictor(documents,
-					  trainingSet, testingSet,
-					  wordIndexer, terms,
-					  4);
 	    runClusteringMethod(trainingSet, testingSet, terms, 
 				dtRWPredictor, outputDir, k, usedWord);
 	}
@@ -419,7 +414,17 @@ public class Main {
 	    } catch(Exception e) {
 		e.printStackTrace();
 	    }
-		
+
+	    if (testIsEnabled("dtrw")) {
+		int rwLength =
+		    Integer.getInteger("plusone.randowWalkLength", 4);
+		main.dtRWPredictor =
+		    new DTRandomWalkPredictor(main.documents,
+			    main.trainingSet, main.testingSet,
+			    main.wordIndexer, terms,
+			    rwLength);
+	    }
+
 	    for (int ki = 0; ki < ks.length; ki ++) {
 		int k = ks[ki];
 
@@ -444,6 +449,7 @@ public class Main {
 		} catch(Exception e) {
 		    e.printStackTrace();
 		}		    
+
 
 
 		main.runClusteringMethods(trainingSet, testingSet, terms,
