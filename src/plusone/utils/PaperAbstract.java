@@ -156,13 +156,13 @@ public class PaperAbstract {
 	return false;
     }
 
-    public SparseVec makeTrainingWordVec(boolean useFreqs, 
+    public SparseVec makeTrainingWordVec(boolean useFreqs, boolean useIdf, 
 					 int nDocs, Term[] terms) {
         SparseVec ret = new SparseVec();
         for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet())
             ret.addSingle(entry.getKey(), 
 			  (useFreqs ? entry.getValue() : 1.0) * 
-			  terms[entry.getKey()].trainingIdf(nDocs));
+			  (useIdf ? terms[entry.getKey()].trainingIdf(nDocs) : 1.0));
         return ret;
     }
 }

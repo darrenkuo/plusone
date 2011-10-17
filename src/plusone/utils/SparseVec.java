@@ -66,4 +66,11 @@ public class SparseVec {
     public final int cSize() {
 	return coords.size();
     }
+    
+    public final double coordSum() {
+	double ret = 0.0;
+	for (Map.Entry<Integer, Double> entry : coords.entrySet())
+	    ret += entry.getValue();
+	return ret;
+    }
 }

@@ -118,7 +118,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 		ret.add(word);
 	    }
 	}
-	return ret.toArray(new Integer[1]);
+	return ret.toArray(new Integer[0]);
     }
     
     protected PaperAbstract stochWalk(PaperAbstract start) {
@@ -149,14 +149,15 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	    for (Map.Entry<Integer, Double> pair : words.pairs()) {
                 Term term = terms[pair.getKey()];
 		SparseVec docsForThisWord = term.makeTrainingDocVec(true);
-                docsForThisWord.dotEquals(pair.getValue() * term.trainingIdf(nDocs));
+                //docsForThisWord.dotEquals(pair.getValue() * term.trainingIdf(nDocs));
+                docsForThisWord.dotEquals(pair.getValue() / term.totalCount);
 		docs.plusEquals(docsForThisWord);
 	    }
 	    /* Walk from docs to words. */
 	    words = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : docs.pairs()) {
-		SparseVec wordsForThisDoc = trainingSet.get(pair.getKey()).makeTrainingWordVec(true, nDocs, terms);
-		wordsForThisDoc.dotEquals(pair.getValue());
+		SparseVec wordsForThisDoc = trainingSet.get(pair.getKey()).makeTrainingWordVec(true, false, nDocs, terms);
+		wordsForThisDoc.dotEquals(pair.getValue() / wordsForThisDoc.coordSum());
 		words.plusEquals(wordsForThisDoc);
 	    }
 	}
