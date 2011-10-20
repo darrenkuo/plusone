@@ -11,14 +11,11 @@ public class Term {
      * testing documents).  See generateData in PaperAbstract. */
     List<PaperAbstract> doc_train;
     List<PaperAbstract> doc_test;
-    int Id;
-
+    public int id, totalCount;
     public String word;
-    public int totalCount;
     
-    public Term(int Id, String word) {
-	this.Id = Id;
-	this.word = word;
+    public Term(int id) {
+	this.id = id;
 	doc_train = new ArrayList<PaperAbstract>();
 	doc_test= new ArrayList<PaperAbstract>();
 	totalCount = 0;
@@ -45,9 +42,9 @@ public class Term {
     public SparseVec makeTrainingDocVec(boolean useFreqs) {
 	SparseVec ret = new SparseVec();
 	for (PaperAbstract doc : doc_train) {
-	    if (!doc.test)
-		ret.addSingle(doc.indexInGlobalList, useFreqs ? 
-			      doc.getModelTf(Id) : 1.0);
+	    if (!doc.isTest())
+		ret.addSingle(doc.index, useFreqs ?  doc.getTrainingTf(id) 
+			      : 1.0);
 	}
 	return ret;
     }

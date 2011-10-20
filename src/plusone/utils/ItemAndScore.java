@@ -1,18 +1,18 @@
 package plusone.utils;
 
-public class WordAndScore implements Comparable {
-    public Integer wordID;
+public class ItemAndScore implements Comparable {
+    public Object item;
     public double score;
     public boolean ascending;
-
-    public WordAndScore(Integer wordID, double score, boolean ascending) {
-	this.wordID = wordID;
+    
+    public ItemAndScore(Object item, double score, boolean ascending) {
+	this.item = item;
 	this.score = score;
 	this.ascending = ascending;
     }
     
     public int compareTo(Object o) {
-	WordAndScore obj = (WordAndScore)o;
+	ItemAndScore obj = (ItemAndScore)o;
 	int result;
 	if (this.score < obj.score) {
 	    result = -1;

@@ -44,14 +44,14 @@ public class SparseVec {
     }
 
     public Integer[] topKExcluding(int k, PaperAbstract excl) {
-        PriorityQueue<WordAndScore> q = new PriorityQueue<WordAndScore>();
+        PriorityQueue<ItemAndScore> q = new PriorityQueue<ItemAndScore>();
         for (Map.Entry<Integer, Double> entry : coords.entrySet())
-            if (excl == null || excl.getModelTf(entry.getKey()) == 0)
-                q.add(new WordAndScore(entry.getKey(), entry.getValue(), false));
+            if (excl == null || excl.getTrainingTf(entry.getKey()) == 0)
+                q.add(new ItemAndScore(entry.getKey(), entry.getValue(), false));
         int kk = Math.min(k, q.size());
         Integer[] ret = new Integer[kk];
         for (int i = 0; i < kk; ++ i)
-            ret[i] = q.poll().wordID;
+            ret[i] = ((Integer)q.poll().item);
         return ret;
     }
 

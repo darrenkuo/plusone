@@ -1,9 +1,8 @@
 package plusone.clustering;
 
-import plusone.utils.PaperAbstract;
-
 import java.io.File;
-import java.util.List;
+
+import plusone.utils.PredictionPaper;
 
 public interface ClusteringMethod {
     /**
@@ -21,5 +20,5 @@ public interface ClusteringMethod {
      * @return p, where p[i][j] is the j-th predicted word for the i-th
      *         document.
      */
-    public Integer[][] predict(int k, boolean outputUsedWord, File outputDirectory);
+    public Integer[] predict(int k, PredictionPaper paper);
 }

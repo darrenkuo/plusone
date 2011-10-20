@@ -2,6 +2,7 @@ package plusone.clustering;
 
 import java.io.File;
 import plusone.utils.PlusoneFileWriter;
+import plusone.utils.PredictionPaper;
 
 public abstract class ClusteringTest implements ClusteringMethod {
 
@@ -10,17 +11,21 @@ public abstract class ClusteringTest implements ClusteringMethod {
 	this.testName = testName;
     }
 
-    public Integer[][] predict(int k, boolean outputUsedWord) {
+    public Integer[] predict(int k, PredictionPaper testPaper) { 
 	return null;
     }
 
-    protected PlusoneFileWriter makePredictionWriter(int k, boolean outputUsedWord, File outputDirectory, String extra) {
+    protected PlusoneFileWriter makePredictionWriter(int k, 
+						     File outputDirectory, 
+						     String extra) {
 	if (outputDirectory == null) {
             return new PlusoneFileWriter();
         } else {
 	    return new PlusoneFileWriter(new File(outputDirectory, 
-                                                  this.testName + "-" + k + "-" + outputUsedWord +
-                                                  (extra == null ? "" : "-" + extra) +
+                                                  this.testName + "-" + 
+						  k + "-" +
+                                                  (extra == null ? "" : 
+						   "-" + extra) +
                                                   ".predict"));
 	}
     }

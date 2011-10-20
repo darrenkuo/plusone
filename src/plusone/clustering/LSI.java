@@ -1,11 +1,12 @@
 package plusone.clustering;
 
-import plusone.utils.Document;
 import plusone.utils.Indexer;
+import plusone.utils.ItemAndScore;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
+import plusone.utils.PredictionPaper;
 import plusone.utils.Term;
-import plusone.utils.WordAndScore;
+import plusone.utils.TrainingPaper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,16 +26,13 @@ public class LSI extends ClusteringTest {
 	public int termID;
 	public double value;
 
-	public Entry(int docID, int termID, double y){
-	    this.docID=docID;
-	    this.termID=termID;
-	    value=y;
+	public Entry(int docID, int termID, double value) {
+	    this.docID = docID;
+	    this.termID = termID;
+	    this.value = value;
 	}
     }
-    protected List<PaperAbstract> documents;
-    protected List<PaperAbstract> trainingSet;
-    protected List<PaperAbstract> testingSet;
-    protected Indexer<String> wordIndexer;
+    protected List<TrainingPaper> trainingSet;
     protected LinkedList<Entry>[] DocTerm;
     protected LinkedList<Entry>[] TermDoc;
     protected Term[] terms;
@@ -44,42 +42,29 @@ public class LSI extends ClusteringTest {
     protected double[] sigma;
     
     public LSI(int DIMENSION,
-	       List<PaperAbstract> documents,
-	       List<PaperAbstract> trainingSet,
-	       List<PaperAbstract> testingSet,
-	       Indexer<String> wordIndexer,
+	       List<TrainingPaper> trainingSet,
 	       Term[] terms) {
 	super("LSI-" + DIMENSION);
 	this.DIMENSION = DIMENSION;
-	this.documents = documents;
 	this.trainingSet = trainingSet;
-	this.testingSet = testingSet;
-	this.wordIndexer = wordIndexer;
 	this.terms = terms;
-	mu = new double[DIMENSION][documents.size()];
+
+	mu = new double[DIMENSION][trainingSet.size()];
 	beta = new double[DIMENSION][terms.length];
 	sigma = new double[DIMENSION];
-	DocTerm = new LinkedList[documents.size()];
+	DocTerm = new LinkedList[trainingSet.size()];
 	TermDoc = new LinkedList[terms.length];
-	for (int i = 0; i < documents.size(); i ++){
-	    PaperAbstract doc = documents.get(i);
+	for (int i = 0; i < trainingSet.size(); i ++) {
+	    TrainingPaper doc = trainingSet.get(i);
 	    DocTerm[i] = new LinkedList<Entry>();
 
-	    Set<Map.Entry<Integer, Integer>> words = 
-		doc.trainingTf.entrySet();
-
-	    Iterator<Map.Entry<Integer,Integer>> iterator = words.iterator();
-
-	    while (iterator.hasNext()){
-		Map.Entry<Integer, Integer> entry = iterator.next();
-		int key = entry.getKey();
-		int cnt = entry.getValue();
-		Entry temp = new Entry(i,key,cnt);
+	    for (Integer word : doc.getTrainingWords()) {
+		Entry temp = new Entry(i, word, doc.getTrainingTf(word));
 		DocTerm[i].add(temp);
-		if (TermDoc[key] == null){
-		    TermDoc[key] = new LinkedList<Entry>();
+		if (TermDoc[word] == null){
+		    TermDoc[word] = new LinkedList<Entry>();
 		}
-		TermDoc[key].add(temp);
+		TermDoc[word].add(temp);
 	    }
 	}
 	/*
@@ -114,7 +99,7 @@ public class LSI extends ClusteringTest {
 	this.train();
     }
     public double evalDiff(double[] x, double[] y){
-	double result=0;
+	double result = 0.0;
 	for (int i = 0;i < DocTerm.length; i ++) {
 	    for (Entry t : DocTerm[i]) {
 		result += Math.pow(t.value - x[t.docID] * y[t.termID], 2);
@@ -124,7 +109,7 @@ public class LSI extends ClusteringTest {
     }
     
     public double dotProduct(double[] a, double[] b){
-	double result = 0;
+	double result = 0.0;
 	for (int i = 0; i < a.length; i ++){
 	    result += a[i] * b[i];
 	}
@@ -198,14 +183,14 @@ public class LSI extends ClusteringTest {
 	     t.value-=x[t.docID]*y[t.termID];
 	         }
 		 }*/
-    public void orthog(double[] x1, double[] y1, double[] x2, double[] y2){
+    public void orthog(double[] x1, double[] y1, double[] x2, double[] y2) {
 	double length = 0;
 	for (int i = 0; i < x1.length; i ++)
 	    length += x1[i] * x2[i];
 
 	for (int i = 0; i < x2.length; i ++)
 	    x2[i] -= length * x1[i];
-	length=0;
+	length = 0;
 
 	for (int i = 0; i < y1.length; i ++)
 	    length += y1[i] * y2[i];
@@ -253,38 +238,40 @@ public class LSI extends ClusteringTest {
 	return result;
     }
 
-    private Integer[] predict(int k, boolean outputUsedWord,
-			      int Id, File outputDirectory){
-	PriorityQueue<WordAndScore> queue = 
-	    new PriorityQueue<WordAndScore>(k+1);
-	for (int j = 0; j < terms.length; j ++) {
-	    if (!outputUsedWord && documents.get(Id).getModelTf(j) > 0)
-		continue;
-	    double score = similarity(Id,j);
-	    if (queue.size() < k || 
-		score > queue.peek().score){
-		if (queue.size() >= k)
-		    queue.poll();
-		queue.add(new WordAndScore(j, score, true));
-	    }
+    public Integer[] predict(int k, PredictionPaper testPaper) {
+	PriorityQueue<ItemAndScore> queue = 
+	    new PriorityQueue<ItemAndScore>(k+1);
+
+	double[] doct = new double[terms.length];
+	for (Integer word : testPaper.getTrainingWords()) {
+	    doct[word] = testPaper.getTrainingTf(word);
+	}
+	
+	double[] dock = new double[DIMENSION];
+	for (int i = 0; i < dock.length; i ++) {
+	    dock[i] = dotProduct(doct, beta[i]) / sigma[i];	    
 	}
 
+	for (int i = 0; i < terms.length; i ++) {
+	    if (testPaper.getTrainingTf(i) > 0)
+		continue;
+	    double score = 0.0;
+	    for (int j = 0; j < DIMENSION; j ++) {
+		score += dock[j] * beta[j][i];
+	    }
+	    //System.out.println("score: " + score);
+	    if (queue.size() < k || score > queue.peek().score) {	    
+		if (queue.size() >= k)
+		    queue.poll();
+		queue.add(new ItemAndScore(new Integer(i), score, true));
+	    }
+	}
+	
 	Integer[] results = new Integer[Math.min(k, queue.size())];
 	for (int i = 0; i < k && !queue.isEmpty(); i ++) {
-	    Integer wordID = queue.poll().wordID;
-	    results[i] = wordID; 
+	    results[i] = (Integer)queue.poll().item;
 	}
 
 	return results;
-    }
-
-    public Integer[][] predict(int k, boolean outputUsedWord,
-			       File outputDirectory) {
-	Integer[][] result = new Integer[this.testingSet.size()][];
-	for (int i = trainingSet.size(); i < documents.size(); i ++){
-	    result[i - trainingSet.size()] = 
-		predict(k, outputUsedWord, i ,outputDirectory);
-	}
-	return result;
     }
 }

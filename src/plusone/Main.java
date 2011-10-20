@@ -4,17 +4,21 @@ import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.Term;
+import plusone.utils.PredictionPaper;
+import plusone.utils.TrainingPaper;
 
 import plusone.clustering.Baseline;
-import plusone.clustering.Baseline1;
 import plusone.clustering.ClusteringTest;
 import plusone.clustering.KNN;
 import plusone.clustering.KNNWithCitation;
-import plusone.clustering.KNNWithCitationBF;
-import plusone.clustering.Lda;
 import plusone.clustering.LSI;
+/*
+
+import plusone.clustering.Lda;
+
 import plusone.clustering.DTRandomWalkPredictor;
 import plusone.clustering.KNNRandomWalkPredictor;
+*/
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -26,30 +30,53 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
 
-    private Indexer<String> wordIndexer;
-    private Indexer<PaperAbstract> paperIndexer;
-    private Map<Integer, Integer> paperIndexMap;
+    private final static Indexer<String> wordIndexer;
+    private final static Indexer<PaperAbstract> paperIndexer;
+
+    static {
+	wordIndexer = new Indexer<String>();
+	paperIndexer = new Indexer<PaperAbstract>();
+    }
 
     // Document sets
-    public List<PaperAbstract> documents;
-    public List<PaperAbstract> trainingSet;
-    public List<PaperAbstract> testingSet;
+    public List<TrainingPaper> trainingSet;
+    public List<PredictionPaper> testingSet;
 
     // Clustering Methods
     private Baseline baseline;
-    private Baseline1 baseline1;
     private KNN knn;
+    private KNNWithCitation knnc;
     private LSI lsi;
+
+    /*
+
     private DTRandomWalkPredictor dtRWPredictor;
     private KNNRandomWalkPredictor knnRWPredictor;
+    */
 
-    public List<PaperAbstract> load_data(String filename) {
-	this.documents = new ArrayList<PaperAbstract>();
+    class Paper {
+	Integer[] inReferences;
+	Integer[] outReferences;
+	Integer[] abstractWords;
+	Integer index;
+
+	public Paper(Integer index, Integer[] inReferences, 
+		     Integer[] outReferences, Integer[] abstractWords) {
+	    this.inReferences = inReferences;
+	    this.outReferences = outReferences;
+	    this.abstractWords = abstractWords;
+	    this.index = index;
+	}
+    }
+
+    public void load_data(String filename, double trainPercent) {
+	List<Paper> papers = new ArrayList<Paper>();
 
 	String index_pattern_string = "#INDEX ([\\d]+)";
 	Pattern index_pattern = Pattern.compile(index_pattern_string);
@@ -63,9 +90,8 @@ public class Main {
 	String abstract_pattern_string = "#ABSTRACT ([\\s\\S]+)";
 	Pattern abstract_pattern = Pattern.compile(abstract_pattern_string);
 
-	this.paperIndexer = new Indexer<PaperAbstract>();
-	this.wordIndexer = new Indexer<String>();
-	this.paperIndexMap = new HashMap<Integer, Integer>();
+	Indexer<Paper> tempPaperIndexer = new Indexer<Paper>();
+	Map<Integer, Integer> paperIndexMap = new HashMap<Integer, Integer>();
 
 	try {
 	    FileInputStream fstream = new FileInputStream(filename);
@@ -81,8 +107,8 @@ public class Main {
 		}
 
 		int index = -1;
-		int[] inRef = null;
-		int[] outRef = null;
+		Integer[] inRef = null;
+		Integer[] outRef = null;
 		String abstractText = null;
 		
 		strLine = br.readLine();
@@ -96,7 +122,7 @@ public class Main {
 		if (matcher.matches()) {
 		    String matched_string = matcher.group(1);
 		    String[] array = matched_string.split(" ");
-		    inRef = new int[array.length];
+		    inRef = new Integer[array.length];
 		    for (int i = 0; i < array.length; i ++) {
 			inRef[i] = new Integer(array[i]);
 		    }
@@ -107,7 +133,7 @@ public class Main {
 		if (matcher.matches()) {
 		    String matched_string = matcher.group(1);
 		    String[] array = matched_string.split(" ");
-		    outRef = new int[array.length];
+		    outRef = new Integer[array.length];
 		    for (int i = 0; i < array.length; i ++) {
 			outRef[i] = new Integer(array[i]);
 		    }
@@ -119,114 +145,121 @@ public class Main {
 		    abstractText = matcher.group(1);
 		}
 
+		String[] words = abstractText.trim().split(" ");
+		Integer[] abstractWords = new Integer[words.length];
+
+		for (int i = 0; i < words.length; i ++) {
+		    abstractWords[i] = 
+			wordIndexer.fastAddAndGetIndex(words[i]);
+		}
+
 		strLine = br.readLine();
 
-		PaperAbstract a = 
-		    new PaperAbstract(index, inRef, outRef, 
-				      abstractText, wordIndexer,
-				      documents.size());
-		documents.add(a);
+		inRef = inRef == null ? new Integer[0] : inRef;
+		outRef = outRef == null ? new Integer[0] : outRef;
 
-		paperIndexMap.put(index, paperIndexer.addAndGetIndex(a));
+		Paper p = new Paper(index, inRef, outRef, abstractWords);
+
+		papers.add(p);
+		paperIndexMap.put(index, tempPaperIndexer.addAndGetIndex(p));
 	    }
 	    br.close();
 	} catch(Exception e) {
 	    e.printStackTrace();
 	}	    
 
+	List<PaperAbstract> documents = new ArrayList<PaperAbstract>();
 	int inref_zero = 0;
-	for (PaperAbstract a : documents) {
-	    int i = 0;
+	for (Paper a : papers) {
 	    ArrayList<Integer> references = new ArrayList<Integer>();
-	    for (i = 0; i < a.inReferences.length; i ++) {
+	    for (int i = 0; i < a.inReferences.length; i ++) {
 		Integer j = paperIndexMap.get(a.inReferences[i]);
-		if (j != null) {
+		if (j != null)
 		    references.add(j);
-		}
 	    }
-
-	    a.inReferences = new int[references.size()];
-	    i = 0;
-	    for (Integer j : references) {
-		a.inReferences[i++] = j;
-	    }
-
-	    if (a.inReferences.length == 0)
-		inref_zero ++;
+	    Integer[] inReferences =
+		references.toArray(new Integer[references.size()]);
 
 	    references = new ArrayList<Integer>();
-	    for (i = 0; i < a.outReferences.length; i ++) {
+	    for (int i = 0; i < a.outReferences.length; i ++) {
 		Integer j = paperIndexMap.get(a.outReferences[i]);
-		if (j != null) {
-		    references.add(j);
-		}
+		if (j != null)
+		    references.add(j);	       
 	    }
-	    a.outReferences = new int[references.size()];
-	    i = 0;
-	    for (Integer j : references) {
-		a.outReferences[i++] = j;
-	    }
+	    Integer[] outReferences =
+		references.toArray(new Integer[references.size()]);
+
+	    PaperAbstract p = new PaperAbstract(paperIndexMap.get(a.index),
+						inReferences,
+						outReferences,
+						a.abstractWords);
+		
+	    documents.add(p);
+	    paperIndexer.add(p);
+	    inref_zero += inReferences.length == 0 ? 1 : 0;
+	    inref_zero += outReferences.length == 0 ? 1 : 0;	    
 	}
 	System.out.println("inref zero: " + inref_zero);
 	System.out.println("total number of papers: " + documents.size());
-		
-	return documents;
+	splitByTrainPercent(trainPercent, documents);
     }
 
-    public void splitByTrainPercent(double trainPercent) {
-	this.trainingSet = this.documents.
-	    subList(0, ((int)(documents.size() * trainPercent)));
-	this.testingSet = documents.subList(trainingSet.size(),
-					    documents.size());
-    }
-
-    public Indexer<String> getWordIndexer() {
-	return this.wordIndexer;
-    }
-
-    public Indexer<PaperAbstract> getPaperIndexer() {
-	return this.paperIndexer;
+    /**
+     * Splits all the documents into training and testing papers.
+     * This function must be called before we can do execute any
+     * clustering methods.
+     */
+    private void splitByTrainPercent(double trainPercent, 
+				    List<PaperAbstract> documents) {
+	trainingSet = new ArrayList<TrainingPaper>();
+	testingSet = new ArrayList<PredictionPaper>();
+	for (int i = 0; i < documents.size(); i ++) {
+	    if (i < trainPercent * documents.size())
+		trainingSet.add((TrainingPaper)documents.get(i));
+	    else
+		testingSet.add((PredictionPaper)documents.get(i));
+	}
+	System.out.println("trainingSet size: " + trainingSet.size());
+	System.out.println("testingSet size: " + testingSet.size());
     }
     
-    public static double[] evaluate(List<PaperAbstract> testingSet, 
-				    Term[] terms, 
-				    Integer[][] prediction, 
-				    int size, int k, boolean usedWords, 
-				    Indexer<String> wordIndexer){
+    public static Indexer<String> getWordIndexer() {
+	return wordIndexer;
+    }
 
-    	if (testingSet.size() != prediction.length)
-	    System.out.println("Number of testing docs is not equal to number of documents");
-
+    public static Indexer<PaperAbstract> getPaperIndexer() {
+	return paperIndexer;
+    }
+    
+    public static double[] evaluate(PredictionPaper testingPaper,
+				    Term[] terms,
+				    Integer[] prediction,
+				    int size, int k) {
     	int predicted = 0, total = 0;
     	double tfidfScore = 0.0, idfScore = 0.0, idf_top =  Math.log(size);
 
-    	for (int i = 0; i < testingSet.size(); i++) {
-	    PaperAbstract doc = testingSet.get(i);
-    	    for (int j = 0; j < prediction[i].length && j<k; j++) {
-    		Integer wordID = prediction[i][j];
-    		if (doc.answerWords.contains(wordID) && 
-		    (usedWords || (!doc.modelWords.contains(wordID)))) {
-		    
-    		    predicted ++;
-		    double logVal = (double) (terms[wordID].idfRaw() +
-					      (doc.answerWords.
-					       contains(wordID) ? 0.0 
-					       : 1.0));
-		    logVal = Math.log(logVal);
-
-		    tfidfScore += doc.getTf(wordID) * (idf_top - logVal);
-    		    idfScore += (idf_top - logVal);
-    		}
-    		total ++;
-    	    }
-    	}
+	Set<Integer> givenWords = testingPaper.getTrainingWords();
+	Set<Integer> predictionWords = ((PaperAbstract)testingPaper).
+	    getTestingWords();
+	for (int j = 0; j < prediction.length && j < k; j ++) {
+	    Integer word = prediction[j];
+	    if (predictionWords.contains(word)) {
+		predicted ++;
+		double logVal = Math.log(terms[word].idfRaw() + 1.0);
+		
+		tfidfScore += ((PaperAbstract)testingPaper).
+		    getTestingTf(word) * 
+		    (idf_top - logVal);
+		idfScore += (idf_top - logVal);
+	    }
+	}
 
 	/* FIXME: We probably should divide by k here, rather than the total
 	 * number of predictions made; otherwise we reward methods that make
 	 * less predictions.  -James */
 	
-	return new double[]{(double)predicted/(double)total,
-			    idfScore, tfidfScore}; 
+	return new double[]{(double)predicted, idfScore, 
+			    tfidfScore, (double)prediction.length}; 
    }
 
     public static void printResults(double[] results) {
@@ -243,28 +276,20 @@ public class Main {
 	writer.close();
     }
 
-    public void runClusteringMethods(List<PaperAbstract> trainingSet,
-				     List<PaperAbstract> testingSet,
+    public void runClusteringMethods(List<TrainingPaper> trainingSet,
+				     List<PredictionPaper> testingSet,
 				     Term[] terms,
-				     File outputDir, int k,
-				     boolean usedWord) {
+				     File outputDir, int k) {
 
+	int size = trainingSet.size() + testingSet.size();
 	if (testIsEnabled("baseline")) {
-	    baseline = new Baseline(documents, trainingSet, testingSet, 
-				wordIndexer, terms);
-	    runClusteringMethod(trainingSet, testingSet, terms, baseline,
-				outputDir, k, usedWord);
+	    baseline = new Baseline(trainingSet, terms);
+	    runClusteringMethod(testingSet, terms, baseline,
+				outputDir, k, size);
 	    
 	}
 	
-	if (testIsEnabled("baseline1")) {
-	    baseline1 = new Baseline1(documents, trainingSet, testingSet, 
-				  wordIndexer, terms);
-	    
-	    runClusteringMethod(trainingSet, testingSet, terms, baseline1, 
-				outputDir, k, usedWord);
-	}
-
+	/*
 	if (testIsEnabled("dtrw")) {
 	    dtRWPredictor =
 		new DTRandomWalkPredictor(documents,
@@ -274,18 +299,25 @@ public class Main {
 	    runClusteringMethod(trainingSet, testingSet, terms, 
 				dtRWPredictor, outputDir, k, usedWord);
 	}
+	*/
 
 	int[] closest_k = {1, 3, 5, 10, 25, 50, 100, 
-			   250, 500, 1000, 10000, 100000};
+			   250, 500, 1000, 2500, 5000, 10000};
 
 	for (int ck = 0; ck < closest_k.length; ck ++) {
 	    if (testIsEnabled("knn")) {
-		knn = new KNN(closest_k[ck], trainingSet, testingSet, 
-			      wordIndexer, paperIndexer, terms);
-		runClusteringMethod(trainingSet, testingSet, terms, 
-				    knn, outputDir, k, usedWord);
+		knn = new KNN(closest_k[ck], trainingSet, terms);
+		runClusteringMethod(testingSet, terms, 
+				    knn, outputDir, k, size);
 	    }
-		
+	    if (testIsEnabled("knnc")) {
+		knnc = new KNNWithCitation(closest_k[ck], 
+					   trainingSet, terms);
+		runClusteringMethod(testingSet, terms,
+				    knnc, outputDir, k, size);
+	    }
+	    	
+	    /*
 	    if (testIsEnabled("knnrw")) {
 		knnRWPredictor =
 		    new KNNRandomWalkPredictor(closest_k[ck], documents,
@@ -295,33 +327,39 @@ public class Main {
 		runClusteringMethod(trainingSet, testingSet, terms, 
 				    knnRWPredictor, outputDir, k, usedWord);
 	    }
+	    */
 	}
 
-	int[] dimensions = {10, 20, 50, 100, 150};
+	int[] dimensions = {10, 20, 25, 50, 100, 150};
 	for (int dk = 0; dk < dimensions.length; dk ++) {
 	    if (testIsEnabled("lsi")) {
-		lsi = new LSI(dimensions[dk], documents,
-			      trainingSet, testingSet,
-			      wordIndexer, terms);
-		runClusteringMethod(trainingSet, testingSet, terms,
-				    lsi, outputDir, k, usedWord);
+		lsi = new LSI(dimensions[dk], trainingSet, terms);
+		runClusteringMethod(testingSet, terms,
+				    lsi, outputDir, k, size);
 	    }
 	}
     }
 
-    public void runClusteringMethod(List<PaperAbstract> trainingSet,
-				    List<PaperAbstract> testingSet,
+    public void runClusteringMethod(List<PredictionPaper> testingSet,
 				    Term[] terms,
 				    ClusteringTest test, File outputDir,
-				    int k, boolean usedWord) {
-	Integer[][] predict = test.predict(k, usedWord, outputDir);
-	double[] result = this.evaluate(testingSet, terms, predict,
-					testingSet.size() + 
-					trainingSet.size(),
-					k, usedWord,
-					this.getWordIndexer());
+				    int k, int size) {
+	System.out.println("running " + test.testName);
+	double[] results = {0.0, 0.0, 0.0, 0.0};
+	for (PredictionPaper testingPaper : testingSet) {
+	    Integer[] predict = test.predict(k, testingPaper);
+	    double[] result = this.evaluate(testingPaper, terms, predict,
+					    size, k);
+	    results[0] += result[0];
+	    results[1] += result[1];
+	    results[2] += result[2];
+	    results[3] += result[3];
+
+	}
+	
 	File out = new File(outputDir, test.testName + ".out");
-	Main.printResults(out, result);
+	Main.printResults(out, new double[]{results[0]/results[3], 
+					    results[1], results[2]});
     }
 
     static double[] parseDoubleList(String s) {
@@ -366,11 +404,11 @@ public class Main {
 	}
 
 	Main main = new Main();
-	List<PaperAbstract> documents = main.load_data(data_file);
-	float trainPercent = new Float(args[1]);
+	double trainPercent = new Double(args[1]);
 	String experimentPath = System.getProperty("plusone.outPath", 
 						   "experiment");
-	
+
+	main.load_data(data_file, trainPercent);
 	System.out.println("data file " + data_file);
 	System.out.println("train percent " + trainPercent);
 	//System.out.println("test word percent " + testWordPercent);
@@ -390,9 +428,8 @@ public class Main {
 	    parseIntList(System.getProperty("plusone.closestKValues", 
 					    "5,20,50,75,100,150,200"));
 
-	main.splitByTrainPercent(trainPercent);
-	List<PaperAbstract> trainingSet = main.trainingSet;
-	List<PaperAbstract> testingSet = main.testingSet;	
+	List<TrainingPaper> trainingSet = main.trainingSet;
+	List<PredictionPaper> testingSet = main.testingSet;	
 	
 	Indexer<String> wordIndexer = main.getWordIndexer();
 	Indexer<PaperAbstract> paperIndexer = main.getPaperIndexer();
@@ -405,15 +442,15 @@ public class Main {
 
 	    Term[] terms = new Term[wordIndexer.size()];
 	    for (int i = 0; i < wordIndexer.size(); i++) {
-		terms[i] = new Term(i, wordIndexer.get(i));
+		terms[i] = new Term(i);
 	    }
 	    
-	    for (PaperAbstract a : trainingSet){
-		a.generateData(testWordPercent, terms, false);
+	    for (TrainingPaper a : trainingSet){
+		((PaperAbstract)a).generateTf(testWordPercent, terms, false);
 	    }
 	    
-	    for (PaperAbstract a : testingSet){
-		a.generateData(testWordPercent, null, true);
+	    for (PredictionPaper a : testingSet){
+		((PaperAbstract)a).generateTf(testWordPercent, null, true);
 	    }
 
 	    File twpDir = null;
@@ -436,23 +473,11 @@ public class Main {
 		    e.printStackTrace();
 		}
 
-		boolean usedWord = false;
-
 		System.out.println("processing testwordpercent: " + 
-				   testWordPercent + 
-				   " k: " + k + " usedWord: " + usedWord);
-
-		File outputDir = null;
-		try {
-		    outputDir = new File(kDir, usedWord + "");
-		    outputDir.mkdir();
-		} catch(Exception e) {
-		    e.printStackTrace();
-		}		    
-
+				   testWordPercent + " k: " + k);
 
 		main.runClusteringMethods(trainingSet, testingSet, terms,
-					  outputDir, k, usedWord);
+					  kDir, k);
 	    }
 	}
     }

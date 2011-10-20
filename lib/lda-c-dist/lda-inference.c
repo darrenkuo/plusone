@@ -23,6 +23,7 @@
  * variational inference
  *
  */
+int c = 0;
 
 double lda_inference(document* doc, lda_model* model, double* var_gamma, double** phi)
 {
@@ -42,7 +43,9 @@ double lda_inference(document* doc, lda_model* model, double* var_gamma, double*
             phi[n][k] = 1.0/model->num_topics;
     }
     var_iter = 0;
-
+    //printf ("c: %d\n", c);
+    //c += 1;
+    //printf("doc->length: %d num_topics: %d\n", doc->length, model->num_topics);
     while ((converged > VAR_CONVERGED) &&
            ((var_iter < VAR_MAX_ITER) || (VAR_MAX_ITER == -1)))
     {
@@ -53,6 +56,20 @@ double lda_inference(document* doc, lda_model* model, double* var_gamma, double*
             for (k = 0; k < model->num_topics; k++)
             {
                 oldphi[k] = phi[n][k];
+
+		/*
+		//if (c == 259)
+		//  printf("n: %d, k: %d\n", doc->words[n], k);
+		
+		printf ("sizeof phi: %d\n", sizeof(phi)/sizeof(double**));
+		printf ("size of phi at n: %d is %d\n", 
+			n, sizeof(phi[n])/sizeof(double*));
+		printf ("k: %d\n", k);
+		printf ("phi value: %d\n", phi[n][k]);
+		printf ("digamma_gam: %f\n", digamma_gam[k]);
+		printf ("model log pob: %f\n", model->log_prob_w[k][doc->words[n]]);
+		*/
+		
                 phi[n][k] =
                     digamma_gam[k] +
                     model->log_prob_w[k][doc->words[n]];

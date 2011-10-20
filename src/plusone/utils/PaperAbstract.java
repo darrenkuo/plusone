@@ -12,149 +12,110 @@ import java.util.Random;
 import java.util.Set;
 
 import plusone.utils.Term;
+import plusone.utils.TrainingPaper;
+import plusone.utils.PredictionPaper;
 
-public class PaperAbstract {
-    public int index, indexInGlobalList;
-    public Integer[] abstractText;
-    public int[] inReferences;
-    public int[] outReferences;
+public class PaperAbstract implements TrainingPaper, PredictionPaper {
+    public final Integer index;
+    public final Integer[] inReferences;
+    public final Integer[] outReferences;
+    private final Integer[] abstractWords;
 
-    /*
-     * contains all the words for training or predicting
-     * training documents will have all it's words in here
-     */    
-    public List<Integer> modelWords;
-    /*
-     * contains all the words for testing answer checking
-     * testing documents will have some words in here
-     */
-    public List<Integer> answerWords;
-    public HashMap<Integer, Integer> trainingTf;
-    public HashMap<Integer, Integer> testingTf;
-    public boolean test = false;
-    public int uniqueWords; // # of unique words in training text
+    private HashMap<Integer, Integer> trainingTf;
+    private HashMap<Integer, Integer> testingTf;
     public double norm;
-    public Indexer<String> wordIndexer;
 
-    public PaperAbstract(int index, int[] inReferences, 
-			 int[] outReferences, String abstractText,
-			 Indexer<String> wordIndexer,
-			 int indexInGlobalList) {
+    public PaperAbstract(int index, Integer[] inReferences, 
+			 Integer[] outReferences, 
+			 Integer[] abstractWords) {
 	this.index = index;
-	this.indexInGlobalList = indexInGlobalList;
-	
-	String[] words = abstractText.trim().split(" ");   
-	this.abstractText = new Integer[words.length];
-	uniqueWords = 0;
-
-	for (int i = 0; i < words.length; i ++) {
-	    this.abstractText[i] = wordIndexer.fastAddAndGetIndex(words[i]);
-	}
+	this.abstractWords = abstractWords;
 
 	this.inReferences = inReferences;
-	if (this.inReferences == null) 
-	    this.inReferences = new int[0];
-
 	this.outReferences = outReferences;
-	if (this.outReferences == null)
-	    this.outReferences = new int[0];
-	
-	this.wordIndexer = wordIndexer;
     }
 
-    public void generateData(double percentUsed,
-			     Term[] terms, boolean test){
-	this.test = test;
-    	answerWords = new ArrayList<Integer>();
-    	modelWords = new ArrayList<Integer>();
+    /**
+     * Generates tf depending on training or testing.  This function
+     * must be called before we can use this paper in clustering
+     * methods.
+     */
+    public void generateTf(double percentUsed,
+			   Term[] terms, boolean test){
+	Random random = new Random();
 	trainingTf = new HashMap<Integer, Integer>();
-	if (test)
-	    testingTf = new HashMap<Integer, Integer>();
+	testingTf = test ? new HashMap<Integer, Integer>() : null;
 
 	HashMap<Integer, Integer> tf = new HashMap<Integer, Integer>();
-	for (Integer wordID : abstractText) {
-	    if (!tf.containsKey(wordID))
-		tf.put(wordID, 0);
-	    tf.put(wordID, tf.get(wordID) + 1);
+	for (Integer word : abstractWords) {
+	    if (!tf.containsKey(word))
+		tf.put(word, 0);
+	    tf.put(word, tf.get(word) + 1);
 	}
-	uniqueWords = tf.keySet().size();
 
-	Iterator<Integer> iter = tf.keySet().iterator();
-	int c = 0;
-	while (iter.hasNext()) {
-	    Integer word = iter.next();
-	    if (test && c < percentUsed * tf.keySet().size()) {
-		answerWords.add(word);
-		this.testingTf.put(word, tf.get(word));
+	for (Integer word : tf.keySet()) {
+	    if (test && random.nextDouble() > percentUsed) {
+		testingTf.put(word, tf.get(word));
 	    } else {
-		modelWords.add(word);
-		this.trainingTf.put(word, tf.get(word));
+		trainingTf.put(word, tf.get(word));
 		if (!test && terms != null)
 		    terms[word].totalCount += tf.get(word);
 	    }
-	    c ++;
 	}
 
-    	Set<Map.Entry<Integer, Integer>> words = trainingTf.entrySet();
-    	Iterator<Map.Entry<Integer,Integer>> iterator = words.iterator();
-    	
-    	while (iterator.hasNext()){
-	    Map.Entry<Integer, Integer> entry = iterator.next();
-	    int count = entry.getValue();
-	    norm += count * count;
+    	for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet()) {
+	    norm += entry.getValue() * entry.getValue();
     	}
     	norm = Math.sqrt(norm);
     }
 
+    public Integer getTrainingTf(Integer word) {
+	return trainingTf == null ? 0 : 
+	    (trainingTf.get(word) == null ? 0 : trainingTf.get(word));
+    }
+
+    public Set<Integer> getTrainingWords() {
+	return trainingTf.keySet();
+    }
+
+    public Integer getTestingTf(Integer word) {
+	return testingTf == null ? 0 : 
+	    (testingTf.get(word) == null? 0 : testingTf.get(word));
+    }
+
+    public Set<Integer> getTestingWords() {
+	return testingTf.keySet();
+    }
+
     public String toString() {
-	String results = "";
-	results += "INDEX " + index + "\n";
-	results += "IN REF " + Arrays.toString(inReferences) + "\n";
-	results += "OUT REF " + Arrays.toString(outReferences) + "\n";
-	results += "ABSTRACT " + abstractText + "\n";
-
-	return results;
+	return ("INDEX " + index + "\n" + "IN REF " + 
+		Arrays.toString(inReferences) + "\n" +
+		"OUT REF " + Arrays.toString(outReferences) + 
+		"\n" + "ABSTRACT " + abstractWords + "\n");
     }
 
-    public Integer getModelTf(int wordID) {
-	return trainingTf.containsKey(wordID) ? 
-	    trainingTf.get(wordID) : 0;
-    }
-
-    public Integer getTf(int wordID) {
-	Integer tf0 = getModelTf(wordID);
-	if (!test) {
-	    return tf0;
-	}
-	return tf0 + (testingTf.containsKey(wordID) ? 
-		      testingTf.get(wordID) : 0);
-    }
-    
     public double getNorm(){
     	return norm;
     }
+
+    public boolean isTest() { return testingTf != null; }
     
     public double similarity(PaperAbstract a){
     	double dist = 0.0;
-    	
-    	Set<Map.Entry<Integer, Integer>> words = trainingTf.entrySet();
-    	Iterator<Map.Entry<Integer,Integer>> iterator= words.iterator();
 
-    	while (iterator.hasNext()){
-    		Map.Entry<Integer, Integer> entry = iterator.next();
-    		int wordId = entry.getKey();
-    		int count = entry.getValue();
-    		if (a.trainingTf.containsKey(wordId)) {
-		    dist += count * a.trainingTf.get(wordId);
-		}
+	for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet()) {
+	    int wordId = entry.getKey();
+	    int count = entry.getValue();
+	    if (a.trainingTf.containsKey(wordId)) {
+		dist += count * a.trainingTf.get(wordId);
+	    }
     	}
     	return dist/(a.norm * norm);
     }
 
     public boolean equals(Object obj) {
-	if (obj instanceof PaperAbstract)
-	    return this.index == ((PaperAbstract)obj).index;
-	return false;
+	return obj instanceof PaperAbstract &&
+	    this.index == ((PaperAbstract)obj).index;
     }
 
     public SparseVec makeTrainingWordVec(boolean useFreqs, 

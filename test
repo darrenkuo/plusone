@@ -9,7 +9,11 @@ cd lib/lda-c-dist; make || exit
 cd $basedir; ant -f build.xml || exit
 
 # data = {'med.out.1', 'test.5000.data'}
-data="med.out.1";
+#data="test.5000.data"
+#data="knnc_toy.data";
+#data="med.out.1"
+data="alldata_bf_sample20000b.out"
+#data="alldata_sample0.1.out"
 userdata=$data.`whoami`
 
 echo $userdata
@@ -18,7 +22,7 @@ echo $userdata
 
 if test ! -f /tmp/$data.`whoami`; then
    cd /tmp/
-   wget http://inst.eecs.berkeley.edu/~darrenk/$data --output-document=$userdata
+   wget http://eecs.berkeley.edu/~darrenk/$data --output-document=$userdata
    cd $basedir
 fi
 
@@ -27,17 +31,17 @@ out_dir=experiment-$(date -u +%F.%T%Z)
 mkdir $out_dir || exit
 echo Output will go in $out_dir
 
+#0.1,0.3,0.5,0.7,0.9 \
 args=\
-"-Dplusone.testWordPercents=0.1,0.3,0.5,0.7,0.9 \
+"-Dplusone.testWordPercents=0.5 \
  -Dplusone.kValues=1,5,10,15,20 \
  -Dplusone.closestKValues=5,20,50,75,100,150,200 \
  -Dplusone.enableTest.lda=false \
- -Dplusone.enableTest.knnc=false \
+ -Dplusone.enableTest.knnc=true \
  -Dplusone.enableTest.knn=true \
  -Dplusone.enableTest.knnrw=false \
  -Dplusone.enableTest.dtrw=false \
  -Dplusone.enableTest.baseline=true \
- -Dplusone.enableTest.baseline1=true \
  -Dplusone.enableTest.lsi=true \
  -Dplusone.outPath=$out_dir"
 
