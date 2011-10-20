@@ -35,7 +35,8 @@ echo Output will go in $out_dir
 args=\
 "-Dplusone.testWordPercents=0.5 \
  -Dplusone.kValues=1,5,10,15,20 \
- -Dplusone.closestKValues=5,20,50,75,100,150,200 \
+ -Dplusone.closestKValues=1,3,5,10,25,50,100,250,500,1000,10000,100000 \
+ -Dplusone.randomWalkLength=4
  -Dplusone.enableTest.lda=false \
  -Dplusone.enableTest.knnc=true \
  -Dplusone.enableTest.knn=true \

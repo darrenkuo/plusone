@@ -3,10 +3,8 @@ package plusone.utils;
 import java.lang.Iterable;
 import java.lang.Math;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 import plusone.utils.PaperAbstract;
 
 public class SparseVec {
@@ -56,8 +54,23 @@ public class SparseVec {
     }
 
     public Integer[] topK(int k) { return topKExcluding(k, null); }
+    
+    public Integer[] descending() {
+	return topK(coords.size());
+    }
 
     public Iterable<Map.Entry<Integer, Double>> pairs() {
 	return coords.entrySet();
+    }
+    
+    public final int cSize() {
+	return coords.size();
+    }
+    
+    public final double coordSum() {
+	double ret = 0.0;
+	for (Map.Entry<Integer, Double> entry : coords.entrySet())
+	    ret += entry.getValue();
+	return ret;
     }
 }

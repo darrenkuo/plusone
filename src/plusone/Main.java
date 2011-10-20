@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -201,6 +200,7 @@ public class Main {
 	}
 	System.out.println("inref zero: " + inref_zero);
 	System.out.println("total number of papers: " + documents.size());
+
 	splitByTrainPercent(trainPercent, documents);
     }
 
@@ -291,18 +291,15 @@ public class Main {
 	
 	/*
 	if (testIsEnabled("dtrw")) {
-	    dtRWPredictor =
-		new DTRandomWalkPredictor(documents,
-					  trainingSet, testingSet,
-					  wordIndexer, terms,
-					  1);
 	    runClusteringMethod(trainingSet, testingSet, terms, 
 				dtRWPredictor, outputDir, k, usedWord);
 	}
 	*/
 
-	int[] closest_k = {1, 3, 5, 10, 25, 50, 100, 
-			   250, 500, 1000, 2500, 5000, 10000};
+
+	int[] closest_k = 
+	    parseIntList(System.getProperty("plusone.closestKValues", 
+					    "1,3,5,10,25,50,100,250,500,1000,10000,100000"));
 
 	for (int ck = 0; ck < closest_k.length; ck ++) {
 	    if (testIsEnabled("knn")) {
@@ -404,6 +401,7 @@ public class Main {
 	}
 
 	Main main = new Main();
+
 	double trainPercent = new Double(args[1]);
 	String experimentPath = System.getProperty("plusone.outPath", 
 						   "experiment");
@@ -424,9 +422,6 @@ public class Main {
 	int[] ks = 
 	    parseIntList(System.getProperty("plusone.kValues", 
 					    "1,5,10,15,20"));
-	int[] closest_k = 
-	    parseIntList(System.getProperty("plusone.closestKValues", 
-					    "5,20,50,75,100,150,200"));
 
 	List<TrainingPaper> trainingSet = main.trainingSet;
 	List<PredictionPaper> testingSet = main.testingSet;	
@@ -461,7 +456,18 @@ public class Main {
 	    } catch(Exception e) {
 		e.printStackTrace();
 	    }
-		
+
+	    if (testIsEnabled("dtrw")) {
+		int rwLength =
+		    Integer.getInteger("plusone.randomWalkLength", 4);
+		System.out.println("Random walk length: " + rwLength);
+		main.dtRWPredictor =
+		    new DTRandomWalkPredictor(main.documents,
+			    main.trainingSet, main.testingSet,
+			    main.wordIndexer, terms,
+			    rwLength);
+	    }
+
 	    for (int ki = 0; ki < ks.length; ki ++) {
 		int k = ks[ki];
 
@@ -475,6 +481,7 @@ public class Main {
 
 		System.out.println("processing testwordpercent: " + 
 				   testWordPercent + " k: " + k);
+
 
 		main.runClusteringMethods(trainingSet, testingSet, terms,
 					  kDir, k);

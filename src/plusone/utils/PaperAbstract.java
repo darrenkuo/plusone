@@ -3,12 +3,9 @@ package plusone.utils;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Random;
 import java.util.Set;
 
 import plusone.utils.Term;
@@ -118,13 +115,13 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 	    this.index == ((PaperAbstract)obj).index;
     }
 
-    public SparseVec makeTrainingWordVec(boolean useFreqs, 
+    public SparseVec makeTrainingWordVec(boolean useFreqs, boolean useIdf, 
 					 int nDocs, Term[] terms) {
         SparseVec ret = new SparseVec();
         for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet())
             ret.addSingle(entry.getKey(), 
 			  (useFreqs ? entry.getValue() : 1.0) * 
-			  terms[entry.getKey()].trainingIdf(nDocs));
+			  (useIdf ? terms[entry.getKey()].trainingIdf(nDocs) : 1.0));
         return ret;
     }
 }
