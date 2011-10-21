@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import plusone.utils.Term;
@@ -51,6 +52,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 	}
 
 	for (Integer word : tf.keySet()) {
+	    if (terms != null) terms[word].addDoc(this, test);
 	    if (test && random.nextDouble() > percentUsed) {
 		testingTf.put(word, tf.get(word));
 	    } else {
@@ -113,15 +115,5 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
     public boolean equals(Object obj) {
 	return obj instanceof PaperAbstract &&
 	    this.index == ((PaperAbstract)obj).index;
-    }
-
-    public SparseVec makeTrainingWordVec(boolean useFreqs, boolean useIdf, 
-					 int nDocs, Term[] terms) {
-        SparseVec ret = new SparseVec();
-        for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet())
-            ret.addSingle(entry.getKey(), 
-			  (useFreqs ? entry.getValue() : 1.0) * 
-			  (useIdf ? terms[entry.getKey()].trainingIdf(nDocs) : 1.0));
-        return ret;
     }
 }
