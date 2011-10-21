@@ -1,166 +1,92 @@
 package plusone.clustering;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import plusone.utils.Indexer;
-import plusone.utils.PaperAbstract;
-import plusone.utils.PlusoneFileWriter;
+import java.util.Set;
+import plusone.utils.PredictionPaper;
 import plusone.utils.SparseVec;
 import plusone.utils.Term;
+import plusone.utils.TrainingPaper;
 
 /** Does a random walk on the document-topic graph to find words.
  */
 public class DTRandomWalkPredictor extends ClusteringTest {
-    protected List<PaperAbstract> documents;
-    protected List<PaperAbstract> trainingSet;
-    protected List<PaperAbstract> testingSet;
-    protected Indexer<String> wordIndexer;
+    protected List<TrainingPaper> trainingSet;
     protected Term[] terms;
     protected int walkLength;
-    protected boolean stochastic;
-    protected int nSampleWalks;
-    protected static Random rand = new Random();
     protected List<Integer[]> predictions;
+    protected Map<Integer, SparseVec> docsForEachWord;
 
-    public DTRandomWalkPredictor(List<PaperAbstract> documents,
-                                 List<PaperAbstract> trainingSet,
-                                 List<PaperAbstract> testingSet,
-                                 Indexer<String> wordIndexer,
+    public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
                                  Term[] terms,
-                                 int walkLength,
-				 boolean stochastic,
-                                 int nSampleWalks) {
-        super("DTRandomWalkPredictor");
-        this.documents = documents;
+                                 int walkLength) {
+        super("DTRandomWalkPredictor-" + Integer.toString(walkLength));
         this.trainingSet = trainingSet;
-        this.testingSet = testingSet;
-        this.wordIndexer = wordIndexer;
         this.terms = terms;
         this.walkLength = walkLength;
-        this.stochastic = stochastic;
-        this.nSampleWalks = nSampleWalks;
-        train();
-    }
-
-    public DTRandomWalkPredictor(List<PaperAbstract> documents,
-                                 List<PaperAbstract> trainingSet,
-                                 List<PaperAbstract> testingSet,
-                                 Indexer<String> wordIndexer,
-                                 Term[] terms,
-				 int walkLength) {
-	this(documents, trainingSet, testingSet, wordIndexer, terms, walkLength, false, -1);
-    }
-
-    public DTRandomWalkPredictor(List<PaperAbstract> documents,
-                                 List<PaperAbstract> trainingSet,
-                                 List<PaperAbstract> testingSet,
-                                 Indexer<String> wordIndexer,
-                                 Term[] terms,
-				 int walkLength,
-				 int nSampleWalks) {
-	this(documents, trainingSet, testingSet, wordIndexer, terms, walkLength, true, nSampleWalks);
+        this.docsForEachWord = makeDocsForEachWord(trainingSet);
     }
     
-    protected void train() {
-	predictions = new ArrayList<Integer[]>();
-	for (int document = 0; document < testingSet.size(); document ++) {
-	    PaperAbstract a = testingSet.get(document);
-
-	    SparseVec words;
-	    if (stochastic) {
-		/* Add together words at the end of nSampleWalks random walks. */
-		words = new SparseVec();
-		for (int i = 0; i < nSampleWalks; ++ i) {
-		    PaperAbstract endOfWalk = stochWalk(a);
-		    if (null == endOfWalk) continue;
-		    words.plusEquals(new SparseVec(endOfWalk.trainingTf));
-		}
-	    } else {
-		words = detWalk(a);
+    protected Map<Integer, SparseVec> makeDocsForEachWord(List<TrainingPaper> trainingSet) {
+	Map<Integer, SparseVec> ret = new HashMap<Integer, SparseVec>();
+	for (int i = 0; i < trainingSet.size(); ++i) {
+	    TrainingPaper paper = trainingSet.get(i);
+	    for (Integer word : paper.getTrainingWords()) {
+		if (!ret.containsKey(word)) ret.put(word, new SparseVec());
+		ret.get(word).addSingle(i, (double)paper.getTrainingTf(word));
 	    }
-	    predictions.add(words.descending());
 	}
-    }
-
-    public Integer[][] predict(int k, boolean outputUsedWord, File outputDirectory) {
-	PlusoneFileWriter writer =
-	    makePredictionWriter(k, outputUsedWord, outputDirectory,
-				 stochastic ? Integer.toString(walkLength) + "-" + Integer.toString(nSampleWalks)
-				            : "det");
-        Integer[][] ret = new Integer[testingSet.size()][];
-	for (int document = 0; document < testingSet.size(); 
-	     document ++) {
-	    PaperAbstract a = testingSet.get(document);
-
-	    Integer[] words = predictions.get(document);
-
-            ret[document] = firstKExcluding(words, k, outputUsedWord ? null : a);
-	    for (int i = 0; i < ret[document].length; ++ i) {
-		String wordS = wordIndexer.get(ret[document][i]);
-		if (wordS == null) wordS = "<null>";
-                writer.write(wordS + " " );
-	    }
-            writer.write("\n");
-	}
-
-        writer.close();
 	return ret;
     }
 
-    Integer[] firstKExcluding(Integer[] l, Integer k, PaperAbstract excl) {
+    public Integer[] predict(int k, PredictionPaper paper) {
+	SparseVec words = detWalk(paper);
+	return firstKExcluding(words.descending(), k, paper.getTrainingWords());
+    }
+
+    Integer[] firstKExcluding(Integer[] l, Integer k, Set<Integer> excl) {
 	List<Integer> ret = new ArrayList<Integer>();
 	for (int i = 0; i < l.length && ret.size() < k; ++i) {
 	    Integer word = l[i];
-	    if (excl == null || excl.getModelTf(word) == 0) {
+	    if (excl == null || !excl.contains(word)) {
 		ret.add(word);
 	    }
 	}
 	return ret.toArray(new Integer[0]);
     }
-    
-    protected PaperAbstract stochWalk(PaperAbstract start) {
-        PaperAbstract abs = start;
-        for (int i = 0; i < walkLength; ++i) {
-            List<Integer> words = abs.modelWords;
-            if (words.size() == 0) {
-                if (i != 0) throw new Error("assertion failed");
-                return null;
-            }
-            Integer word = words.get(rand.nextInt(words.size()));
-            List<PaperAbstract> wordDocs = terms[word].getDocTrain();
-            if (wordDocs.size() == 0) {
-                if (i != 0) throw new Error("assertion failed");
-                return null;
-            }
-            abs = wordDocs.get(rand.nextInt(wordDocs.size()));
-        }
-        return abs;
-    }
 
-    protected SparseVec detWalk(PaperAbstract start) {
-	SparseVec words = new SparseVec(start.trainingTf);
-        int nDocs = trainingSet.size() + testingSet.size();
+    protected SparseVec detWalk(PredictionPaper start) {
+	SparseVec words = new SparseVec(start);
+        int nDocs = trainingSet.size();
 	for (int i = 0; i < walkLength; ++i) {
 	    /* Walk from words to docs. */
 	    SparseVec docs = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : words.pairs()) {
                 Term term = terms[pair.getKey()];
-		SparseVec docsForThisWord = term.makeTrainingDocVec(true);
-                //docsForThisWord.dotEquals(pair.getValue() * term.trainingIdf(nDocs));
-                docsForThisWord.dotEquals(pair.getValue() / term.totalCount);
-		docs.plusEquals(docsForThisWord);
+                SparseVec docsForThisWord = docsForEachWord.get(pair.getKey());
+                if (null != docsForThisWord)
+                    docs.plusEqualsWithCoef(docsForThisWord, pair.getValue() / term.totalCount);
 	    }
 	    /* Walk from docs to words. */
 	    words = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : docs.pairs()) {
-		SparseVec wordsForThisDoc = trainingSet.get(pair.getKey()).makeTrainingWordVec(true, false, nDocs, terms);
+		SparseVec wordsForThisDoc = makeTrainingWordVec(trainingSet.get(pair.getKey()), true, nDocs, terms);
 		wordsForThisDoc.dotEquals(pair.getValue() / wordsForThisDoc.coordSum());
 		words.plusEquals(wordsForThisDoc);
 	    }
 	}
 	return words;
+    }
+
+    public SparseVec makeTrainingWordVec(
+	    TrainingPaper paper, boolean useFreqs,
+	    int nDocs, Term[] terms) {
+        SparseVec ret = new SparseVec();
+        for (Integer word: paper.getTrainingWords())
+            ret.addSingle(word, 
+			  (useFreqs ? paper.getTrainingTf(word) : 1.0));
+        return ret;
     }
 }

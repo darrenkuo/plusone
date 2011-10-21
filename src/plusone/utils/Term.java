@@ -36,14 +36,4 @@ public class Term {
 
     public List<PaperAbstract> getDocTrain() { return doc_train; }
     public List<PaperAbstract> getDocTest() { return doc_train; }
-
-    public SparseVec makeTrainingDocVec(boolean useFreqs) {
-	SparseVec ret = new SparseVec();
-	for (PaperAbstract doc : doc_train) {
-	    if (!doc.isTest())
-		ret.addSingle(doc.index, useFreqs ?  doc.getTrainingTf(id) 
-			      : 1.0);
-	}
-	return ret;
-    }
 }

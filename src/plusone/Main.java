@@ -12,13 +12,11 @@ import plusone.clustering.ClusteringTest;
 import plusone.clustering.KNN;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.LSI;
-/*
 
-import plusone.clustering.Lda;
+//import plusone.clustering.Lda;
 
 import plusone.clustering.DTRandomWalkPredictor;
-import plusone.clustering.KNNRandomWalkPredictor;
-*/
+//import plusone.clustering.KNNRandomWalkPredictor;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -53,11 +51,9 @@ public class Main {
     private KNNWithCitation knnc;
     private LSI lsi;
 
-    /*
-
+ 
     private DTRandomWalkPredictor dtRWPredictor;
-    private KNNRandomWalkPredictor knnRWPredictor;
-    */
+    //private KNNRandomWalkPredictor knnRWPredictor;
 
     class Paper {
 	Integer[] inReferences;
@@ -289,12 +285,15 @@ public class Main {
 	    
 	}
 	
-	/*
 	if (testIsEnabled("dtrw")) {
-	    runClusteringMethod(trainingSet, testingSet, terms, 
-				dtRWPredictor, outputDir, k, usedWord);
+		int rwLength =
+		    Integer.getInteger("plusone.randomWalkLength", 4);
+		System.out.println("Random walk length: " + rwLength);
+		dtRWPredictor =
+		    new DTRandomWalkPredictor(trainingSet, terms, rwLength);
+		runClusteringMethod(testingSet, terms, dtRWPredictor, 
+			outputDir, k, size);
 	}
-	*/
 
 
 	int[] closest_k = 
@@ -455,17 +454,6 @@ public class Main {
 		twpDir.mkdir();
 	    } catch(Exception e) {
 		e.printStackTrace();
-	    }
-
-	    if (testIsEnabled("dtrw")) {
-		int rwLength =
-		    Integer.getInteger("plusone.randomWalkLength", 4);
-		System.out.println("Random walk length: " + rwLength);
-		main.dtRWPredictor =
-		    new DTRandomWalkPredictor(main.documents,
-			    main.trainingSet, main.testingSet,
-			    main.wordIndexer, terms,
-			    rwLength);
 	    }
 
 	    for (int ki = 0; ki < ks.length; ki ++) {

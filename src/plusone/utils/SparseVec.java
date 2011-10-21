@@ -19,15 +19,30 @@ public class SparseVec {
         for (Map.Entry<Integer, ? extends Number> entry : freqs.entrySet())
             coords.put(entry.getKey(), entry.getValue().doubleValue());
     }
+    
+    /**
+     * Makes a vector of the training word frequencies from the given paper.
+     * @param paper
+     */
+    public SparseVec(PredictionPaper paper) {
+	this();
+	for (Integer word : paper.getTrainingWords())
+	    coords.put(word, (double)paper.getTrainingTf(word));
+    }
 
-    public void plusEquals(SparseVec v) {
+    public void plusEqualsWithCoef(SparseVec v, double c) {
+	if (null == v) throw new NullPointerException();
         for (Map.Entry<Integer, Double> entry : v.coords.entrySet()) {
             int key = entry.getKey();
             if (coords.containsKey(key))
-                coords.put(key, coords.get(key) + entry.getValue());
+                coords.put(key, coords.get(key) + c * entry.getValue());
             else
-                coords.put(key, entry.getValue());
+                coords.put(key, c * entry.getValue());
         }
+    }
+
+    public void plusEquals(SparseVec v) {
+	plusEqualsWithCoef(v, 1.0);
     }
 
     public void dotEquals(Double x) {
