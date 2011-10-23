@@ -4,11 +4,8 @@ import plusone.Main;
 
 import plusone.utils.Indexer;
 import plusone.utils.ItemAndScore;
-import plusone.utils.KBestList;
 import plusone.utils.PaperAbstract;
-import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
-import plusone.utils.Term;
 import plusone.utils.TrainingPaper;
 
 import java.io.File;
@@ -24,16 +21,12 @@ import java.util.Set;
 public class KNN extends ClusteringTest {
 
     protected List<TrainingPaper> trainingSet;
-    protected Term[] terms;
     protected int K_CLOSEST;
     
-    public KNN(int K_CLOSEST,
-	       List<TrainingPaper> trainingSet,
-	       Term[] terms) {
+    public KNN(int K_CLOSEST, List<TrainingPaper> trainingSet) {
 	super("knn-" + K_CLOSEST);
 	this.K_CLOSEST = K_CLOSEST;
 	this.trainingSet = trainingSet;
-	this.terms = terms;
     }
     
     @Override
@@ -48,7 +41,7 @@ public class KNN extends ClusteringTest {
     protected List<Integer> predictTopKWordsWithKList
 	(Integer[] kList, PredictionPaper testDoc, int k) {
 	
-	int[] count = new int[terms.length];
+	int[] count = new int[Main.getTerms().size()];
 	List<Integer> wordSet = new ArrayList<Integer>();
 	
 	for (int i = 0; i < kList.length; i++){
@@ -88,7 +81,7 @@ public class KNN extends ClusteringTest {
      * Gets the k closest neighbors using the similarity function
      * defined in PaperAbstract.
      */
-    public Integer[] kNbr(PredictionPaper doc, int K_CLOSEST){
+    public Integer[] kNbr1(PredictionPaper doc, int K_CLOSEST){
 	PriorityQueue<ItemAndScore> queue = 
 	    new PriorityQueue<ItemAndScore>(K_CLOSEST + 1);
 	
@@ -112,5 +105,16 @@ public class KNN extends ClusteringTest {
 	}
 	
 	return results;
+    }
+
+    public Integer[] kNbr(PredictionPaper doc, int K_CLOSEST) {
+	Integer[] allRank = Main.getKNNSimilarityCache().getDistance(doc);
+	Integer[] rank = new Integer[Math.min(K_CLOSEST + 1, allRank.length)];
+
+	for (int i = 0; i < rank.length; i ++) {
+	    rank[i] = allRank[i];
+	}
+
+	return rank;
     }
 }
