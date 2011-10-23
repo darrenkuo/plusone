@@ -15,18 +15,31 @@ import plusone.utils.TrainingPaper;
 public class DTRandomWalkPredictor extends ClusteringTest {
     protected List<TrainingPaper> trainingSet;
     protected Term[] terms;
-    protected int walkLength;
+    protected final int walkLength;
     protected List<Integer[]> predictions;
     protected Map<Integer, SparseVec> docsForEachWord;
+    protected final boolean stochastic;
+    protected final int nSampleWalks;
+
+    public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
+                                 Term[] terms,
+                                 int walkLength,
+                                 boolean stochastic,
+                                 int nSampleWalks) {
+	super("DTRandomWalkPredictor-" + Integer.toString(walkLength) +
+		(stochastic ? "-s" + nSampleWalks : ""));
+        this.trainingSet = trainingSet;
+        this.terms = terms;
+        this.walkLength = walkLength;
+        this.stochastic = stochastic;
+        this.nSampleWalks = nSampleWalks;
+        this.docsForEachWord = makeDocsForEachWord(trainingSet);
+    }
 
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
                                  Term[] terms,
                                  int walkLength) {
-        super("DTRandomWalkPredictor-" + Integer.toString(walkLength));
-        this.trainingSet = trainingSet;
-        this.terms = terms;
-        this.walkLength = walkLength;
-        this.docsForEachWord = makeDocsForEachWord(trainingSet);
+	this(trainingSet, terms, walkLength, false, 0);
     }
     
     protected Map<Integer, SparseVec> makeDocsForEachWord(List<TrainingPaper> trainingSet) {
@@ -42,6 +55,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     }
 
     public Integer[] predict(int k, PredictionPaper paper) {
+	assert !stochastic;  // not implemented yet
 	SparseVec words = detWalk(paper);
 	return firstKExcluding(words.descending(), k, paper.getTrainingWords());
     }
