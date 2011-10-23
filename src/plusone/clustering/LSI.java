@@ -1,11 +1,11 @@
 package plusone.clustering;
 
+import plusone.Main;
 import plusone.utils.Indexer;
 import plusone.utils.ItemAndScore;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
-import plusone.utils.Term;
 import plusone.utils.TrainingPaper;
 
 import java.io.File;
@@ -35,25 +35,24 @@ public class LSI extends ClusteringTest {
     protected List<TrainingPaper> trainingSet;
     protected LinkedList<Entry>[] DocTerm;
     protected LinkedList<Entry>[] TermDoc;
-    protected Term[] terms;
     protected int DIMENSION;
     protected double[][] mu;
     protected double[][] beta;
     protected double[] sigma;
     
-    public LSI(int DIMENSION,
-	       List<TrainingPaper> trainingSet,
-	       Term[] terms) {
+    public LSI(int DIMENSION, List<TrainingPaper> trainingSet) {
 	super("LSI-" + DIMENSION);
 	this.DIMENSION = DIMENSION;
 	this.trainingSet = trainingSet;
-	this.terms = terms;
+	
+	long t1 = System.currentTimeMillis();
+	System.out.println("[" + testName + "] training with SVD");
 
 	mu = new double[DIMENSION][trainingSet.size()];
-	beta = new double[DIMENSION][terms.length];
+	beta = new double[DIMENSION][Main.getTerms().size()];
 	sigma = new double[DIMENSION];
 	DocTerm = new LinkedList[trainingSet.size()];
-	TermDoc = new LinkedList[terms.length];
+	TermDoc = new LinkedList[Main.getTerms().size()];
 	for (int i = 0; i < trainingSet.size(); i ++) {
 	    TrainingPaper doc = trainingSet.get(i);
 	    DocTerm[i] = new LinkedList<Entry>();
@@ -97,6 +96,10 @@ public class LSI extends ClusteringTest {
 		  DocTerm[1].add(temp);
 		  TermDoc[2].add(temp);*/
 	this.train();
+
+	System.out.format("[" + testName + 
+			  "] took %.3f seconds.\n",
+			  (System.currentTimeMillis() - t1)/1000.0);	
     }
     public double evalDiff(double[] x, double[] y){
 	double result = 0.0;
@@ -242,7 +245,7 @@ public class LSI extends ClusteringTest {
 	PriorityQueue<ItemAndScore> queue = 
 	    new PriorityQueue<ItemAndScore>(k+1);
 
-	double[] doct = new double[terms.length];
+	double[] doct = new double[Main.getTerms().size()];
 	for (Integer word : testPaper.getTrainingWords()) {
 	    doct[word] = testPaper.getTrainingTf(word);
 	}
@@ -252,7 +255,7 @@ public class LSI extends ClusteringTest {
 	    dock[i] = dotProduct(doct, beta[i]) / sigma[i];	    
 	}
 
-	for (int i = 0; i < terms.length; i ++) {
+	for (int i = 0; i < Main.getTerms().size(); i ++) {
 	    if (testPaper.getTrainingTf(i) > 0)
 		continue;
 	    double score = 0.0;

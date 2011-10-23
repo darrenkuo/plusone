@@ -9,28 +9,39 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import plusone.utils.Term;
+import plusone.Main;
 import plusone.utils.TrainingPaper;
 import plusone.utils.PredictionPaper;
 
 public class PaperAbstract implements TrainingPaper, PredictionPaper {
+
     public final Integer index;
     public final Integer[] inReferences;
     public final Integer[] outReferences;
-    private final Integer[] abstractWords;
 
-    private HashMap<Integer, Integer> trainingTf;
-    private HashMap<Integer, Integer> testingTf;
+    private Map<Integer, Integer> trainingTf;
+    private Map<Integer, Integer> testingTf;
+    private Map<Integer, Integer> tf;
     public double norm;
 
     public PaperAbstract(int index, Integer[] inReferences, 
 			 Integer[] outReferences, 
 			 Integer[] abstractWords) {
-	this.index = index;
-	this.abstractWords = abstractWords;
+	Map<Integer, Integer> tf = new HashMap<Integer, Integer>();
+	for (Integer word : abstractWords) {
+	    if (!tf.containsKey(word))
+		tf.put(word, 0);
+	    tf.put(word, tf.get(word) + 1);
+	}
+	this(index, inReferences, outReferences, tf);
+    }
 
+    public PaperAbstract(int index, Integer[] inReferences,
+			 Integer[] outReferences, Map<Integer, Integer> tf) {
+	this.index = index;
 	this.inReferences = inReferences;
 	this.outReferences = outReferences;
+	this.tf = tf;
     }
 
     /**
@@ -38,22 +49,15 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
      * must be called before we can use this paper in clustering
      * methods.
      */
-    public void generateTf(double percentUsed,
-			   Term[] terms, boolean test){
-	Random random = new Random();
+    public void generateTf(double percentUsed, Terms.Term[] terms, 
+			   boolean test){
+	Random randGen = Main.getRandomGenerator();
 	trainingTf = new HashMap<Integer, Integer>();
 	testingTf = test ? new HashMap<Integer, Integer>() : null;
 
-	HashMap<Integer, Integer> tf = new HashMap<Integer, Integer>();
-	for (Integer word : abstractWords) {
-	    if (!tf.containsKey(word))
-		tf.put(word, 0);
-	    tf.put(word, tf.get(word) + 1);
-	}
-
 	for (Integer word : tf.keySet()) {
 	    if (terms != null) terms[word].addDoc(this, test);
-	    if (test && random.nextDouble() > percentUsed) {
+	    if (test && randGen.nextDouble() > percentUsed) {
 		testingTf.put(word, tf.get(word));
 	    } else {
 		trainingTf.put(word, tf.get(word));
@@ -86,16 +90,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 	return testingTf.keySet();
     }
 
-    public String toString() {
-	return ("INDEX " + index + "\n" + "IN REF " + 
-		Arrays.toString(inReferences) + "\n" +
-		"OUT REF " + Arrays.toString(outReferences) + 
-		"\n" + "ABSTRACT " + abstractWords + "\n");
-    }
-
-    public double getNorm(){
-    	return norm;
-    }
+    public double getNorm() { return norm; }
 
     public boolean isTest() { return testingTf != null; }
     

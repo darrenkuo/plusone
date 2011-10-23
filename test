@@ -8,12 +8,11 @@ cd lib/lda-c-dist; make || exit
 # compile using ant
 cd $basedir; ant -f build.xml || exit
 
-# data = {'med.out.1', 'test.5000.data'}
-#data="test.5000.data"
-#data="knnc_toy.data";
-#data="med.out.1"
-data="alldata_bf_sample20000b.out"
-#data="alldata_sample0.1.out"
+#data = {'med.out.1', 'test.5000.data'}
+data='med.out.1'
+if [ "$1" ];then
+    data=$1
+fi
 userdata=$data.`whoami`
 
 echo $userdata
@@ -26,14 +25,18 @@ if test ! -f /tmp/$data.`whoami`; then
    cd $basedir
 fi
 
-
 out_dir=experiment-$(date -u +%F.%T%Z)
+if [ "$2" ];then
+    out_dir=$2
+fi
 mkdir $out_dir || exit
 echo Output will go in $out_dir
 
 #0.1,0.3,0.5,0.7,0.9 \
 args=\
-"-Dplusone.testWordPercents=0.5 \
+"-Dplusone.dataFile=/tmp/$userdata \
+ -Dplusone.testWordPercents=0.5 \
+ -Dplusone.trainPercents=0.95 \
  -Dplusone.kValues=1,5,10,15,20 \
  -Dplusone.closestKValues=1,3,5,10,25,50,100,250,500,1000,10000,100000 \
  -Dplusone.randomWalkLength=4
@@ -44,7 +47,8 @@ args=\
  -Dplusone.enableTest.dtrw=false \
  -Dplusone.enableTest.baseline=true \
  -Dplusone.enableTest.lsi=true \
- -Dplusone.outPath=$out_dir"
+ -Dplusone.outPath=$out_dir \
+ -Dplusone.randomSeed=0"
 
 # options to sample cpu
 # -agentlib:hprof=cpu=samples
@@ -53,4 +57,5 @@ args=\
 # options for memory
 # -Xmx4096m
 
-java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main /tmp/$userdata 0.8 0.3
+java -agentlib:hprof=cpu=samples -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main
+#java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main

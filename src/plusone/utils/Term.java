@@ -3,20 +3,26 @@ package plusone.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Term {
+public class Term implements Comparable {
 
-    /* Warning: doc_train might not do what you think (it can contain
-     * testing documents).  See generateData in PaperAbstract. */
-    List<PaperAbstract> doc_train;
-    List<PaperAbstract> doc_test;
-    public int id, totalCount;
+    /** 
+     * Warning: doc_train might not do what you think (it can contain
+     * testing documents).  See generateData in PaperAbstract.
+     */
+    private List<PaperAbstract> doc_train;
+    private List<PaperAbstract> doc_test;
+
+    public int id, totalCount = 0;
     public String word;
     
     public Term(int id) {
 	this.id = id;
 	doc_train = new ArrayList<PaperAbstract>();
-	doc_test= new ArrayList<PaperAbstract>();
-	totalCount = 0;
+	doc_test = new ArrayList<PaperAbstract>();
+    }
+
+    public int compareTo(Object obj) {
+	return ((Term)obj).totalCount > totalCount ? 1 : -1;
     }
     
     public void addDoc(PaperAbstract doc, boolean test){
@@ -26,9 +32,7 @@ public class Term {
 	    doc_train.add(doc);
     }
     
-    public int idfRaw() {
-	return doc_train.size();
-    }
+    public int idfRaw() { return doc_train.size(); }
 
     public double trainingIdf(int nDocs) {
         return Math.log(nDocs / (double)idfRaw());

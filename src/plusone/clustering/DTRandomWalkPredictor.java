@@ -5,26 +5,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import plusone.Main;
 import plusone.utils.PredictionPaper;
 import plusone.utils.SparseVec;
-import plusone.utils.Term;
+import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
 
 /** Does a random walk on the document-topic graph to find words.
  */
 public class DTRandomWalkPredictor extends ClusteringTest {
     protected List<TrainingPaper> trainingSet;
-    protected Term[] terms;
     protected int walkLength;
     protected List<Integer[]> predictions;
     protected Map<Integer, SparseVec> docsForEachWord;
 
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
-                                 Term[] terms,
                                  int walkLength) {
         super("DTRandomWalkPredictor-" + Integer.toString(walkLength));
         this.trainingSet = trainingSet;
-        this.terms = terms;
         this.walkLength = walkLength;
         this.docsForEachWord = makeDocsForEachWord(trainingSet);
     }
@@ -64,7 +63,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	    /* Walk from words to docs. */
 	    SparseVec docs = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : words.pairs()) {
-                Term term = terms[pair.getKey()];
+                Terms.Term term = Main.getTerms().get(pair.getKey());
                 SparseVec docsForThisWord = docsForEachWord.get(pair.getKey());
                 if (null != docsForThisWord)
                     docs.plusEqualsWithCoef(docsForThisWord, pair.getValue() / term.totalCount);
@@ -72,7 +71,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	    /* Walk from docs to words. */
 	    words = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : docs.pairs()) {
-		SparseVec wordsForThisDoc = makeTrainingWordVec(trainingSet.get(pair.getKey()), true, nDocs, terms);
+		SparseVec wordsForThisDoc = makeTrainingWordVec(trainingSet.get(pair.getKey()), true, nDocs);
 		wordsForThisDoc.dotEquals(pair.getValue() / wordsForThisDoc.coordSum());
 		words.plusEquals(wordsForThisDoc);
 	    }
@@ -80,9 +79,8 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	return words;
     }
 
-    public SparseVec makeTrainingWordVec(
-	    TrainingPaper paper, boolean useFreqs,
-	    int nDocs, Term[] terms) {
+    public SparseVec makeTrainingWordVec(TrainingPaper paper, 
+					 boolean useFreqs, int nDocs) {
         SparseVec ret = new SparseVec();
         for (Integer word: paper.getTrainingWords())
             ret.addSingle(word, 
