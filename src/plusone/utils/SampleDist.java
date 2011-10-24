@@ -20,7 +20,7 @@ public class SampleDist<Outcome> {
     
     @SuppressWarnings("unchecked")
     protected SampleDist(List<CdfEntry<Outcome>> cdf) {
-	this.cdf = (CdfEntry<Outcome>[]) cdf.toArray();
+	this.cdf = (CdfEntry<Outcome>[]) cdf.toArray(new CdfEntry[0]);
     }
 
     /**
