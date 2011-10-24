@@ -23,17 +23,21 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
     private Map<Integer, Integer> testingTf;
     private Map<Integer, Integer> tf;
     public double norm;
-
-    public PaperAbstract(int index, Integer[] inReferences, 
-			 Integer[] outReferences, 
-			 Integer[] abstractWords) {
+    
+    protected static Map<Integer, Integer> makeTf(Integer[] abstractWords) {
 	Map<Integer, Integer> tf = new HashMap<Integer, Integer>();
 	for (Integer word : abstractWords) {
 	    if (!tf.containsKey(word))
 		tf.put(word, 0);
 	    tf.put(word, tf.get(word) + 1);
 	}
-	this(index, inReferences, outReferences, tf);
+	return tf;
+    }
+
+    public PaperAbstract(int index, Integer[] inReferences, 
+			 Integer[] outReferences, 
+			 Integer[] abstractWords) {
+	this(index, inReferences, outReferences, makeTf(abstractWords));
     }
 
     public PaperAbstract(int index, Integer[] inReferences,
