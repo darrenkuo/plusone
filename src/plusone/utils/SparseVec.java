@@ -24,7 +24,7 @@ public class SparseVec {
      * Makes a vector of the training word frequencies from the given paper.
      * @param paper
      */
-    public SparseVec(PredictionPaper paper) {
+    public SparseVec(PaperIF paper) {
 	this();
 	for (Integer word : paper.getTrainingWords())
 	    coords.put(word, (double)paper.getTrainingTf(word));
@@ -78,11 +78,11 @@ public class SparseVec {
 	return coords.entrySet();
     }
     
-    public final int cSize() {
+    public int cSize() {
 	return coords.size();
     }
     
-    public final double coordSum() {
+    public double coordSum() {
 	double ret = 0.0;
 	for (Map.Entry<Integer, Double> entry : coords.entrySet())
 	    ret += entry.getValue();

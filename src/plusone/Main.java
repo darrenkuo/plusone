@@ -322,13 +322,17 @@ public class Main {
 	}
 	
 	if (testIsEnabled("dtrw")) {
-		int rwLength =
-		    Integer.getInteger("plusone.randomWalkLength", 4);
-		System.out.println("Random walk length: " + rwLength);
-		dtRWPredictor =
-		    new DTRandomWalkPredictor(trainingSet, rwLength);
-		runClusteringMethod(testingSet, dtRWPredictor, 
-				    outputDir, k, size);
+	    int rwLength =
+		Integer.getInteger("plusone.dtrw.walkLength", 4);
+	    boolean stoch = Boolean.getBoolean("plusone.dtrw.stochastic");
+	    int nSampleWalks = Integer.getInteger("plusone.dtrw.nSampleWalks");
+	    System.out.println("Random walk length: " + rwLength);
+	    if (stoch)
+		System.out.println("Stochastic random walk: " + nSampleWalks + " samples.");
+	    dtRWPredictor =
+		new DTRandomWalkPredictor(trainingSet, rwLength, stoch, nSampleWalks);
+	    runClusteringMethod(testingSet, dtRWPredictor, 
+		    outputDir, k, size);
 	}
 
 
