@@ -65,8 +65,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     }
 
     public Integer[] predict(int k, PredictionPaper paper) {
-	assert !stochastic;  // not implemented yet
-	SparseVec words = stochastic ? detWalk(paper) : stochWalkMany(paper);
+	SparseVec words = stochastic ? stochWalkMany(paper) : detWalk(paper);
 	return firstKExcluding(words.descending(), k, paper.getTrainingWords());
     }
 
