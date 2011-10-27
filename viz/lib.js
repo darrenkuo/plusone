@@ -173,6 +173,7 @@ var lib = (function(){
 
 	$.plot($("#plot"), [dataWithDiameters], {
 	    series: {bubbles: {active: true, show: true}},
+	    crosshair: {mode: "xy"},
 	    xaxis: {min: finalAxisMin[0], max: finalAxisMax[0]},
 	    yaxis: {min: finalAxisMin[1], max: finalAxisMax[1]}
 	});
