@@ -100,7 +100,7 @@ var lib = (function(){
 		++ curVal;
 	    else {
 		var p = curPoint.slice(0);
-		p.push(curVal * 0.01);
+		p.push(Math.sqrt(curVal) * 0.01);
 		ret.push(p);
 		curPoint = sorting[i];
 		curVal = 1;
