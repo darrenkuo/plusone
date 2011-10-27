@@ -159,12 +159,22 @@ var lib = (function(){
 	    }
 	    axisMinRelSpace.push(ms / (aMax - aMin));
 	}
-	var maxD = Math.min.apply(Math, axisMinRelSpace) * (axisMax[1] - axisMin[1]);
+	var minRelSpace = Math.min.apply(Math, axisMinRelSpace);
+	var maxD = minRelSpace * (axisMax[1] - axisMin[1]);
 	var dataWithDiameters = fixDiameters(data, maxD);
+
+	/* Add some space so the bubbles don't leave the plot area. */
+	var finalAxisMin = [];
+	var finalAxisMax = [];
+	for (var i = 0; i < 2; ++ i) {
+	    finalAxisMin[i] = (1 + minRelSpace) * axisMin[i] - minRelSpace * axisMax[i];
+	    finalAxisMax[i] = (1 + minRelSpace) * axisMax[i] - minRelSpace * axisMin[i];
+	}
+
 	$.plot($("#plot"), [dataWithDiameters], {
 	    series: {bubbles: {active: true, show: true}},
-	    xaxis: {min: axisMin[0], max: axisMax[0]},
-	    yaxis: {min: axisMin[1], max: axisMax[1]}
+	    xaxis: {min: finalAxisMin[0], max: finalAxisMax[0]},
+	    yaxis: {min: finalAxisMin[1], max: finalAxisMax[1]}
 	});
     };
 
