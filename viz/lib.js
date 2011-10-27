@@ -3,13 +3,13 @@ var lib = (function(){
         gitHash: "Hashy",
         expName: "demoA-4",
         foo: "4",
-        predictionScore: [0.9, 0.5, 0.6, 0.1, 1.0, 0.0],
+        predictionScore: [0.9, 0.9, 0.6, 0.1, 1.0, 0.0],
         barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
     }, {
         gitHash: "Hashy",
         expName: "demoA-10",
         foo: "10",
-        predictionScore: [0.09, 0.05, 0.06, 0.01, 0.1, 0.0],
+        predictionScore: [0.09, 0.09, 0.06, 0.01, 0.1, 0.0],
         barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
     }, {
         gitHash: "Hashy",
@@ -77,9 +77,36 @@ var lib = (function(){
                 if (1 != a.length) throw "joinAxes: support for multiple values not yet added";
                 return a[0];
             }));
-            for (var i = 0; i < ret.length; ++i) ret[i].push(0.01);  //TODO: get rid of this awful hack
         }
         return ret;
+    }
+
+    function globSimilar(data) {
+	if (0 == data.length) return [];
+	function fuzzyCompare(baseIndex) {
+	    return function(a, b) {
+		if (baseIndex == a.length) return 0;
+		if (Math.abs(a[baseIndex] - b[baseIndex]) < 1e-9) return fuzzyCompare(baseIndex + 1)(a, b);
+		return a[baseIndex] - b[baseIndex];
+	    }
+	}
+	var sorting = data.slice(0);
+	sorting.sort(fuzzyCompare(0));
+	var curPoint = sorting[0];
+	var curVal = 1;
+	var ret = [];
+	for (var i = 1; i <= sorting.length; ++ i) {
+	    if (sorting.length != i && fuzzyCompare(0)(curPoint, sorting[i]) == 0)
+		++ curVal;
+	    else {
+		var p = curPoint.slice(0);
+		p.push(curVal * 0.01);
+		ret.push(p);
+		curPoint = sorting[i];
+		curVal = 1;
+	    }
+	}
+	return ret;
     }
 
     function startMain() {
@@ -89,8 +116,10 @@ var lib = (function(){
         });
         xFilter = function (d) { return "demoA-4" == d.expName; };
         yFilter = function (d) { return "demoA-10" == d.expName; };
-        var data = joinAxes([genAxisValues(fData, xFilter, "predictionScore", "index"),
-                                       genAxisValues(fData, yFilter, "predictionScore", "index")]);
+	var xData = genAxisValues(fData, xFilter, "predictionScore", "index");
+	var yData = genAxisValues(fData, yFilter, "predictionScore", "index");
+        var dataWithRepeats = joinAxes([xData, yData]);
+        var data = globSimilar(dataWithRepeats);
 	$.plot($("#plot"), [data], {series: {bubbles: {active: true, show: true}}});
     };
 
