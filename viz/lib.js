@@ -100,13 +100,22 @@ var lib = (function(){
 		++ curVal;
 	    else {
 		var p = curPoint.slice(0);
-		p.push(Math.sqrt(curVal) * 0.01);
+		p.push(curVal);
 		ret.push(p);
 		curPoint = sorting[i];
 		curVal = 1;
 	    }
 	}
 	return ret;
+    }
+
+    function fixDiameters(data, maxD) {
+	var maxVal = Math.max.apply(Math, data.map(function(value){return value[value.length-1];}));
+	return data.map(function (value){
+	    var v=value.slice(0);
+	    v[v.length - 1] = Math.sqrt(v[v.length - 1] / maxVal) * maxD;
+	    return v;
+	});
     }
 
     function startMain() {
@@ -119,8 +128,44 @@ var lib = (function(){
 	var xData = genAxisValues(fData, xFilter, "predictionScore", "index");
 	var yData = genAxisValues(fData, yFilter, "predictionScore", "index");
         var dataWithRepeats = joinAxes([xData, yData]);
-        var data = globSimilar(dataWithRepeats);
-	$.plot($("#plot"), [data], {series: {bubbles: {active: true, show: true}}});
+        var globbedData = globSimilar(dataWithRepeats);
+	plot(globbedData);
+    }
+
+    function plot(data) {
+	if (0 == data.length) {
+	    $.plot($("plot"), []);
+	}
+	if (3 != data[0].length)
+	    throw "lib.plot: Sorry, we assume two data dimensions for now.";
+	var axisMin = [], axisMax = [];
+	var axisMinRelSpace = [];
+	for (var i = 0; i < 2; ++ i) {
+	    var coords = data.map(function(value){return value[i];});
+	    coords.sort();
+	    var aMin = coords[0];
+	    var aMax = coords[coords.length - 1]
+	    if (aMax - aMin < 1e-9) {
+		aMin -= 0.5;
+		aMax += 0.5;
+	    }
+	    axisMin.push(aMin);
+	    axisMax.push(aMax);
+	    var ms = Infinity;
+	    for (var j = 0; j + 1 < coords.length; ++j) {
+		var diff = coords[j + 1] - coords[j];
+		if (diff < 1e-9) continue;
+		ms = Math.min(ms, diff);
+	    }
+	    axisMinRelSpace.push(ms / (aMax - aMin));
+	}
+	var maxD = Math.min.apply(Math, axisMinRelSpace) * (axisMax[1] - axisMin[1]);
+	var dataWithDiameters = fixDiameters(data, maxD);
+	$.plot($("#plot"), [dataWithDiameters], {
+	    series: {bubbles: {active: true, show: true}},
+	    xaxis: {min: axisMin[0], max: axisMax[0]},
+	    yaxis: {min: axisMin[1], max: axisMax[1]}
+	});
     };
 
     return {
