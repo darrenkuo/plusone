@@ -5,9 +5,10 @@ import plusone.utils.KNNGraphDistanceCache;
 import plusone.utils.KNNSimilarityCache;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
-import plusone.utils.Terms;
+import plusone.utils.Term;
 import plusone.utils.PredictionPaper;
 import plusone.utils.TrainingPaper;
+import java.util.Arrays;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.ClusteringTest;
@@ -39,7 +40,8 @@ public class Main {
     private final static Indexer<String> wordIndexer = new Indexer<String>();
     private final static Indexer<PaperAbstract> paperIndexer = 
 	new Indexer<PaperAbstract>();
-    private static Terms terms;
+    private static Term[] terms;
+    private static Term[] terms_sorted;
     private static KNNSimilarityCache knnSimilarityCache;
     private static KNNGraphDistanceCache knnGraphDistanceCache;
     private static Random randGen;
@@ -197,7 +199,7 @@ public class Main {
 	    documents.add(p);
 	    paperIndexer.add(p);
 	    inref_zero += inReferences.length == 0 ? 1 : 0;
-	    inref_zero += outReferences.length == 0 ? 1 : 0;	    
+	 //   inref_zero += outReferences.length == 0 ? 1 : 0;	    
 	}
 	System.out.println("inref zero: " + inref_zero);
 	System.out.println("total number of papers: " + documents.size());
@@ -212,10 +214,11 @@ public class Main {
      */
     private void splitByTrainPercent(double trainPercent, 
 				    List<PaperAbstract> documents) {
+    Random randGen = Main.getRandomGenerator();
 	trainingSet = new ArrayList<TrainingPaper>();
 	testingSet = new ArrayList<PredictionPaper>();
 	for (int i = 0; i < documents.size(); i ++) {
-	    if (i < trainPercent * documents.size())
+	    if (randGen.nextDouble()<trainPercent)
 		trainingSet.add((TrainingPaper)documents.get(i));
 	    else
 		testingSet.add((PredictionPaper)documents.get(i));
@@ -225,9 +228,9 @@ public class Main {
     }
 
     public void splitHeldoutWords(double testWordPercent) {
-	Terms.Term[] terms = new Terms.Term[wordIndexer.size()];
+	Main.terms = new Term[wordIndexer.size()];
 	for (int i = 0; i < wordIndexer.size(); i++) {
-	    terms[i] = new Terms.Term(i);
+	    terms[i] = new Term(i);
 	}
 	
 	for (TrainingPaper a : trainingSet){
@@ -238,7 +241,12 @@ public class Main {
 	    ((PaperAbstract)a).generateTf(testWordPercent, null, true);
 	}
 
-	this.terms = new Terms(terms);
+	terms_sorted = new Term[terms.length];
+
+	for (int c = 0; c < terms.length; c ++) {
+	terms_sorted[c] = terms[c];
+	}
+	Arrays.sort(terms_sorted);
 
 	if (testIsEnabled("knn") || testIsEnabled("knnc"))
 	    knnSimilarityCache = 
@@ -265,7 +273,8 @@ public class Main {
 	return knnGraphDistanceCache;
     }
 
-    public static Terms getTerms() { return terms; }
+    public static Term[] getSortedTerms() { return terms_sorted; }
+    public static Term[] getTerms() {return terms;}
     
     public static Random getRandomGenerator() { return randGen; }
 
@@ -281,7 +290,7 @@ public class Main {
 	    Integer word = prediction[j];
 	    if (predictionWords.contains(word)) {
 		predicted ++;
-		double logVal = Math.log(terms.get(word).idfRaw() + 1.0);
+		double logVal = Math.log(terms[word].idfRaw() + 1.0);
 		
 		tfidfScore += ((PaperAbstract)testingPaper).
 		    getTestingTf(word) * 
@@ -459,8 +468,8 @@ public class Main {
 	    parseIntList(System.getProperty("plusone.kValues", 
 					    "1,5,10,15,20"));
 
-	Indexer<String> wordIndexer = main.getWordIndexer();
-	Indexer<PaperAbstract> paperIndexer = main.getPaperIndexer();
+	//Indexer<String> wordIndexer = main.getWordIndexer();
+	//Indexer<PaperAbstract> paperIndexer = main.getPaperIndexer();
 
 	System.out.println("Total number of words: " + wordIndexer.size());
 	System.out.println("Total number of papers: " + paperIndexer.size());
