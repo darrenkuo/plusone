@@ -26,6 +26,7 @@ public class LSI extends ClusteringTest {
 	public int termID;
 	public double value;
 
+
 	public Entry(int docID, int termID, double value) {
 	    this.docID = docID;
 	    this.termID = termID;
@@ -39,7 +40,8 @@ public class LSI extends ClusteringTest {
     protected double[][] mu;
     protected double[][] beta;
     protected double[] sigma;
-    
+	public int numTerms;
+	
     public LSI(int DIMENSION, List<TrainingPaper> trainingSet) {
 	super("LSI-" + DIMENSION);
 	this.DIMENSION = DIMENSION;
@@ -47,12 +49,13 @@ public class LSI extends ClusteringTest {
 	
 	long t1 = System.currentTimeMillis();
 	System.out.println("[" + testName + "] training with SVD");
-
+	
+	numTerms=Main.getTerms().length;
 	mu = new double[DIMENSION][trainingSet.size()];
-	beta = new double[DIMENSION][Main.getTerms().size()];
+	beta = new double[DIMENSION][numTerms];
 	sigma = new double[DIMENSION];
 	DocTerm = new LinkedList[trainingSet.size()];
-	TermDoc = new LinkedList[Main.getTerms().size()];
+	TermDoc = new LinkedList[numTerms];
 	for (int i = 0; i < trainingSet.size(); i ++) {
 	    TrainingPaper doc = trainingSet.get(i);
 	    DocTerm[i] = new LinkedList<Entry>();
@@ -66,35 +69,7 @@ public class LSI extends ClusteringTest {
 		TermDoc[word].add(temp);
 	    }
 	}
-	/*
-	  this.DIMENSION=2;
-	  mu=new double[2][2];
-	  beta=new double[2][3];
-	  sigma=new double[2];
-	  DocTerm= new LinkedList[2];
-	  TermDoc=new LinkedList[3];
-	  for (int i=0;i<2;i++){
-	      DocTerm[i]=new LinkedList<Entry>();
-	          TermDoc[i]=new LinkedList<Entry>();}
-		  TermDoc[2]=new LinkedList<Entry>();
-		  Entry temp = new Entry(0,0,9);
-		  DocTerm[0].add(temp);
-		  TermDoc[0].add(temp);
-		  temp=new Entry(0,1,0);
-		  DocTerm[0].add(temp);
-		  TermDoc[1].add(temp);
-		  temp=new Entry(1,0,0);
-		  DocTerm[1].add(temp);
-		  TermDoc[0].add(temp);
-		  temp=new Entry(1,1,8);
-		  DocTerm[1].add(temp);
-		  TermDoc[1].add(temp);
-		  temp=new Entry(0,2,7);
-		  DocTerm[0].add(temp);
-		  TermDoc[2].add(temp);
-		  temp=new Entry(1,2,15);
-		  DocTerm[1].add(temp);
-		  TermDoc[2].add(temp);*/
+
 	this.train();
 
 	System.out.format("[" + testName + 
@@ -245,7 +220,7 @@ public class LSI extends ClusteringTest {
 	PriorityQueue<ItemAndScore> queue = 
 	    new PriorityQueue<ItemAndScore>(k+1);
 
-	double[] doct = new double[Main.getTerms().size()];
+	double[] doct = new double[numTerms];
 	for (Integer word : testPaper.getTrainingWords()) {
 	    doct[word] = testPaper.getTrainingTf(word);
 	}
@@ -255,7 +230,7 @@ public class LSI extends ClusteringTest {
 	    dock[i] = dotProduct(doct, beta[i]) / sigma[i];	    
 	}
 
-	for (int i = 0; i < Main.getTerms().size(); i ++) {
+	for (int i = 0; i < numTerms; i ++) {
 	    if (testPaper.getTrainingTf(i) > 0)
 		continue;
 	    double score = 0.0;
