@@ -41,7 +41,7 @@ public class KNN extends ClusteringTest {
     protected List<Integer> predictTopKWordsWithKList
 	(Integer[] kList, PredictionPaper testDoc, int k) {
 	
-	int[] count = new int[Main.getTerms().size()];
+	int[] count = new int[Main.getTerms().length];
 	List<Integer> wordSet = new ArrayList<Integer>();
 	
 	for (int i = 0; i < kList.length; i++){
