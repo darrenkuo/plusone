@@ -12,7 +12,7 @@ import plusone.utils.PaperIF;
 import plusone.utils.PredictionPaper;
 import plusone.utils.SampleDist;
 import plusone.utils.SparseVec;
-import plusone.utils.Terms;
+import plusone.utils.Term;
 import plusone.utils.TrainingPaper;
 
 /** Does a random walk on the document-topic graph to find words.
@@ -87,7 +87,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	    /* Walk from words to docs. */
 	    SparseVec docs = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : words.pairs()) {
-                Terms.Term term = Main.getTerms().get(pair.getKey());
+                Term term = Main.getTerms()[pair.getKey()];
                 SparseVec docsForThisWord = docsByWord.get(pair.getKey());
                 if (null != docsForThisWord)
                     docs.plusEqualsWithCoef(docsForThisWord, pair.getValue() / term.totalCount);
