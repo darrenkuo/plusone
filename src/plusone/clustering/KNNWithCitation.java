@@ -64,7 +64,7 @@ public class KNNWithCitation extends KNN {
 	(Integer[] kList, Map<Integer, Integer> distance, 
 	 PredictionPaper testDoc, int k) {				
 	
-	double[] count = new double[Main.getTerms().size()];
+	double[] count = new double[Main.getTerms().length];
 	List<Integer> wordSet = new ArrayList<Integer>();
 	Indexer<PaperAbstract> paperIndexer = Main.getPaperIndexer();
 	
