@@ -6,7 +6,7 @@ import plusone.utils.ItemAndScore;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
-import plusone.utils.Terms;
+import plusone.utils.Term;
 import plusone.utils.TrainingPaper;
 
 import java.io.File;
@@ -28,7 +28,7 @@ public class Baseline extends ClusteringTest {
 
 	List<Integer> lst = new ArrayList<Integer>();
 	
-	for (Terms.Term curTerm : Main.getTerms().getSortedTermsIterable()) {
+	for (Term curTerm : Main.getSortedTerms()) {
 	    Integer curWord = curTerm.id;
 	    if (lst.size() >= k) 
 		break;
