@@ -118,15 +118,53 @@ var lib = (function(){
 	});
     }
 
+    function fillParamDiv(div) {
+	function makeAxisParam(friendlyName, idBase, defaultValue) {
+	    var ret = $("<div/>").text(friendlyName + ": ").append($("<input/>", {id: idBase + "_x", type: "text", value: defaultValue}));
+	    var yInput = $("<input/>", {id: idBase + "_y", type: "text", value: defaultValue}).css("display", "none");
+	    ret.append($("<input/>", {id: idBase+ "_c", type: "checkbox"}).change(function (event) {
+	        if (event.target.checked)
+		    yInput.css("display", "inline");
+		else
+		    yInput.css("display", "none");
+            }));
+	    ret.append(yInput);
+	    return ret;
+	}
+	div.append(makeAxisParam("Axis key", "axis_key", "predictionScore"));
+	div.append(makeAxisParam("Experiment name (regex)", "expName_regex", "demoA-4"));
+	div.append($("<input/>", {type: "button", value: "Plot"}).click(function(){updatePlot();}));
+    }
+
     function startMain() {
+	fillParamDiv($("#param_div"));
+	$("#param_div_wait_p").remove();
+	updatePlot();
+    }
+
+    function getAxisParam(axis, paramName) {
+        var inputObj;
+	if ($("#" + paramName + "_c").is(":checked"))
+	    inputObj = $("#" + paramName + "_" + axis);
+        else
+	    inputObj = $("#" + paramName + "_x");
+	return inputObj.attr("value");
+    }
+
+    function makeAxisFilter(axis) {
+        expNameRegex = new RegExp("^" + getAxisParam(axis, "expName_regex") + "$");
+	return function (d) {
+	    return expNameRegex.test(d.expName);
+	}
+    }
+
+    function updatePlot() {
         var fData = [];
         exampleData.forEach(function(value, index, array) {
             fData = fData.concat(flattenArrays(value));
         });
-        xFilter = function (d) { return "demoA-4" == d.expName; };
-        yFilter = function (d) { return "demoA-10" == d.expName; };
-	var xData = genAxisValues(fData, xFilter, "predictionScore", "index");
-	var yData = genAxisValues(fData, yFilter, "predictionScore", "index");
+	var xData = genAxisValues(fData, makeAxisFilter("x"), getAxisParam("x", "axis_key"), "index");
+	var yData = genAxisValues(fData, makeAxisFilter("y"), getAxisParam("y", "axis_key"), "index");
         var dataWithRepeats = joinAxes([xData, yData]);
         var globbedData = globSimilar(dataWithRepeats);
 	plot(globbedData);
