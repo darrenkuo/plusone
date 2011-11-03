@@ -88,7 +88,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 
     public Integer getTrainingTf(Integer word) {
 	return trainingTf == null ? 0 : 
-	    (trainingTf.get(word) == null ? 0 : trainingTf.get(word));
+	    (trainingTf.containsKey(word) ? trainingTf.get(word):0);
     }
 
     public Set<Integer> getTrainingWords() {
@@ -97,7 +97,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 
     public Integer getTestingTf(Integer word) {
 	return testingTf == null ? 0 : 
-	    (testingTf.containsKey(word)? 0 : testingTf.get(word));
+	    (testingTf.containsKey(word)? testingTf.get(word)：0);
     }
 
     public Set<Integer> getTestingWords() {
@@ -114,7 +114,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 	for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet()) {
 	    int wordId = entry.getKey();
 	    int count = entry.getValue();
-		sim += count * a.getTestingTf(wordId);
+		sim += count * a.getTrainingTf(wordId);
     	}
     	return sim/(a.getNorm() * norm);
     }
