@@ -4,8 +4,10 @@ import plusone.Main;
 
 import plusone.utils.Indexer;
 import plusone.utils.ItemAndScore;
+import plusone.utils.KNNSimilarityCache;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PredictionPaper;
+import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
 
 import java.io.File;
@@ -16,17 +18,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 
 public class KNN extends ClusteringTest {
 
     protected List<TrainingPaper> trainingSet;
     protected int K_CLOSEST;
+    protected Indexer<PaperAbstract> paperIndexer;
+    protected Terms terms;
+    protected KNNSimilarityCache similarityCache;
     
-    public KNN(int K_CLOSEST, List<TrainingPaper> trainingSet) {
+    public KNN(int K_CLOSEST, List<TrainingPaper> trainingSet, 
+	       Indexer<PaperAbstract> paperIndexer, Terms terms,
+	       KNNSimilarityCache similarityCache) {
 	super("knn-" + K_CLOSEST);
 	this.K_CLOSEST = K_CLOSEST;
 	this.trainingSet = trainingSet;
+	this.terms = terms;
+	this.similarityCache = similarityCache;
+	this.paperIndexer = paperIndexer;
     }
     
     @Override
@@ -41,12 +52,12 @@ public class KNN extends ClusteringTest {
     protected List<Integer> predictTopKWordsWithKList
 	(Integer[] kList, PredictionPaper testDoc, int k) {
 	
-	int[] count = new int[Main.getTerms().size()];
+	int[] count = new int[terms.size()];
 	List<Integer> wordSet = new ArrayList<Integer>();
 	
 	for (int i = 0; i < kList.length; i++){
 	    Integer paperIndex = kList[i];
-	    TrainingPaper a = Main.getPaperIndexer().get(paperIndex);
+	    TrainingPaper a = paperIndexer.get(paperIndex);
 
 	    for (Integer word : a.getTrainingWords()) {
 		if (count[word] == 0)
@@ -55,10 +66,9 @@ public class KNN extends ClusteringTest {
 	    }
 	}
 	
-	PriorityQueue<ItemAndScore> queue = 
-	    new PriorityQueue<ItemAndScore>(k + 1);
+	Queue<ItemAndScore> queue = new PriorityQueue<ItemAndScore>(k + 1);
 	for (Integer word : wordSet) {
-	    if (testDoc.getTrainingTf(word) > 0)
+	    if (testDoc.getTrainingTf(word) > 0.0)
 	    	continue;
 
 	    if (queue.size() < k || 
@@ -69,8 +79,8 @@ public class KNN extends ClusteringTest {
 	    }
 	}
 	
-	List<Integer> results = new ArrayList<Integer>(queue.size());
-	for (int i = 0; i < k && !queue.isEmpty(); i ++) {
+	List<Integer> results = new ArrayList<Integer>();
+	while (!queue.isEmpty()) {
 	    results.add((Integer)queue.poll().item);
 	}
 	
@@ -93,8 +103,7 @@ public class KNN extends ClusteringTest {
 		if (queue.size() >= K_CLOSEST) {
 		    queue.poll();
 		}
-		queue.add(new ItemAndScore(Main.getPaperIndexer().
-					   fastIndexOf(a), 
+		queue.add(new ItemAndScore(paperIndexer.fastIndexOf(a), 
 					   sim, true));
 	    }
 	}
@@ -108,7 +117,7 @@ public class KNN extends ClusteringTest {
     }
 
     public Integer[] kNbr(PredictionPaper doc, int K_CLOSEST) {
-	Integer[] allRank = Main.getKNNSimilarityCache().getDistance(doc);
+	Integer[] allRank = similarityCache.getDistance(doc);
 	Integer[] rank = new Integer[Math.min(K_CLOSEST + 1, allRank.length)];
 
 	for (int i = 0; i < rank.length; i ++) {

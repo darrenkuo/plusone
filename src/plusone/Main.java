@@ -11,13 +11,14 @@ import plusone.utils.TrainingPaper;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.ClusteringTest;
+import plusone.clustering.CommonNeighbors;
+import plusone.clustering.DTRandomWalkPredictor;
 import plusone.clustering.KNN;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.LSI;
+//import plusone.clustering.SVDAndKNN;
 
 //import plusone.clustering.Lda;
-
-import plusone.clustering.DTRandomWalkPredictor;
 //import plusone.clustering.KNNRandomWalkPredictor;
 
 import java.io.BufferedReader;
@@ -36,12 +37,12 @@ import java.util.regex.Pattern;
 
 public class Main {
 
-    private final static Indexer<String> wordIndexer = new Indexer<String>();
-    private final static Indexer<PaperAbstract> paperIndexer = 
+    private Indexer<String> wordIndexer = new Indexer<String>();
+    private Indexer<PaperAbstract> paperIndexer = 
 	new Indexer<PaperAbstract>();
-    private static Terms terms;
-    private static KNNSimilarityCache knnSimilarityCache;
-    private static KNNGraphDistanceCache knnGraphDistanceCache;
+    private Terms terms;
+    private KNNSimilarityCache knnSimilarityCache;
+    private KNNGraphDistanceCache knnGraphDistanceCache;
     private static Random randGen;
 
     // Document sets
@@ -50,10 +51,12 @@ public class Main {
 
     // Clustering Methods
     private Baseline baseline;
+    private CommonNeighbors cn;
+    private DTRandomWalkPredictor dtRWPredictor;
     private KNN knn;
     private KNNWithCitation knnc;
     private LSI lsi;
-    private DTRandomWalkPredictor dtRWPredictor;
+    //private SVDAndKNN svdKnn;
     //private KNNRandomWalkPredictor knnRWPredictor;
 
     class Paper {
@@ -246,31 +249,14 @@ public class Main {
 
 	if (testIsEnabled("knnc"))
 	    knnGraphDistanceCache = 
-		new KNNGraphDistanceCache(trainingSet, testingSet);
+		new KNNGraphDistanceCache(trainingSet, testingSet, 
+					  paperIndexer);
     }
-    
-    public static Indexer<String> getWordIndexer() {
-	return wordIndexer;
-    }
-
-    public static Indexer<PaperAbstract> getPaperIndexer() {
-	return paperIndexer;
-    }
-    
-    public static KNNSimilarityCache getKNNSimilarityCache() {
-	return knnSimilarityCache;
-    }
-
-    public static KNNGraphDistanceCache getKNNGraphDistanceCache() {
-	return knnGraphDistanceCache;
-    }
-
-    public static Terms getTerms() { return terms; }
     
     public static Random getRandomGenerator() { return randGen; }
 
-    public static double[] evaluate(PredictionPaper testingPaper,
-				    Integer[] prediction, int size, int k) {
+    public double[] evaluate(PredictionPaper testingPaper,
+			     Integer[] prediction, int size, int k) {
     	int predicted = 0, total = 0;
     	double tfidfScore = 0.0, idfScore = 0.0, idf_top =  Math.log(size);
 
@@ -316,17 +302,17 @@ public class Main {
 
 	int size = trainingSet.size() + testingSet.size();
 	if (testIsEnabled("baseline")) {
-	    baseline = new Baseline(trainingSet);
+	    baseline = new Baseline(trainingSet, terms);
 	    runClusteringMethod(testingSet, baseline, outputDir, k, size);
 	    
 	}
-	
+		
 	if (testIsEnabled("dtrw")) {
 		int rwLength =
 		    Integer.getInteger("plusone.randomWalkLength", 4);
 		System.out.println("Random walk length: " + rwLength);
 		dtRWPredictor =
-		    new DTRandomWalkPredictor(trainingSet, rwLength);
+		    new DTRandomWalkPredictor(trainingSet, terms, rwLength);
 		runClusteringMethod(testingSet, dtRWPredictor, 
 				    outputDir, k, size);
 	}
@@ -338,13 +324,31 @@ public class Main {
 
 	for (int ck = 0; ck < closest_k.length; ck ++) {
 	    if (testIsEnabled("knn")) {
-		knn = new KNN(closest_k[ck], trainingSet);
+		knn = new KNN(closest_k[ck], trainingSet, paperIndexer, 
+			      terms, knnSimilarityCache);
 		runClusteringMethod(testingSet, knn, outputDir, k, size);
 	    }
 	    if (testIsEnabled("knnc")) {
-		knnc = new KNNWithCitation(closest_k[ck], trainingSet);
+		knnc = new KNNWithCitation(closest_k[ck], trainingSet,
+					   paperIndexer, knnSimilarityCache,
+					   knnGraphDistanceCache, terms);
 		runClusteringMethod(testingSet, knnc, outputDir, k, size);
 	    }
+
+	    if (testIsEnabled("cn")) {
+		cn = new CommonNeighbors(closest_k[ck], trainingSet, paperIndexer,
+					 knnSimilarityCache, 
+					 knnGraphDistanceCache, terms);
+		runClusteringMethod(testingSet, cn, outputDir, k, size);
+	    }
+	    
+
+	    /*
+	    if (testIsEnabled("svdknn")) {
+		svdKnn = new SVDAndKNN(closest_k[ck], trainingSet);
+		runClusteringMethod(testingSet, knnc, outputDir, k, size);
+	    }
+	    */		    
 	    	
 	    /*
 	    if (testIsEnabled("knnrw")) {
@@ -362,7 +366,7 @@ public class Main {
 	int[] dimensions = {10, 20, 25, 50, 100, 150};
 	for (int dk = 0; dk < dimensions.length; dk ++) {
 	    if (testIsEnabled("lsi")) {
-		lsi = new LSI(dimensions[dk], trainingSet);
+		lsi = new LSI(dimensions[dk], trainingSet, terms);
 
 		runClusteringMethod(testingSet, lsi, outputDir, k, size);
 	    }
@@ -454,12 +458,6 @@ public class Main {
 	int[] ks = 
 	    parseIntList(System.getProperty("plusone.kValues", 
 					    "1,5,10,15,20"));
-
-	Indexer<String> wordIndexer = main.getWordIndexer();
-	Indexer<PaperAbstract> paperIndexer = main.getPaperIndexer();
-
-	System.out.println("Total number of words: " + wordIndexer.size());
-	System.out.println("Total number of papers: " + paperIndexer.size());
 
 	for (int twp = 0; twp < testWordPercents.length; twp++) {
 	    double testWordPercent = testWordPercents[twp];	    

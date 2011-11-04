@@ -5,10 +5,12 @@ import plusone.Main;
 import plusone.utils.Indexer;
 import plusone.utils.ItemAndScore;
 import plusone.utils.KNNGraphDistanceCache;
+import plusone.utils.KNNSimilarityCache;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
 import plusone.utils.TrainingPaper;
+import plusone.utils.Terms;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,10 +29,19 @@ import java.util.Queue;
 import java.util.Set;
 
 public class KNNWithCitation extends KNN {
+    
+    protected KNNGraphDistanceCache graphDistCache;
+    protected Indexer<PaperAbstract> paperIndexer;
 
-    public KNNWithCitation(int K_CLOSEST, List<TrainingPaper> trainingSet) {
-	super(K_CLOSEST, trainingSet);
+    public KNNWithCitation(int K_CLOSEST, List<TrainingPaper> trainingSet,
+			   Indexer<PaperAbstract> paperIndexer,
+			   KNNSimilarityCache similarityCache,
+			   KNNGraphDistanceCache graphDistCache,
+			   Terms terms) {
+	super(K_CLOSEST, trainingSet, paperIndexer, terms, similarityCache);
 	this.testName = "knnc-" + K_CLOSEST;
+	this.paperIndexer = paperIndexer;
+	this.graphDistCache = graphDistCache;
     }
 
     public Integer[] predict(int k, PredictionPaper testPaper) {
@@ -41,7 +52,7 @@ public class KNNWithCitation extends KNN {
 	 * references. Lastly, take the top k for prediction.
 	     */
 	Integer[] kList = kNbr(testPaper, K_CLOSEST);
-	Map<Integer, Integer> distance = 
+	Map<Integer, Double> distance = 
 	    this.kCitation(testPaper, kList, K_CLOSEST);
 	    
 	List<Integer> lst = 
@@ -50,23 +61,32 @@ public class KNNWithCitation extends KNN {
 	return lst.toArray(new Integer[lst.size()]);
     }
 
-    public Map<Integer, Integer> kCitation(PredictionPaper testPaper, 
-					   Integer[] lst, int K_CLOSEST) {
-	Map<Integer, Integer> distance = new HashMap<Integer, Integer>();
+    public Map<Integer, Double> kCitation(PredictionPaper testPaper, 
+					  Integer[] lst, int K_CLOSEST) {
+	Map<Integer, Double> distance = new HashMap<Integer, Double>();
+
 	for (Integer p : lst) {
-	    distance.put(p, Main.getKNNGraphDistanceCache().
-			 get(p, ((PaperAbstract)testPaper).index));
+	    distance.put(p, (double)graphDistCache.get(p, testPaper.getIndex()));
 	}
+
+	double maxValue = 0.0;
+	for (Map.Entry<Integer, Double> entry : distance.entrySet()) {
+	    maxValue = Math.max(maxValue, entry.getValue());
+	}
+
+	for (Integer p : lst) {
+	    distance.put(p, 1.0 / (1.0 + distance.get(p) / maxValue));
+	}
+
 	return distance;
     }
 
     protected List<Integer> predictTopKWordsWithKList
-	(Integer[] kList, Map<Integer, Integer> distance, 
+	(Integer[] kList, Map<Integer, Double> distance, 
 	 PredictionPaper testDoc, int k) {				
 	
-	double[] count = new double[Main.getTerms().size()];
+	double[] count = new double[terms.size()];
 	List<Integer> wordSet = new ArrayList<Integer>();
-	Indexer<PaperAbstract> paperIndexer = Main.getPaperIndexer();
 	
 	for (int i = 0; i < kList.length; i++){
 	    PaperAbstract a = paperIndexer.get(kList[i]);
@@ -75,15 +95,14 @@ public class KNNWithCitation extends KNN {
 		if (count[word] == 0)
 		    wordSet.add(word);
 
-		count[word] += a.getTrainingTf(word) * 
-		    (1.0/distance.get(a.index));
+		count[word] += a.getTrainingTf(word) * distance.get(a.index);
 	    }
 	}
 	
 	PriorityQueue<ItemAndScore> queue = 
 	    new PriorityQueue<ItemAndScore>(k + 1);
 	for (Integer word : wordSet) {
-	    if (testDoc.getTrainingTf(word) > 0)
+	    if (testDoc.getTrainingTf(word) > 0.0)
 	    	continue;
 
 	    if (queue.size() < k || 

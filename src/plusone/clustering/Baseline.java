@@ -16,11 +16,13 @@ import java.util.PriorityQueue;
 
 public class Baseline extends ClusteringTest {
     
-    protected List<TrainingPaper> trainingSet;
+    private List<TrainingPaper> trainingSet;
+    private Terms terms;    
 
-    public Baseline(List<TrainingPaper> trainingSet) {
+    public Baseline(List<TrainingPaper> trainingSet, Terms terms) {
 	super("Baseline");
 	this.trainingSet = trainingSet;
+	this.terms = terms;
     }
 
     @Override
@@ -28,12 +30,12 @@ public class Baseline extends ClusteringTest {
 
 	List<Integer> lst = new ArrayList<Integer>();
 	
-	for (Terms.Term curTerm : Main.getTerms().getSortedTermsIterable()) {
+	for (Terms.Term curTerm : terms.getSortedTermsIterable()) {
 	    Integer curWord = curTerm.id;
 	    if (lst.size() >= k) 
 		break;
 
-	    if (testPaper.getTrainingTf(curWord) == 0)
+	    if (testPaper.getTrainingTf(curWord) == 0.0)
 		lst.add(curWord);
 	}
 	

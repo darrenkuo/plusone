@@ -31,57 +31,63 @@ public class KNNGraphDistanceCache {
 
     private int[] trainPaperKeys;
     private int[] testPaperKeys;
-    private List<KeyPair>[] distances;
     private int[] testPaperNotFound;
+    private List<KeyPair>[] distances;
+    private Indexer<PaperAbstract> paperIndexer;
+    private List<KeyPair>[] commonNeighbors;
 
     public final int BUCKETS = 10000;
 
     public KNNGraphDistanceCache(List<TrainingPaper> trainingPapers,
-				 List<PredictionPaper> testingPapers) {
+				 List<PredictionPaper> testingPapers,
+				 Indexer<PaperAbstract> paperIndexer) {
 	trainPaperKeys = new int[trainingPapers.size()];
 	testPaperKeys = new int[testingPapers.size()];
 	testPaperNotFound = new int[testingPapers.size()];
 	distances = new List[BUCKETS];
+	commonNeighbors = new List[BUCKETS];
+	this.paperIndexer = paperIndexer;
 
 	long t1 = System.currentTimeMillis();
 	System.out.println("[GraphDistanceCache] filling cache" );
-	precompute(trainingPapers, testingPapers);
+	precompute(trainingPapers, testingPapers, paperIndexer);
 	System.out.format("[GraphDistanceCache] took %.3f seconds.\n",
 			  (System.currentTimeMillis() - t1) / 1000.0); 
     }
 
     private void precompute(List<TrainingPaper> trainingPapers,
-			    List<PredictionPaper> testingPapers) {
+			    List<PredictionPaper> testingPapers,
+			    Indexer<PaperAbstract> paperIndexer) {
 	for (PredictionPaper testpaper : testingPapers) {
-	    precomputeSingleTestpaper(trainingPapers, testpaper);
+	    precomputeSingleTestpaper(trainingPapers, testpaper, 
+				      paperIndexer);
 	}
     }
 
-    private void precomputeSingleTestpaper(List<TrainingPaper> trainPapers,
-					   PredictionPaper testPaper) {
+    private void precomputeSingleTestpaper
+	(List<TrainingPaper> trainPapers, PredictionPaper testPaper,
+	 Indexer<PaperAbstract> paperIndexer) {
 	Queue<Integer> currentQueue = new LinkedList<Integer>();
 	Queue<Integer> nextQueue = new LinkedList<Integer>();
-	Indexer<PaperAbstract> paperIndexer = Main.getPaperIndexer();
 	Set<Integer> kSet = new HashSet<Integer>();
 	Set<Integer> doneSet = new HashSet<Integer>();
 
-	PaperAbstract b = (PaperAbstract) testPaper;
-	for (Integer currentPaper : b.inReferences) {
+	for (Integer currentPaper : testPaper.getInReferences()) {
 	    currentQueue.offer(currentPaper);
 	}
 
-	for (Integer currentPaper : b.outReferences) {
+	for (Integer currentPaper : testPaper.getOutReferences()) {
 	    currentQueue.offer(currentPaper);
 	}
 
 	for (TrainingPaper trainPaper : trainPapers) {
-	    kSet.add(((PaperAbstract)trainPaper).index);
+	    kSet.add(trainPaper.getIndex());
 	}
 
 	int d = 1, maxD = 1, 
-	    testPaperIndex = b.index - trainPaperKeys.length;
+	    testPaperIndex = testPaper.getIndex() - trainPaperKeys.length;
 
-	doneSet.add(b.index);
+	doneSet.add(testPaper.getIndex());
 	
 	while (!currentQueue.isEmpty()) {
 	    for (Integer currentPaper : currentQueue) {
@@ -128,6 +134,49 @@ public class KNNGraphDistanceCache {
 	    distances[index] = new ArrayList<KeyPair>();
 
 	distances[index].add(new KeyPair(key1, key2, value));
+       
+	if (value == 2) {
+	    if (commonNeighbors[index] == null)
+		commonNeighbors[index] = new ArrayList<KeyPair>();
+
+	    PaperAbstract paper1 = paperIndexer.get(key1);
+	    PaperAbstract paper2 = paperIndexer.get(key2 + trainPaperKeys.length);
+
+	    Set<Integer> s1 = new HashSet<Integer>();
+	    for (Integer r : paper1.inReferences) {
+		s1.add(r);
+	    }
+	    for (Integer r : paper1.outReferences) {
+		s1.add(r);
+	    }
+
+	    Set<Integer> s2 = new HashSet<Integer>();
+	    for (Integer r : paper2.inReferences) {
+		s2.add(r);
+	    }
+	    for (Integer r : paper2.outReferences) {
+		s2.add(r);
+	    }
+
+	    s1.retainAll(s2);
+	    commonNeighbors[index].add(new KeyPair(key1, key2, s1.size()));
+	}
+    }
+
+    public int getCommonNeighbors(int key1, int key2) {
+	key2 -= trainPaperKeys.length;
+	List<KeyPair> lst = 
+	    commonNeighbors[hashcode(trainPaperKeys[key1], 
+				     testPaperKeys[key2]) % BUCKETS];
+
+	if (lst == null)
+	    return 0;
+
+	for (KeyPair kp : lst) {
+	    if (kp.key1 == key1 && kp.key2 == key2)
+		return kp.value;
+	}
+	return 0;
     }
 
     public int get(int key1, int key2) {
@@ -140,7 +189,7 @@ public class KNNGraphDistanceCache {
 			       testPaperKeys[key2]) % BUCKETS];
 
 	if (lst == null)
-	    return -1;
+	    return 1;
 
 	for (KeyPair kp : lst) {
 	    if (kp.key1 == key1 && kp.key2 == key2)

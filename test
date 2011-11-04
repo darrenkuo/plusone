@@ -39,7 +39,8 @@ args=\
  -Dplusone.trainPercents=0.95 \
  -Dplusone.kValues=1,5,10,15,20 \
  -Dplusone.closestKValues=1,3,5,10,25,50,100,250,500,1000,10000,100000 \
- -Dplusone.randomWalkLength=4
+ -Dplusone.randomWalkLength=4 \
+ -Dplusone.enableTest.cn=true \
  -Dplusone.enableTest.lda=false \
  -Dplusone.enableTest.knnc=true \
  -Dplusone.enableTest.knn=true \
@@ -48,7 +49,7 @@ args=\
  -Dplusone.enableTest.baseline=true \
  -Dplusone.enableTest.lsi=true \
  -Dplusone.outPath=$out_dir \
- -Dplusone.randomSeed=0"
+ -Dplusone.randomSeed=1"
 
 # options to sample cpu
 # -agentlib:hprof=cpu=samples

@@ -19,11 +19,13 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     protected int walkLength;
     protected List<Integer[]> predictions;
     protected Map<Integer, SparseVec> docsForEachWord;
+    protected Terms terms;
 
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
-                                 int walkLength) {
+				 Terms terms, int walkLength) {
         super("DTRandomWalkPredictor-" + Integer.toString(walkLength));
         this.trainingSet = trainingSet;
+	this.terms = terms;
         this.walkLength = walkLength;
         this.docsForEachWord = makeDocsForEachWord(trainingSet);
     }
@@ -63,7 +65,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 	    /* Walk from words to docs. */
 	    SparseVec docs = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : words.pairs()) {
-                Terms.Term term = Main.getTerms().get(pair.getKey());
+                Terms.Term term = terms.get(pair.getKey());
                 SparseVec docsForThisWord = docsForEachWord.get(pair.getKey());
                 if (null != docsForThisWord)
                     docs.plusEqualsWithCoef(docsForThisWord, pair.getValue() / term.totalCount);
