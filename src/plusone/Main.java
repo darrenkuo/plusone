@@ -507,5 +507,13 @@ public class Main {
 		main.runClusteringMethods(kDir, k);
 	    }
 	}
+
+	if (Boolean.getBoolean("plusone.dumpMeta")) {
+	    PlusoneFileWriter writer = 
+		new PlusoneFileWriter(new File(new File(experimentPath),
+					       "metadata"));
+	    writer.write(Main.getMetadataLogger().getJson());
+	    writer.close();
+	}
     }
 }

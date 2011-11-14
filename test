@@ -50,7 +50,8 @@ args=\
  -Dplusone.enableTest.baseline=true \
  -Dplusone.enableTest.lsi=true \
  -Dplusone.outPath=$out_dir \
- -Dplusone.randomSeed=1"
+ -Dplusone.dumpMeta=false \
+ -Dplusone.randomSeed=10"
 
 # options to sample cpu
 # -agentlib:hprof=cpu=samples
@@ -60,4 +61,4 @@ args=\
 # -Xmx4096m
 
 #java -agentlib:hprof=cpu=samples -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main
-java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main
+java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar:lib/jars/gson-1.7.1.jar $args plusone.Main
