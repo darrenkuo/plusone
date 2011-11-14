@@ -3,11 +3,13 @@ package plusone;
 import plusone.utils.Indexer;
 import plusone.utils.KNNGraphDistanceCache;
 import plusone.utils.KNNSimilarityCache;
+import plusone.utils.MetadataLogger;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
-import plusone.utils.Terms;
 import plusone.utils.PredictionPaper;
+import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
+import java.util.Arrays;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.ClusteringTest;
@@ -40,9 +42,11 @@ public class Main {
     private Indexer<String> wordIndexer = new Indexer<String>();
     private Indexer<PaperAbstract> paperIndexer = 
 	new Indexer<PaperAbstract>();
+
     private Terms terms;
     private KNNSimilarityCache knnSimilarityCache;
     private KNNGraphDistanceCache knnGraphDistanceCache;
+    private static MetadataLogger metadataLogger;
     private static Random randGen;
 
     // Document sets
@@ -76,6 +80,7 @@ public class Main {
 
     public Main(long randomSeed) {
 	randGen = new Random(randomSeed);
+	metadataLogger = new MetadataLogger();
     }
 
     public void load_data(String filename, double trainPercent) {
@@ -200,7 +205,7 @@ public class Main {
 	    documents.add(p);
 	    paperIndexer.add(p);
 	    inref_zero += inReferences.length == 0 ? 1 : 0;
-	    inref_zero += outReferences.length == 0 ? 1 : 0;	    
+	 //   inref_zero += outReferences.length == 0 ? 1 : 0;	    
 	}
 	System.out.println("inref zero: " + inref_zero);
 	System.out.println("total number of papers: " + documents.size());
@@ -215,10 +220,11 @@ public class Main {
      */
     private void splitByTrainPercent(double trainPercent, 
 				    List<PaperAbstract> documents) {
+    Random randGen = Main.getRandomGenerator();
 	trainingSet = new ArrayList<TrainingPaper>();
 	testingSet = new ArrayList<PredictionPaper>();
 	for (int i = 0; i < documents.size(); i ++) {
-	    if (i < trainPercent * documents.size())
+	    if (randGen.nextDouble() < trainPercent)
 		trainingSet.add((TrainingPaper)documents.get(i));
 	    else
 		testingSet.add((PredictionPaper)documents.get(i));
@@ -241,6 +247,14 @@ public class Main {
 	    ((PaperAbstract)a).generateTf(testWordPercent, null, true);
 	}
 
+	/*
+	terms_sorted = new Term[terms.length];
+
+	for (int c = 0; c < terms.length; c ++) {
+	terms_sorted[c] = terms[c];
+	}
+	Arrays.sort(terms_sorted);
+	*/
 	this.terms = new Terms(terms);
 
 	if (testIsEnabled("knn") || testIsEnabled("knnc"))
@@ -254,6 +268,8 @@ public class Main {
     }
     
     public static Random getRandomGenerator() { return randGen; }
+
+    public static MetadataLogger getMetadataLogger() { return metadataLogger; }
 
     public double[] evaluate(PredictionPaper testingPaper,
 			     Integer[] prediction, int size, int k) {
@@ -308,13 +324,17 @@ public class Main {
 	}
 		
 	if (testIsEnabled("dtrw")) {
-		int rwLength =
-		    Integer.getInteger("plusone.randomWalkLength", 4);
-		System.out.println("Random walk length: " + rwLength);
-		dtRWPredictor =
-		    new DTRandomWalkPredictor(trainingSet, terms, rwLength);
-		runClusteringMethod(testingSet, dtRWPredictor, 
-				    outputDir, k, size);
+	    int rwLength =
+		Integer.getInteger("plusone.dtrw.walkLength", 4);
+	    boolean stoch = Boolean.getBoolean("plusone.dtrw.stochastic");
+	    int nSampleWalks = Integer.getInteger("plusone.dtrw.nSampleWalks");
+	    System.out.println("Random walk length: " + rwLength);
+	    if (stoch)
+		System.out.println("Stochastic random walk: " + nSampleWalks + " samples.");
+	    dtRWPredictor =
+		new DTRandomWalkPredictor(trainingSet, terms, rwLength, stoch, nSampleWalks);
+	    runClusteringMethod(testingSet, dtRWPredictor, 
+		    outputDir, k, size);
 	}
 
 
@@ -349,12 +369,10 @@ public class Main {
 		runClusteringMethod(testingSet, knnc, outputDir, k, size);
 	    }
 	    */		    
-	    	
 	    /*
 	    if (testIsEnabled("knnrw")) {
 		knnRWPredictor =
-		    new KNNRandomWalkPredictor(closest_k[ck], documents,
-					       trainingSet, testingSet,
+		    new KNNRandomWalkPredictor(closest_k[ck], trainingSet,
 					       wordIndexer, paperIndexer,
 					       1, 0.5, 1);
 		runClusteringMethod(trainingSet, testingSet,

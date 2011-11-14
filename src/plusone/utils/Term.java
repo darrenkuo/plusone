@@ -34,10 +34,6 @@ public class Term implements Comparable {
     
     public int idfRaw() { return doc_train.size(); }
 
-    public double trainingIdf(int nDocs) {
-        return Math.log(nDocs / (double)idfRaw());
-    }
 
     public List<PaperAbstract> getDocTrain() { return doc_train; }
-    public List<PaperAbstract> getDocTest() { return doc_train; }
 }

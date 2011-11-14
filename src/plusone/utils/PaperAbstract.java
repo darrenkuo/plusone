@@ -19,9 +19,9 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
     public final Integer[] inReferences;
     public final Integer[] outReferences;
 
-    private Map<Integer, Double> trainingTf;
-    private Map<Integer, Double> testingTf;
-    private Map<Integer, Double> tf;
+    private Map<Integer, Integer> trainingTf;
+    private Map<Integer, Integer> testingTf;
+    private Map<Integer, Integer> tf;
     public double norm;
 
     public PaperAbstract(int index, Integer[] inReferences, 
@@ -31,22 +31,22 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 	this.inReferences = inReferences;
 	this.outReferences = outReferences;
 
-	tf = new HashMap<Integer, Double>();
+	tf = new HashMap<Integer, Integer>();
 	for (Integer word : abstractWords) {
 	    if (!tf.containsKey(word))
-		tf.put(word, 0.0);
-	    tf.put(word, tf.get(word) + 1.0);
+		tf.put(word, 0);
+	    tf.put(word, tf.get(word) + 1);
 	}
     }
 
     public PaperAbstract(int index, Integer[] inReferences, 
 			 Integer[] outReferences, 
-			 double[] tf) {
+			 int[] tf) {
 	this.index = index;
 	this.inReferences = inReferences;
 	this.outReferences = outReferences;
 
-	this.tf = new HashMap<Integer, Double>();
+	this.tf = new HashMap<Integer, Integer>();
 	for (int i = 0; i < tf.length; i ++) {
 	    this.tf.put(i, tf[i]);
 	}
@@ -54,7 +54,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 
 
     public PaperAbstract(int index, Integer[] inReferences,
-			 Integer[] outReferences, Map<Integer, Double> tf) {
+			 Integer[] outReferences, Map<Integer, Integer> tf) {
 	this.index = index;
 	this.inReferences = inReferences;
 	this.outReferences = outReferences;
@@ -66,41 +66,43 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
      * must be called before we can use this paper in clustering
      * methods.
      */
-    public void generateTf(double percentUsed, Terms.Term[] terms, 
+    public void generateTf(double testWordpercent, Terms.Term[] terms, 
 			   boolean test){
 	Random randGen = Main.getRandomGenerator();
-	trainingTf = new HashMap<Integer, Double>();
-	testingTf = test ? new HashMap<Integer, Double>() : null;
+	trainingTf = new HashMap<Integer, Integer>();
+	testingTf = test ? new HashMap<Integer, Integer>() : null;
 
 	for (Integer word : tf.keySet()) {
 	    if (terms != null) terms[word].addDoc(this, test);
-	    if (test && randGen.nextDouble() > percentUsed) {
-		testingTf.put(word, tf.get(word));
+	    int freq= tf.get(word);
+	    if (test && randGen.nextDouble() < testWordpercent) {
+		testingTf.put(word, freq);
 	    } else {
-		trainingTf.put(word, tf.get(word));
+		trainingTf.put(word, freq);
+		norm+=freq*freq;
 		if (!test && terms != null)
 		    terms[word].totalCount += tf.get(word);
 	    }
 	}
 
-    	for (Map.Entry<Integer, Double> entry : trainingTf.entrySet()) {
+    	for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet()) {
 	    norm += entry.getValue() * entry.getValue();
     	}
     	norm = Math.sqrt(norm);
     }
 
-    public Double getTrainingTf(Integer word) {
-	return trainingTf == null ? 0.0 : 
-	    (trainingTf.get(word) == null ? 0.0 : trainingTf.get(word));
+    public Integer getTrainingTf(Integer word) {
+	return trainingTf == null ? 0 : 
+	    (trainingTf.containsKey(word) ? trainingTf.get(word) : 0);
     }
 
     public Set<Integer> getTrainingWords() {
 	return trainingTf.keySet();
     }
 
-    public Double getTestingTf(Integer word) {
-	return testingTf == null ? 0.0 : 
-	    (testingTf.get(word) == null? 0.0 : testingTf.get(word));
+    public Integer getTestingTf(Integer word) {
+	return testingTf == null ? 0 : 
+	    (testingTf.containsKey(word)? testingTf.get(word) : 0);
     }
 
     public Set<Integer> getTestingWords() {
@@ -118,16 +120,14 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
     public boolean isTest() { return testingTf != null; }
     
     public double similarity(PaperAbstract a){
-    	double dist = 0.0;
+    	double sim = 0.0;
 
-	for (Map.Entry<Integer, Double> entry : trainingTf.entrySet()) {
+	for (Map.Entry<Integer, Integer> entry : trainingTf.entrySet()) {
 	    int wordId = entry.getKey();
-	    double count = entry.getValue();
-	    if (a.trainingTf.containsKey(wordId)) {
-		dist += count * a.trainingTf.get(wordId);
-	    }
+	    int count = entry.getValue();
+		sim += count * a.getTrainingTf(wordId);
     	}
-    	return dist/(a.norm * norm);
+    	return sim/(a.getNorm() * norm);
     }
 
     public boolean equals(Object obj) {
@@ -135,14 +135,14 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 	    this.index == ((PaperAbstract)obj).index;
     }
 
-    public static Map<Integer, Double> getCombinedTf
+    public static Map<Integer, Integer> getCombinedTf
 	(List<TrainingPaper> lst) {
-	Map<Integer, Double> tf = new HashMap<Integer, Double>();
+	Map<Integer, Integer> tf = new HashMap<Integer, Integer>();
 	for (TrainingPaper trainPaper : lst) {
 	    for (Integer wd : trainPaper.getTrainingWords()) {
 		if (!tf.containsKey(wd))
-		    tf.put(wd, 0.0);
-		tf.put(wd, tf.get(wd) + 1.0);
+		    tf.put(wd, 0);
+		tf.put(wd, tf.get(wd) + 1);
 	    }
 	}
 	return tf;

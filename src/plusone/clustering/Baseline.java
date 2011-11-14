@@ -6,6 +6,7 @@ import plusone.utils.ItemAndScore;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
+import plusone.utils.SVD;
 import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
 

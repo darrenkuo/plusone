@@ -86,6 +86,7 @@ public class KNNWithCitation extends KNN {
 	 PredictionPaper testDoc, int k) {				
 	
 	double[] count = new double[terms.size()];
+
 	List<Integer> wordSet = new ArrayList<Integer>();
 	
 	for (int i = 0; i < kList.length; i++){

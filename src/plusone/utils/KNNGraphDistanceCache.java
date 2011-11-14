@@ -36,6 +36,9 @@ public class KNNGraphDistanceCache {
     private Indexer<PaperAbstract> paperIndexer;
     private List<KeyPair>[] commonNeighbors;
 
+    private Indexer<Integer> trainingIndexer;
+    private Indexer<Integer> testingIndexer;
+
     public final int BUCKETS = 10000;
 
     public KNNGraphDistanceCache(List<TrainingPaper> trainingPapers,
@@ -47,6 +50,18 @@ public class KNNGraphDistanceCache {
 	distances = new List[BUCKETS];
 	commonNeighbors = new List[BUCKETS];
 	this.paperIndexer = paperIndexer;
+	trainingIndexer = new Indexer<Integer>();
+	testingIndexer = new Indexer<Integer>();
+
+	for (int i = 0; i < trainingPapers.size(); i ++) {
+	    trainingIndexer.add(trainingPapers.get(i).getIndex());
+	    trainPaperKeys[i] = -1;
+	}
+
+	for (int i = 0; i < testingPapers.size(); i ++) {
+	    testingIndexer.add(testingPapers.get(i).getIndex());
+	    testPaperKeys[i] = -1;
+	}
 
 	long t1 = System.currentTimeMillis();
 	System.out.println("[GraphDistanceCache] filling cache" );
@@ -84,8 +99,7 @@ public class KNNGraphDistanceCache {
 	    kSet.add(trainPaper.getIndex());
 	}
 
-	int d = 1, maxD = 1, 
-	    testPaperIndex = testPaper.getIndex() - trainPaperKeys.length;
+	int d = 1, maxD = 1, testPaperIndex = testPaper.getIndex();
 
 	doneSet.add(testPaper.getIndex());
 	
@@ -115,16 +129,19 @@ public class KNNGraphDistanceCache {
 	}
 
 	kSet.removeAll(doneSet);
-	testPaperNotFound[testPaperIndex] = maxD + 1;
+	testPaperNotFound[testingIndexer.indexOf(testPaperIndex)] = maxD + 1;
     }
 
     private void add(int key1, int key2, int value) {
+
+	key1 = trainingIndexer.indexOf(key1);
+	key2 = testingIndexer.indexOf(key2);
 	
-	while (trainPaperKeys[key1] == 0) {
+	while (trainPaperKeys[key1] == -1) {
 	    trainPaperKeys[key1] = Main.getRandomGenerator().nextInt();
 	}
 	
-	while (testPaperKeys[key2] == 0) {
+	while (testPaperKeys[key2] == -1) {
 	    testPaperKeys[key2] = Main.getRandomGenerator().nextInt();
 	}
 
@@ -139,8 +156,10 @@ public class KNNGraphDistanceCache {
 	    if (commonNeighbors[index] == null)
 		commonNeighbors[index] = new ArrayList<KeyPair>();
 
-	    PaperAbstract paper1 = paperIndexer.get(key1);
-	    PaperAbstract paper2 = paperIndexer.get(key2 + trainPaperKeys.length);
+	    //PaperAbstract paper1 = paperIndexer.get(key1);
+	    //PaperAbstract paper2 = paperIndexer.get(key2 + trainPaperKeys.length);
+	    PaperAbstract paper1 = paperIndexer.get(trainingIndexer.get(key1));
+	    PaperAbstract paper2 = paperIndexer.get(testingIndexer.get(key2));
 
 	    Set<Integer> s1 = new HashSet<Integer>();
 	    for (Integer r : paper1.inReferences) {
@@ -180,7 +199,8 @@ public class KNNGraphDistanceCache {
     }
 
     public int get(int key1, int key2) {
-	return getValue(key1, key2 - trainPaperKeys.length);
+	return getValue(trainingIndexer.indexOf(key1),
+			testingIndexer.indexOf(key2));
     }
 
     private int getValue(int key1, int key2) {
