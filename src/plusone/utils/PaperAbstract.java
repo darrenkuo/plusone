@@ -97,7 +97,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 
     public Integer getTestingTf(Integer word) {
 	return testingTf == null ? 0 : 
-	    (testingTf.containsKey(word)? testingTf.get(word)：0);
+	    (testingTf.containsKey(word)? testingTf.get(word) : 0);
     }
 
     public Set<Integer> getTestingWords() {
