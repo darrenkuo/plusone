@@ -397,7 +397,7 @@ public class Main {
 	long t1 = System.currentTimeMillis();
 	System.out.println("[" + test.testName + "] starting test" );
 	double[] results = {0.0, 0.0, 0.0, 0.0};
-	MetadataLogger.TestMetadata meta = getMetadataLogger().getTestMetadata(test.testName);
+	MetadataLogger.TestMetadata meta = getMetadataLogger().getTestMetadata("k=" + k + test.testName);
 	test.addMetadata(meta);
 	List<Double> predictionScores = new ArrayList<Double>();
 	for (PredictionPaper testingPaper : testingSet) {
@@ -410,6 +410,7 @@ public class Main {
 	    predictionScores.add(result[0]);
 	}
 	meta.createListValueEntry("predictionScore", predictionScores.toArray());
+	meta.createSingleValueEntry("numPredict", k);
 	
 	File out = new File(outputDir, test.testName + ".out");
 	Main.printResults(out, new double[]{results[0]/results[3], 

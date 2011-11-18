@@ -5,20 +5,23 @@ var lib = (function(){
             expName: "demoA-4",
             foo: "4",
             predictionScore: [0.9, 0.9, 0.6, 0.1, 1.0, 0.0],
-            barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
+            barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0],
+            numPredict : 1
 	},
 	"demoA-10": {
             gitHash: "Hashy",
             expName: "demoA-10",
             foo: "10",
             predictionScore: [0.09, 0.09, 0.06, 0.01, 0.1, 0.0],
-            barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
+            barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0],
+            numPredict : 1
 	},
 	"demoB-5": {
             gitHash: "Hashy",
             expName: "demoB-5",
             baz: "5",
             predictionScore: [0.95, 0.75, 0.8, 0.55, 1.0, 0.5],
+            numPredict : 1
 	}
     };
 
@@ -138,6 +141,7 @@ var lib = (function(){
 	div.append($("<input/>", {id: "data_url", type: "text"}));
 	div.append(makeAxisParam("Axis key", "axis_key", "predictionScore"));
 	div.append(makeAxisParam("Experiment name (regex)", "expName_regex", "demoA-4"));
+        div.append(makeAxisParam("Number of predictions (k)", "numPredictions", "1"));
 	div.append($("<input/>", {type: "button", value: "Plot"}).click(function(){updatePlot();}));
     }
 
@@ -158,8 +162,9 @@ var lib = (function(){
 
     function makeAxisFilter(axis) {
         expNameRegex = new RegExp("^" + getAxisParam(axis, "expName_regex") + "$");
+        nPred = getAxisParam(axis, "numPredictions");
 	return function (d) {
-	    return expNameRegex.test(d.expName);
+	    return expNameRegex.test(d.expName) && d.numPredict == nPred;
 	}
     }
 
