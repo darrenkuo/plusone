@@ -224,10 +224,19 @@ var lib = (function(){
 	/* Add some space so the bubbles don't leave the plot area. */
 	var finalAxisMin = [];
 	var finalAxisMax = [];
+        var maxAxisLength = 0;
 	for (var i = 0; i < 2; ++ i) {
 	    finalAxisMin[i] = (1 + minRelSpace) * axisMin[i] - minRelSpace * axisMax[i];
 	    finalAxisMax[i] = (1 + minRelSpace) * axisMax[i] - minRelSpace * axisMin[i];
+            maxAxisLength = Math.max(maxAxisLength, finalAxisMax[i] - finalAxisMin[i]);
 	}
+        // Keep a 1:1 aspect ratio.
+	for (var i = 0; i < 2; ++ i) {
+            var thisAxisMid = (finalAxisMax[i] + finalAxisMin[i]) / 2;
+	    finalAxisMin[i] = thisAxisMid - maxAxisLength / 2;
+	    finalAxisMax[i] = thisAxisMid + maxAxisLength / 2;
+	}
+        
 
 	$.plot($("#plot"), [dataWithDiameters], {
 	    series: {bubbles: {active: true, show: true}},

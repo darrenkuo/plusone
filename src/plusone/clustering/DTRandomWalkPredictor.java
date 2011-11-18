@@ -32,7 +32,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
 				 Terms terms, int walkLength, 
 				 boolean stochastic, int nSampleWalks) {
-	super("DTRandomWalkPredictor-" + Integer.toString(walkLength) +
+	super("dtrw-" + Integer.toString(walkLength) +
 		(stochastic ? "-s" + nSampleWalks : ""));
         this.trainingSet = trainingSet;
 	this.terms = terms;
