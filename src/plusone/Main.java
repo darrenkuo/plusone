@@ -397,6 +397,9 @@ public class Main {
 	long t1 = System.currentTimeMillis();
 	System.out.println("[" + test.testName + "] starting test" );
 	double[] results = {0.0, 0.0, 0.0, 0.0};
+	MetadataLogger.TestMetadata meta = getMetadataLogger().getTestMetadata(test.testName);
+	test.addMetadata(meta);
+	List<Double> predictionScores = new ArrayList<Double>();
 	for (PredictionPaper testingPaper : testingSet) {
 	    Integer[] predict = test.predict(k, testingPaper);
 	    double[] result = evaluate(testingPaper, predict, size, k);
@@ -404,8 +407,9 @@ public class Main {
 	    results[1] += result[1];
 	    results[2] += result[2];
 	    results[3] += result[3];
-
+	    predictionScores.add(result[0]);
 	}
+	meta.createListValueEntry("predictionScore", predictionScores.toArray());
 	
 	File out = new File(outputDir, test.testName + ".out");
 	Main.printResults(out, new double[]{results[0]/results[3], 
@@ -512,6 +516,7 @@ public class Main {
 	    PlusoneFileWriter writer = 
 		new PlusoneFileWriter(new File(new File(experimentPath),
 					       "metadata"));
+	    writer.write("var v = ");
 	    writer.write(Main.getMetadataLogger().getJson());
 	    writer.close();
 	}

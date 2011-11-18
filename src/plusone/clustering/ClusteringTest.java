@@ -3,6 +3,7 @@ package plusone.clustering;
 import java.io.File;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
+import plusone.utils.MetadataLogger.TestMetadata;
 
 public abstract class ClusteringTest implements ClusteringMethod {
 
@@ -28,5 +29,9 @@ public abstract class ClusteringTest implements ClusteringMethod {
 						   "-" + extra) +
                                                   ".predict"));
 	}
+    }
+
+    public void addMetadata(TestMetadata meta) {
+	meta.createSingleValueEntry("expName", testName);
     }
 }

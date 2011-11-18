@@ -1,22 +1,26 @@
 var lib = (function(){
-    var exampleData = [{
-        gitHash: "Hashy",
-        expName: "demoA-4",
-        foo: "4",
-        predictionScore: [0.9, 0.9, 0.6, 0.1, 1.0, 0.0],
-        barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
-    }, {
-        gitHash: "Hashy",
-        expName: "demoA-10",
-        foo: "10",
-        predictionScore: [0.09, 0.09, 0.06, 0.01, 0.1, 0.0],
-        barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
-    }, {
-        gitHash: "Hashy",
-        expName: "demoB-5",
-        baz: "5",
-        predictionScore: [0.95, 0.75, 0.8, 0.55, 1.0, 0.5],
-    }];
+    var exampleData = {
+	"demoA-4": {
+            gitHash: "Hashy",
+            expName: "demoA-4",
+            foo: "4",
+            predictionScore: [0.9, 0.9, 0.6, 0.1, 1.0, 0.0],
+            barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
+	},
+	"demoA-10": {
+            gitHash: "Hashy",
+            expName: "demoA-10",
+            foo: "10",
+            predictionScore: [0.09, 0.09, 0.06, 0.01, 0.1, 0.0],
+            barValue: [0.81, 0.25, 0.36, 0.01, 1.0, 0.0]
+	},
+	"demoB-5": {
+            gitHash: "Hashy",
+            expName: "demoB-5",
+            baz: "5",
+            predictionScore: [0.95, 0.75, 0.8, 0.55, 1.0, 0.5],
+	}
+    };
 
     function makeArray(length, gen) {
         var ret = [];
@@ -131,6 +135,7 @@ var lib = (function(){
 	    ret.append(yInput);
 	    return ret;
 	}
+	div.append($("<input/>", {id: "data_url", type: "text"}));
 	div.append(makeAxisParam("Axis key", "axis_key", "predictionScore"));
 	div.append(makeAxisParam("Experiment name (regex)", "expName_regex", "demoA-4"));
 	div.append($("<input/>", {type: "button", value: "Plot"}).click(function(){updatePlot();}));
@@ -159,10 +164,20 @@ var lib = (function(){
     }
 
     function updatePlot() {
+	var data_url = $("#data_url").attr("value");
+
+	v = undefined;  // Global variable that the script at data_path puts the data into.
+	var script = $("<script/>", {type: "text/javascript", src: encodeURI(data_url)});
+	$("#script_holder").append(script);
+	var rawData = v;
+	if (undefined == rawData)
+	    rawData = exampleData;
+
         var fData = [];
-        exampleData.forEach(function(value, index, array) {
-            fData = fData.concat(flattenArrays(value));
-        });
+	for (e in rawData) {
+	    if (!rawData.hasOwnProperty(e)) continue;
+            fData = fData.concat(flattenArrays(rawData[e]));
+        };
 	var xData = genAxisValues(fData, makeAxisFilter("x"), getAxisParam("x", "axis_key"), "index");
 	var yData = genAxisValues(fData, makeAxisFilter("y"), getAxisParam("y", "axis_key"), "index");
         var dataWithRepeats = joinAxes([xData, yData]);
