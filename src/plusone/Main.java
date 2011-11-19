@@ -331,8 +331,9 @@ public class Main {
 	    System.out.println("Random walk length: " + rwLength);
 	    if (stoch)
 		System.out.println("Stochastic random walk: " + nSampleWalks + " samples.");
+            boolean finalIdf = Boolean.getBoolean("plusone.dtrw.finalIdf");
 	    dtRWPredictor =
-		new DTRandomWalkPredictor(trainingSet, terms, rwLength, stoch, nSampleWalks);
+		new DTRandomWalkPredictor(trainingSet, terms, rwLength, stoch, nSampleWalks, finalIdf);
 	    runClusteringMethod(testingSet, dtRWPredictor, 
 		    outputDir, k, size);
 	}

@@ -24,6 +24,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     protected final boolean stochastic;
     protected final int nSampleWalks;
     protected final Terms terms;
+    protected final boolean finalIdf;
 
     protected final Map<Integer, SparseVec> docsByWord;
     protected final Map<Integer, SampleDist<Integer>> docDistByWord;
@@ -31,7 +32,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
 				 Terms terms, int walkLength, 
-				 boolean stochastic, int nSampleWalks) {
+				 boolean stochastic, int nSampleWalks, boolean finalIdf) {
 	super("dtrw-" + Integer.toString(walkLength) +
 		(stochastic ? "-s" + nSampleWalks : ""));
         this.trainingSet = trainingSet;
@@ -39,6 +40,7 @@ public class DTRandomWalkPredictor extends ClusteringTest {
         this.walkLength = walkLength;
         this.stochastic = stochastic;
         this.nSampleWalks = nSampleWalks;
+        this.finalIdf = finalIdf;
         
         docDistByWord = new HashMap<Integer, SampleDist<Integer>>();
         for (int i = 0; i < this.trainingSet.size(); ++i) {
@@ -52,8 +54,8 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     }
 
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
-                                 int walkLength, Terms terms) {
-	this(trainingSet, terms, walkLength, false, 0);
+                                 int walkLength, Terms terms, boolean finalIdf) {
+	this(trainingSet, terms, walkLength, false, 0, finalIdf);
     }
     
     protected Map<Integer, SparseVec> makeDocsByWord(List<TrainingPaper> trainingSet) {
@@ -70,7 +72,16 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 
     public Integer[] predict(int k, PredictionPaper paper) {
 	SparseVec words = stochastic ? stochWalkMany(paper) : detWalk(paper);
-	return firstKExcluding(words.descending(), k, paper.getTrainingWords());
+        SparseVec w;
+        if (finalIdf) {
+            SparseVec wordsIdf = new SparseVec();
+            for (Map.Entry<Integer, Double> pair : words.pairs()) {
+                wordsIdf.addSingle(pair.getKey(), pair.getValue() * terms.get(pair.getKey()).trainingIdf(trainingSet.size()));
+            }
+            w = wordsIdf;
+        } else
+            w = words;
+	return firstKExcluding(w.descending(), k, paper.getTrainingWords());
     }
 
     Integer[] firstKExcluding(Integer[] l, Integer k, Set<Integer> excl) {
