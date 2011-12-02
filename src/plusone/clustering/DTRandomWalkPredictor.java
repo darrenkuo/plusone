@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import plusone.Main;
 import plusone.utils.PaperIF;
 import plusone.utils.PredictionPaper;
 import plusone.utils.SampleDist;
@@ -25,6 +24,8 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     protected final int nSampleWalks;
     protected final Terms terms;
     protected final boolean finalIdf;
+    
+    protected final boolean normalizeWordsInDoc, normalizeDocsInWord;
 
     protected final Map<Integer, SparseVec> docsByWord;
     protected final Map<Integer, SampleDist<Integer>> docDistByWord;
@@ -32,7 +33,8 @@ public class DTRandomWalkPredictor extends ClusteringTest {
 
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
 				 Terms terms, int walkLength, 
-				 boolean stochastic, int nSampleWalks, boolean finalIdf) {
+				 boolean stochastic, int nSampleWalks, boolean finalIdf,
+				 boolean normalizeWordsInDoc, boolean normalizeDocsInWord) {
 	super("dtrw-" + Integer.toString(walkLength) +
 		(stochastic ? "-s" + nSampleWalks : ""));
         this.trainingSet = trainingSet;
@@ -41,6 +43,12 @@ public class DTRandomWalkPredictor extends ClusteringTest {
         this.stochastic = stochastic;
         this.nSampleWalks = nSampleWalks;
         this.finalIdf = finalIdf;
+        this.normalizeWordsInDoc = normalizeWordsInDoc;
+        this.normalizeDocsInWord = normalizeDocsInWord;
+        
+        if (this.stochastic) {
+            assert this.normalizeWordsInDoc && this.normalizeDocsInWord;
+        }
         
         docDistByWord = new HashMap<Integer, SampleDist<Integer>>();
         for (int i = 0; i < this.trainingSet.size(); ++i) {
@@ -54,8 +62,9 @@ public class DTRandomWalkPredictor extends ClusteringTest {
     }
 
     public DTRandomWalkPredictor(List<TrainingPaper> trainingSet,
-                                 int walkLength, Terms terms, boolean finalIdf) {
-	this(trainingSet, terms, walkLength, false, 0, finalIdf);
+                                 int walkLength, Terms terms, boolean finalIdf,
+                                 boolean nwid, boolean ndiw) {
+	this(trainingSet, terms, walkLength, false, 0, finalIdf, nwid, ndiw);
     }
     
     protected Map<Integer, SparseVec> makeDocsByWord(List<TrainingPaper> trainingSet) {
@@ -105,13 +114,13 @@ public class DTRandomWalkPredictor extends ClusteringTest {
                 Terms.Term term = terms.get(pair.getKey());
                 SparseVec docsForThisWord = docsByWord.get(pair.getKey());
                 if (null != docsForThisWord)
-                    docs.plusEqualsWithCoef(docsForThisWord, pair.getValue() / term.totalCount);
+                    docs.plusEqualsWithCoef(docsForThisWord, normalizeDocsInWord ? pair.getValue() / term.totalCount : pair.getValue());
 	    }
 	    /* Walk from docs to words. */
 	    words = new SparseVec();
 	    for (Map.Entry<Integer, Double> pair : docs.pairs()) {
 		SparseVec wordsForThisDoc = makeTrainingWordVec(trainingSet.get(pair.getKey()), true, nDocs);
-		wordsForThisDoc.dotEquals(pair.getValue() / wordsForThisDoc.coordSum());
+		wordsForThisDoc.dotEquals(normalizeWordsInDoc ? pair.getValue() / wordsForThisDoc.coordSum() : pair.getValue());
 		words.plusEquals(wordsForThisDoc);
 	    }
 	}

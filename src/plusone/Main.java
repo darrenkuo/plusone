@@ -38,6 +38,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
+    
+    private final static int nTrialsPerPaper = 12;
 
     private Indexer<String> wordIndexer = new Indexer<String>();
     private Indexer<PaperAbstract> paperIndexer = 
@@ -332,8 +334,10 @@ public class Main {
 	    if (stoch)
 		System.out.println("Stochastic random walk: " + nSampleWalks + " samples.");
             boolean finalIdf = Boolean.getBoolean("plusone.dtrw.finalIdf");
+            boolean ndiw = Boolean.getBoolean("plusone.dtrw.normalizeDocsInWord");
+            Boolean nwid = Boolean.getBoolean("plusone.dtrw.normalizeWordsInDoc");
 	    dtRWPredictor =
-		new DTRandomWalkPredictor(trainingSet, terms, rwLength, stoch, nSampleWalks, finalIdf);
+		new DTRandomWalkPredictor(trainingSet, terms, rwLength, stoch, nSampleWalks, finalIdf, nwid, ndiw);
 	    runClusteringMethod(testingSet, dtRWPredictor, 
 		    outputDir, k, size);
 	}
@@ -402,13 +406,14 @@ public class Main {
 	test.addMetadata(meta);
 	List<Double> predictionScores = new ArrayList<Double>();
 	for (PredictionPaper testingPaper : testingSet) {
-	    Integer[] predict = test.predict(k, testingPaper);
-	    double[] result = evaluate(testingPaper, predict, size, k);
-	    results[0] += result[0];
-	    results[1] += result[1];
-	    results[2] += result[2];
-	    results[3] += result[3];
-	    predictionScores.add(result[0]);
+	    double [] thisPaperResults = {0.0, 0.0, 0.0, 0.0};
+	    for (int i = 0; i < nTrialsPerPaper; ++i) {
+		Integer[] predict = test.predict(k, testingPaper);
+		double[] result = evaluate(testingPaper, predict, size, k);
+		for (int j = 0; j < 4; ++j) thisPaperResults[j] += result[j];
+	    }
+	    for (int j = 0; j < 4; ++j) results[j] += thisPaperResults[j];
+	    predictionScores.add(thisPaperResults[0]);
 	}
 	meta.createListValueEntry("predictionScore", predictionScores.toArray());
 	meta.createSingleValueEntry("numPredict", k);
