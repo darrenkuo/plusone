@@ -3,11 +3,13 @@ package plusone.utils;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.InputStreamReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +26,8 @@ public class Dataset {
     final static String abstract_pattern_string = "#ABSTRACT ([\\s\\S]+)";
     final static Pattern abstract_pattern = Pattern.compile(abstract_pattern_string);
 
+    final static String baseDatasetUrl = "http://www.falsifian.org/a/9xwk/";
+
     class Paper {
 	Integer[] inReferences;
 	Integer[] outReferences;
@@ -39,17 +43,85 @@ public class Dataset {
 	}
     }
 
+    public class TrainingAndTesting {
+	List<TrainingPaper> trainingSet;
+	public List<TrainingPaper> getTrainingSet() { return trainingSet; }
+        
+	List<PredictionPaper> testingSet;
+	public List<PredictionPaper> getTestingSet() { return testingSet; }
+        
+        public TrainingAndTesting(List<TrainingPaper> trainingSet,
+                                  List<PredictionPaper> testingSet) {
+            this.trainingSet = trainingSet;
+            this.testingSet = testingSet;
+        }
+    }
+
     /* Member fields. */
 
-    List<PaperAbstract> documents = new ArrayList<PaperAbstract>();
+    List<PaperAbstract> documents;
     public List<PaperAbstract> getDocuments() { return documents; }
 
-    Indexer<String> wordIndexer = new Indexer<String>();
+    Indexer<String> wordIndexer;
     public Indexer<String> getWordIndexer() { return wordIndexer; }
 
-    private Indexer<PaperAbstract> paperIndexer = 
-	new Indexer<PaperAbstract>();
+    private Indexer<PaperAbstract> paperIndexer;
     public Indexer<PaperAbstract> getPaperIndexer() { return paperIndexer; }
+
+    /* Constructors. */
+
+    public Dataset(List<PaperAbstract> documents, Indexer<String> wordIndexer,
+                   Indexer<PaperAbstract> paperIndexer) {
+        this.documents = documents;
+        this.wordIndexer = wordIndexer;
+        this.paperIndexer = paperIndexer;
+    }
+
+    public Dataset() {
+        this(new ArrayList<PaperAbstract>(), new Indexer<String>(),
+             new Indexer<PaperAbstract>());
+    }
+
+    /* More public methods. */
+
+    /** Returns a dataset with the first nPapers papers.  The new dataset is
+     * backed by this one, so changes to this dataset may affect the returned
+     * dataset.
+     */
+    public Dataset take(int nPapers) {
+        return new Dataset(documents.subList(0, Math.min(documents.size(), nPapers)),
+                           wordIndexer, paperIndexer);
+    }
+
+    /**
+     * Splits all the documents into training and testing papers.
+     */
+    public TrainingAndTesting splitByTrainPercent(double trainPercent, Random randGen) {
+	List<TrainingPaper> trainingSet = new ArrayList<TrainingPaper>();
+	List<PredictionPaper> testingSet = new ArrayList<PredictionPaper>();
+	for (int i = 0; i < documents.size(); i ++) {
+	    if (randGen.nextDouble() < trainPercent)
+		trainingSet.add((TrainingPaper)documents.get(i));
+	    else
+		testingSet.add((PredictionPaper)documents.get(i));
+	}
+        return new TrainingAndTesting(trainingSet, testingSet);
+    }
+
+    public static Dataset loadDatasetFromPath(String filename) {
+        Dataset dataset = new Dataset();
+        dataset.loadInPlaceFromPath(filename);
+        return dataset;
+    }
+
+    public static Dataset loadDatasetFromName(String datasetName) {
+        String datasetPath = "/tmp/" + datasetName + "." + System.getProperty("user.name");
+        if (!new File(datasetPath).exists())
+            Fetch.fetchUrl(baseDatasetUrl + datasetName, datasetPath);
+        return loadDatasetFromPath(datasetPath);
+    }
+
+    /* Private helper functions. */
 
     /* Private method used by loadDataset. */
     void loadInPlaceFromPath(String filename) {
@@ -165,11 +237,5 @@ public class Dataset {
 	}
 	System.out.println("inref zero: " + inref_zero);
 	System.out.println("total number of papers: " + documents.size());
-    }
-
-    public static Dataset loadDatasetFromPath(String filename) {
-        Dataset dataset = new Dataset();
-        dataset.loadInPlaceFromPath(filename);
-        return dataset;
     }
 }

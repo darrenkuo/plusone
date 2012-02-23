@@ -67,25 +67,9 @@ public class Main {
         Dataset dataset = Dataset.loadDatasetFromPath(filename);
         wordIndexer = dataset.getWordIndexer();
         paperIndexer = dataset.getPaperIndexer();
-	splitByTrainPercent(trainPercent, dataset.getDocuments());
-    }
-
-    /**
-     * Splits all the documents into training and testing papers.
-     * This function must be called before we can do execute any
-     * clustering methods.
-     */
-    private void splitByTrainPercent(double trainPercent, 
-				    List<PaperAbstract> documents) {
-    Random randGen = Main.getRandomGenerator();
-	trainingSet = new ArrayList<TrainingPaper>();
-	testingSet = new ArrayList<PredictionPaper>();
-	for (int i = 0; i < documents.size(); i ++) {
-	    if (randGen.nextDouble() < trainPercent)
-		trainingSet.add((TrainingPaper)documents.get(i));
-	    else
-		testingSet.add((PredictionPaper)documents.get(i));
-	}
+	Dataset.TrainingAndTesting tt = dataset.splitByTrainPercent(trainPercent, Main.getRandomGenerator());
+        trainingSet = tt.getTrainingSet();
+        testingSet = tt.getTestingSet();
 	System.out.println("trainingSet size: " + trainingSet.size());
 	System.out.println("testingSet size: " + testingSet.size());
     }
