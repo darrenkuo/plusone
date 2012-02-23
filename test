@@ -9,7 +9,7 @@ cd lib/lda-c-dist; make || exit
 cd $basedir; ant -f build.xml || exit
 
 #data = {'med.out.1', 'test.5000.data'}
-data='med.out.1'
+data='med.out'
 if [ "$1" ];then
     data=$1
 fi
@@ -21,7 +21,7 @@ echo $userdata
 
 if test ! -f /tmp/$data.`whoami`; then
    cd /tmp/
-   wget http://eecs.berkeley.edu/~darrenk/$data --output-document=$userdata
+   wget http://www.falsifian.org/a/9xwk/$data --output-document=$userdata
    cd $basedir
 fi
 
