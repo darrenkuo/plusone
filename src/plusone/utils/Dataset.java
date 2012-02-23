@@ -2,6 +2,7 @@ package plusone.utils;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -105,6 +106,8 @@ public class Dataset {
 	    else
 		testingSet.add((PredictionPaper)documents.get(i));
 	}
+	System.out.println("trainingSet size: " + trainingSet.size());
+	System.out.println("testingSet size: " + testingSet.size());
         return new TrainingAndTesting(trainingSet, testingSet);
     }
 
@@ -114,7 +117,7 @@ public class Dataset {
         return dataset;
     }
 
-    public static Dataset loadDatasetFromName(String datasetName) {
+    public static Dataset loadDatasetFromName(String datasetName) throws IOException {
         String datasetPath = "/tmp/" + datasetName + "." + System.getProperty("user.name");
         if (!new File(datasetPath).exists())
             Fetch.fetchUrl(baseDatasetUrl + datasetName, datasetPath);

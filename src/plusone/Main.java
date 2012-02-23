@@ -70,8 +70,6 @@ public class Main {
 	Dataset.TrainingAndTesting tt = dataset.splitByTrainPercent(trainPercent, Main.getRandomGenerator());
         trainingSet = tt.getTrainingSet();
         testingSet = tt.getTestingSet();
-	System.out.println("trainingSet size: " + trainingSet.size());
-	System.out.println("testingSet size: " + testingSet.size());
     }
 
     public void splitHeldoutWords(double testWordPercent) {
