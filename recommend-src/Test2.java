@@ -2,6 +2,8 @@
 import java.io.*;
 import java.util.*;
 
+import util.WordIndex;
+
 import algorithms.Algorithm;
 import algorithms.CooccurSumIDF;
 

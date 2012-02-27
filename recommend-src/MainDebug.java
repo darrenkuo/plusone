@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.json.*;
 
+import util.WordIndex;
+
 import algorithms.*;
 
 public class MainDebug {

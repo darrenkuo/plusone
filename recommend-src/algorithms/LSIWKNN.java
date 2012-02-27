@@ -1,7 +1,8 @@
 package algorithms;
-import WordIndex;
 
 import java.util.*;
+
+import util.WordIndex;
 
 public class LSIWKNN extends Algorithm {
 	static final double THRESHOLD = 0.00001;

@@ -1,8 +1,9 @@
 package algorithms;
 
-import WordIndex;
 
 import java.util.*;
+
+import util.WordIndex;
 
 public class KNN extends Algorithm {
 	int K;

@@ -1,8 +1,9 @@
 package algorithms;
 
-import WordIndex;
 
 import java.util.*;
+
+import util.WordIndex;
 
 public class NewAlg1 extends Algorithm {
 	HashMap<Integer,Double>[] traindocs;

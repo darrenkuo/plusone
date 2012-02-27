@@ -1,7 +1,8 @@
 package algorithms;
-import WordIndex;
 
 import java.util.*;
+
+import util.WordIndex;
 
 public class Cooccur2SumIDF extends Algorithm {
 	static final int MIN = 5;

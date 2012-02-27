@@ -3,7 +3,7 @@ package algorithms;
 import java.util.*;
 
 public abstract class Algorithm {
-	String name;
+	public String name;
 	
 	public Algorithm( String name ) {
 		this.name = name;

@@ -1,8 +1,9 @@
 package algorithms;
 
-import WordIndex;
 
 import java.util.*;
+
+import util.WordIndex;
 
 public class NewAlg2 extends Algorithm {
 	double sigma = 0.005;
