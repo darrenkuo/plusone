@@ -171,12 +171,12 @@ public class Main {
 	writer.close();
     }
 
-    public void runClusteringMethods(File outputDir, int k) {
+    public void runClusteringMethods(File outputDir, int[] ks) {
 
 	int size = trainingSet.size() + testingSet.size();
 	if (testIsEnabled("baseline")) {
 	    baseline = new Baseline(trainingSet, terms);
-	    runClusteringMethod(testingSet, baseline, outputDir, k, size);
+	    runClusteringMethod(testingSet, baseline, outputDir, ks, size);
 	    
 	}
 		
@@ -194,68 +194,78 @@ public class Main {
 	    dtRWPredictor =
 		new DTRandomWalkPredictor(trainingSet, terms, rwLength, stoch, nSampleWalks, finalIdf, nwid, ndiw);
 	    runClusteringMethod(testingSet, dtRWPredictor, 
-		    outputDir, k, size);
+		    outputDir, ks, size);
 	}
 
 
-	int[] closest_k = 
-	    parseIntList(System.getProperty("plusone.closestKValues", 
+	int[] closest_k =   parseIntList(System.getProperty("plusone.closestKValues", 
 					    "1,3,5,10,25,50,100,250,500,1000,10000,100000"));
 
 	for (int ck = 0; ck < closest_k.length; ck ++) {
 	    if (testIsEnabled("knn")) {
 		knn = new KNN(closest_k[ck], trainingSet, paperIndexer, 
 			      terms, knnSimilarityCache);
-		runClusteringMethod(testingSet, knn, outputDir, k, size);
+		runClusteringMethod(testingSet, knn, outputDir, ks, size);
 	    }
 	    if (testIsEnabled("knnc")) {
 		knnc = new KNNWithCitation(closest_k[ck], trainingSet,
 					   paperIndexer, knnSimilarityCache,
 					   knnGraphDistanceCache, terms);
-		runClusteringMethod(testingSet, knnc, outputDir, k, size);
+		runClusteringMethod(testingSet, knnc, outputDir, ks, size);
 	    }
 
-	    if (testIsEnabled("cn")) {
+/*	    if (testIsEnabled("cn")) {
 		cn = new CommonNeighbors(closest_k[ck], trainingSet, paperIndexer,
 					 knnSimilarityCache, 
 					 knnGraphDistanceCache, terms);
-		runClusteringMethod(testingSet, cn, outputDir, k, size);
+		runClusteringMethod(testingSet, cn, outputDir, ks, size);
 	    }
 	    
 
-	    /*
+	    
 	    if (testIsEnabled("svdknn")) {
 		svdKnn = new SVDAndKNN(closest_k[ck], trainingSet);
-		runClusteringMethod(testingSet, knnc, outputDir, k, size);
+		runClusteringMethod(testingSet, knnc, outputDir, ks, size);
 	    }
-	    */		    
-	    /*
+	    		    
+	    
 	    if (testIsEnabled("knnrw")) {
 		knnRWPredictor =
 		    new KNNRandomWalkPredictor(closest_k[ck], trainingSet,
 					       wordIndexer, paperIndexer,
 					       1, 0.5, 1);
 		runClusteringMethod(trainingSet, testingSet,
-				    knnRWPredictor, outputDir, k, usedWord);
-	    }
-	    */
+				    knnRWPredictor, outputDir, ks, usedWord);
+	    }*/
+	    
 	}
 
-	int[] dimensions = {10, 20, 25, 50, 100, 150};
+	int[] dimensions = parseIntList(System.getProperty("plusone.svdDimensions", 
+					    "1,5,10,20"));
 	for (int dk = 0; dk < dimensions.length; dk ++) {
 	    if (testIsEnabled("lsi")) {
 		lsi = new LSI(dimensions[dk], trainingSet, terms);
-
-		runClusteringMethod(testingSet, lsi, outputDir, k, size);
+		
+		runClusteringMethod(testingSet, lsi, outputDir, ks, size);
 	    }
 	}
     }
 
     public void runClusteringMethod(List<PredictionPaper> testingSet,
 				    ClusteringTest test, File outputDir,
-				    int k, int size) {
+				    int[] ks, int size) {
 	long t1 = System.currentTimeMillis();
 	System.out.println("[" + test.testName + "] starting test" );
+	for (int ki = 0; ki < ks.length; ki ++) {
+		int k = ks[ki];
+		File kDir = null;
+		try {
+		    kDir = new File(outputDir, k + "");
+		    if (!kDir.exists()) kDir.mkdir();
+		} catch(Exception e) {
+		    e.printStackTrace();
+		}
+
 	double[] results = {0.0, 0.0, 0.0, 0.0};
 	MetadataLogger.TestMetadata meta = getMetadataLogger().getTestMetadata("k=" + k + test.testName);
 	test.addMetadata(meta);
@@ -273,9 +283,10 @@ public class Main {
 	meta.createListValueEntry("predictionScore", predictionScores.toArray());
 	meta.createSingleValueEntry("numPredict", k);
 	
-	File out = new File(outputDir, test.testName + ".out");
+	File out = new File(kDir, test.testName + ".out");
 	Main.printResults(out, new double[]{results[0]/results[3], 
 					    results[1], results[2]});
+	}
 	System.out.println("[" + test.testName + "] took " +
 			   (System.currentTimeMillis() - t1) / 1000.0 
 			   + " seconds.");
@@ -356,22 +367,12 @@ public class Main {
 	    
 	    main.splitHeldoutWords(testWordPercent);
 
-	    for (int ki = 0; ki < ks.length; ki ++) {
-		int k = ks[ki];
-
-		File kDir = null;
-		try {
-		    kDir = new File(twpDir, k + "");
-		    kDir.mkdir();
-		} catch(Exception e) {
-		    e.printStackTrace();
-		}
 
 		System.out.println("processing testwordpercent: " + 
-				   testWordPercent + " k: " + k);
+				   testWordPercent);
 
-		main.runClusteringMethods(kDir, k);
-	    }
+		main.runClusteringMethods(twpDir, ks);
+	    
 	}
 
 	if (Boolean.getBoolean("plusone.dumpMeta")) {
