@@ -1,4 +1,4 @@
-package recommend;
+package util;
 
 import java.util.*;
 

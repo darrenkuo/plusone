@@ -3,6 +3,8 @@ package recommend;
 import java.io.*;
 import java.util.*;
 
+import util.WordIndex;
+
 import recommend.algorithms.Algorithm;
 import recommend.algorithms.CooccurSumIDF;
 

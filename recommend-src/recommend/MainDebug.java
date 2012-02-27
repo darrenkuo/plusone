@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.json.*;
 
+import util.WordIndex;
+
 import recommend.algorithms.*;
 
 public class MainDebug {

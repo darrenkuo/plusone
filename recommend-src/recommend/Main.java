@@ -3,6 +3,8 @@ package recommend;
 import java.io.*;
 import java.util.*;
 import org.json.*;
+
+import util.WordIndex;
 import recommend.algorithms.*;
 
 public class Main {
@@ -11,8 +13,8 @@ public class Main {
 	//static final String FILENAME = "movielens-pos.json";
 	static final String FILENAME = "data/med.json"; 
 	static final Algorithm[] algs = new Algorithm[] {
-		new SVD( 50 ),
-		new SVD( 100 ),
+            //new SVD( 50 ),
+            //new SVD( 100 ),
 		//new KNN(5)
 		/*
 		new LSIWKNN( 5, 5 ),
@@ -33,8 +35,8 @@ public class Main {
 		//new LSIWKNN( 50, 25 ),
 		//new LSIWKNN( 5, 1000 ),
 		//new LSI( 5 )
-		/*
 		new Baseline(),
+		/*
 		new KNN( 1 ),
 		new KNN( 5 ),
 		new KNN( 10 ),

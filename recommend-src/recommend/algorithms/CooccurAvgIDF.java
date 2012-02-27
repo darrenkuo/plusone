@@ -1,8 +1,9 @@
 package recommend.algorithms;
 
-import recommend.WordIndex;
 
 import java.util.*;
+
+import util.WordIndex;
 
 public class CooccurAvgIDF extends Algorithm {
 	int[] doccount;
