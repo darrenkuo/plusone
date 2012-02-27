@@ -1,4 +1,4 @@
-<project name="plusone" default="dist" basedir=".">
+<project name="plusone" default="dist" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
   <property name="build" location="build"/>
@@ -48,5 +48,24 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+  </target>
+
+  <target name="recommend-retrieve">
+    <ivy:retrieve/>
+  </target>
+
+  <path id="recommend-lib">
+    <fileset dir="lib"/>
+  </path>
+
+  <target name="recommend-build" depends="recommend-retrieve">
+    <mkdir dir="recommend-build"/>
+    <javac sourcepath="" classpathref="recommend-lib" srcdir="recommend-src" destdir="recommend-build" includeantruntime="false">
+      <include name="**/*.java"/>
+    </javac>
+  </target>
+
+  <target name="recommend-run" depends="recommend-build">
+    <java classpathref="recommend-lib" classpath="recommend-build" classname="recommend.Main"/>
   </target>
 </project>
