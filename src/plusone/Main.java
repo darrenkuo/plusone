@@ -220,7 +220,7 @@ public class Main {
 			      terms, knnSimilarityCache);
 		runClusteringMethod(testingSet, knn, outputDir, ks, size);
 	    }
-	    if (testIsEnabled("KNNLocalSVDish")){
+	    if (testIsEnabled("svdishknn")){
 		knnSVD= new KNNLocalSVDish(closest_k[ck],trainingSet, paperIndexer,
 					   terms, KNNSVDcache);
 		runClusteringMethod(testingSet,knnSVD,outputDir,ks,size);

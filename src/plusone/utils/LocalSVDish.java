@@ -31,7 +31,7 @@ public class LocalSVDish {
     protected LinkedList<Entry>[] TermDoc;
     protected Map<Integer, Double>[] DocTermB, TermDocB;
     protected Map<Integer, Double>[] localVectorsT;  // The result of training.
-    protected Map<Integer, Double>[] trainingRepresentations;
+    protected Map<Integer, Map<Integer, Double>> trainingRepresentations;
     public int numTerms;
     private Random rand=new Random();
 
@@ -164,6 +164,7 @@ public class LocalSVDish {
 
     public void train(){
 	localVectorsT = new Map[numTerms];
+        for (int i = 0; i < localVectorsT.length; ++i) localVectorsT[i] = new HashMap<Integer, Double>();
 	int vecNum = 0;
 	for (int level = 0; level < nLevels; ++level) {
 	    int docEnz = docEnzs[level];
@@ -183,9 +184,10 @@ public class LocalSVDish {
 	    }
 	}
 
-	trainingRepresentations = new Map[trainingSet.size()];
+	trainingRepresentations = new HashMap<Integer, Map<Integer, Double>>();
 	for (int i = 0; i < trainingSet.size(); ++i) {
-	    trainingRepresentations[i] = represent(trainingSet.get(i));
+            TrainingPaper tr = trainingSet.get(i);
+	    trainingRepresentations.put(tr.getIndex(), represent(tr));
 	}
     }
 
@@ -206,7 +208,7 @@ public class LocalSVDish {
 
     /** Computes the similarity between documents a and b.  a must be a training document. */
     public double similarity(int aIndex, PaperIF b) {
-	Map<Integer, Double> aRepr = trainingRepresentations[aIndex];
+	Map<Integer, Double> aRepr = trainingRepresentations.get(aIndex);
 	Map<Integer, Double> bRepr = represent(b);
 	return sparseDot(aRepr, bRepr);
     }
