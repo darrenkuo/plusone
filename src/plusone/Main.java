@@ -4,12 +4,14 @@ import plusone.utils.Dataset;
 import plusone.utils.Indexer;
 import plusone.utils.KNNGraphDistanceCache;
 import plusone.utils.KNNSimilarityCache;
+import plusone.utils.KNNSimilarityCacheLocalSVDish;
 import plusone.utils.MetadataLogger;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
 import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
+import plusone.utils.LocalSVDish;
 import java.util.Arrays;
 
 import plusone.clustering.Baseline;
@@ -17,6 +19,7 @@ import plusone.clustering.ClusteringTest;
 import plusone.clustering.CommonNeighbors;
 import plusone.clustering.DTRandomWalkPredictor;
 import plusone.clustering.KNN;
+import plusone.clustering.KNNLocalSVDish;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.LSI;
 //import plusone.clustering.SVDAndKNN;
@@ -201,12 +204,28 @@ public class Main {
 	int[] closest_k =   parseIntList(System.getProperty("plusone.closestKValues", 
 					    "1,3,5,10,25,50,100,250,500,1000,10000,100000"));
 
+	KNNSimilarityCacheLocalSVDish KNNSVDcache = null;
+	LocalSVDish localSVD;
+	KNNLocalSVDish knnSVD;
+	if (testIsEnabled("svdishknn")){
+	    int[] TODOpar = {50, 50, 50};
+	    localSVD=new LocalSVDish(3, TODOpar, TODOpar, TODOpar, TODOpar, TODOpar,
+				     trainingSet,terms.size());
+	    KNNSVDcache = new KNNSimilarityCacheLocalSVDish(trainingSet,testingSet,localSVD);
+	}
+
 	for (int ck = 0; ck < closest_k.length; ck ++) {
 	    if (testIsEnabled("knn")) {
 		knn = new KNN(closest_k[ck], trainingSet, paperIndexer, 
 			      terms, knnSimilarityCache);
 		runClusteringMethod(testingSet, knn, outputDir, ks, size);
 	    }
+	    if (testIsEnabled("KNNLocalSVDish")){
+		knnSVD= new KNNLocalSVDish(closest_k[ck],trainingSet, paperIndexer,
+					   terms, KNNSVDcache);
+		runClusteringMethod(testingSet,knnSVD,outputDir,ks,size);
+	    }
+
 	    if (testIsEnabled("knnc")) {
 		knnc = new KNNWithCitation(closest_k[ck], trainingSet,
 					   paperIndexer, knnSimilarityCache,
@@ -240,7 +259,8 @@ public class Main {
 	    
 	}
 
-	int[] dimensions = parseIntList(System.getProperty("plusone.svdDimensions", 
+	
+        int[] dimensions = parseIntList(System.getProperty("plusone.svdDimensions", 
 					    "1,5,10,20"));
 	for (int dk = 0; dk < dimensions.length; dk ++) {
 	    if (testIsEnabled("lsi")) {
@@ -249,6 +269,8 @@ public class Main {
 		runClusteringMethod(testingSet, lsi, outputDir, ks, size);
 	    }
 	}
+	
+
     }
 
     public void runClusteringMethod(List<PredictionPaper> testingSet,

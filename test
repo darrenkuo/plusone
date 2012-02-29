@@ -53,6 +53,7 @@ args=\
  -Dplusone.enableTest.baseline=true \
  -Dplusone.enableTest.lsi=true \
  -Dplusone.enableTest.svdknn=false \
+ -Dplusone.enableTest.svdishknn=true \
  -Dplusone.outPath=$out_dir \
  -Dplusone.dumpMeta=false \
  -Dplusone.randomSeed=10"
