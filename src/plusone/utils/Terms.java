@@ -25,7 +25,10 @@ public class Terms {
 	}
 	
 	public int compareTo(Object obj) {
-	    return ((Term)obj).totalCount > totalCount ? 1 : -1;
+            Term other = (Term)obj;
+            int otherCount = other.totalCount;
+            if (id == other.id && this != obj) throw new RuntimeException("MOO");
+            return (totalCount == otherCount) ? (id - other.id) : (totalCount - otherCount);
 	}
 	
 	public void addDoc(PaperAbstract doc, boolean test){
