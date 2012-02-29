@@ -29,9 +29,9 @@ public class LocalSVDish {
     protected List<TrainingPaper> trainingSet;
     protected LinkedList<Entry>[] DocTerm;
     protected LinkedList<Entry>[] TermDoc;
-    protected List<Map<Integer, Double>> DocTermB, TermDocB;
-    protected List<Map<Integer, Double>> localVectorsT;  // The result of training.
-    protected List<Map<Integer, Double>> trainingRepresentations;
+    protected Map<Integer, Double>[] DocTermB, TermDocB;
+    protected Map<Integer, Double>[] localVectorsT;  // The result of training.
+    protected Map<Integer, Double>[] trainingRepresentations;
     public int numTerms;
     private Random rand=new Random();
 
@@ -61,23 +61,23 @@ public class LocalSVDish {
 
 	DocTerm = new LinkedList[trainingSet.size()];
 	TermDoc = new LinkedList[numTerms];
-	DocTermB = new ArrayList(trainingSet.size());
-	TermDocB = new ArrayList(numTerms);
+	DocTermB = new Map[trainingSet.size()];
+        for (int i = 0; i < DocTermB.length; ++i) DocTermB[i] = new HashMap<Integer, Double>();
+	TermDocB = new Map[numTerms];
+        for (int i = 0; i < TermDocB.length; ++i) TermDocB[i] = new HashMap<Integer, Double>();
 	for (int i = 0; i < trainingSet.size(); i ++) {
 	    TrainingPaper doc = trainingSet.get(i);
 	    DocTerm[i] = new LinkedList<Entry>();
-	    DocTermB.set(i, new HashMap<Integer, Double>());
 
 	    for (Integer word : doc.getTrainingWords()) {
 		Entry temp = new Entry(i, word, doc.getTrainingTf(word));
 		DocTerm[i].add(temp);
-		addEntry(DocTermB.get(i), word, doc.getTrainingTf(word));
+		addEntry(DocTermB[i], word, doc.getTrainingTf(word));
 		if (TermDoc[word] == null){
 		    TermDoc[word] = new LinkedList<Entry>();
-		    TermDocB.set(word, new HashMap<Integer, Double>());
 		}
 		TermDoc[word].add(temp);
-		addEntry(TermDocB.get(word), i, doc.getTrainingTf(word));
+		addEntry(TermDocB[word], i, doc.getTrainingTf(word));
 	    }
 	}
 
@@ -129,12 +129,12 @@ public class LocalSVDish {
 	return Math.sqrt(ret2);
     }
 
-    public Map<Integer, Double> walkOneWay(Map<Integer,Double> x, int neighbors, int enz, List<Map<Integer, Double>> A)
+    public Map<Integer, Double> walkOneWay(Map<Integer,Double> x, int neighbors, int enz, Map<Integer, Double>[] A)
     {
 	Map<Integer, Double> step = new HashMap<Integer, Double>();
 	for (Map.Entry<Integer, Double> xEntry : x.entrySet())
 	    {
-		Map<Integer, Double> connected = A.get(xEntry.getKey());
+		Map<Integer, Double> connected = A[xEntry.getKey()];
 		for (Map.Entry<Integer, Double> cEntry : connected.entrySet()) {
 		    // Randomly include each neighbor with probability (neighbors/ # actual neighbors)
 		    // This should be an unbiased estimator for (row xEntry.key() of A) * xEntry.value() * neighbors / (# actual neighbors).
@@ -163,7 +163,7 @@ public class LocalSVDish {
     }
 
     public void train(){
-	localVectorsT = new ArrayList<Map<Integer, Double>>(numTerms);
+	localVectorsT = new Map[numTerms];
 	int vecNum = 0;
 	for (int level = 0; level < nLevels; ++level) {
 	    int docEnz = docEnzs[level];
@@ -177,15 +177,15 @@ public class LocalSVDish {
 		Map<Integer, Double> localVec = walkTermTerm(startTerm, dtNeighbors, tdNeighbors, docEnz, termEnz);
 		l1Normalize(localVec);
 		for (Map.Entry<Integer, Double> e : localVec.entrySet()) {
-		    localVectorsT.get(e.getKey()).put(vecNum, e.getValue());
+		    localVectorsT[e.getKey()].put(vecNum, e.getValue());
 		}
 		++ vecNum;
 	    }
 	}
 
-	trainingRepresentations = new ArrayList<Map<Integer, Double>>(trainingSet.size());
+	trainingRepresentations = new Map[trainingSet.size()];
 	for (int i = 0; i < trainingSet.size(); ++i) {
-	    trainingRepresentations.set(i, represent(trainingSet.get(i)));
+	    trainingRepresentations[i] = represent(trainingSet.get(i));
 	}
     }
 
@@ -199,14 +199,14 @@ public class LocalSVDish {
 	Map<Integer, Double> ret = new HashMap<Integer, Double>();
 	for (Integer w : doc.getTrainingWords()) {
 	    double tf = doc.getTrainingTf(w);
-	    sparseAddTo(ret, tf, localVectorsT.get(w));
+	    sparseAddTo(ret, tf, localVectorsT[w]);
 	}
 	return ret;
     }
 
     /** Computes the similarity between documents a and b.  a must be a training document. */
     public double similarity(int aIndex, PaperIF b) {
-	Map<Integer, Double> aRepr = trainingRepresentations.get(aIndex);
+	Map<Integer, Double> aRepr = trainingRepresentations[aIndex];
 	Map<Integer, Double> bRepr = represent(b);
 	return sparseDot(aRepr, bRepr);
     }
