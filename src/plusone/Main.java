@@ -202,14 +202,21 @@ public class Main {
 
 
 	int[] closest_k =   parseIntList(System.getProperty("plusone.closestKValues", 
-					    "1,3,5,10,25,50,100,250,500,1000,10000,100000"));
+					    "1,3,5,10,25,50,100,250,500,1000"));
+	int[] closest_k_svdish = parseIntList(System.getProperty("plusone.closestKSVDishValues", 
+					    "1,3,5,10,25,50,100,250,500,1000"));
 
 	KNNSimilarityCacheLocalSVDish KNNSVDcache = null;
 	LocalSVDish localSVD;
 	KNNLocalSVDish knnSVD;
 	if (testIsEnabled("svdishknn")){
 	    int[] TODOpar = {50, 50, 50};
-	    localSVD=new LocalSVDish(3, TODOpar, TODOpar, TODOpar, TODOpar, TODOpar,
+	    localSVD=new LocalSVDish(Integer.getInteger("plusone.svdishknn.nLevels"),
+                                     parseIntList(System.getProperty("plusone.svdishknn.docEnzs")),
+                                     parseIntList(System.getProperty("plusone.svdishknn.termEnzs")),
+                                     parseIntList(System.getProperty("plusone.svdishknn.dtNs")),
+                                     parseIntList(System.getProperty("plusone.svdishknn.tdNs")),
+                                     parseIntList(System.getProperty("plusone.svdishknn.numLVecs")),
 				     trainingSet,terms.size());
 	    KNNSVDcache = new KNNSimilarityCacheLocalSVDish(trainingSet,testingSet,localSVD);
 	}
@@ -220,12 +227,6 @@ public class Main {
 			      terms, knnSimilarityCache);
 		runClusteringMethod(testingSet, knn, outputDir, ks, size);
 	    }
-	    if (testIsEnabled("svdishknn")){
-		knnSVD= new KNNLocalSVDish(closest_k[ck],trainingSet, paperIndexer,
-					   terms, KNNSVDcache);
-		runClusteringMethod(testingSet,knnSVD,outputDir,ks,size);
-	    }
-
 	    if (testIsEnabled("knnc")) {
 		knnc = new KNNWithCitation(closest_k[ck], trainingSet,
 					   paperIndexer, knnSimilarityCache,
@@ -258,6 +259,14 @@ public class Main {
 	    }*/
 	    
 	}
+
+	for (int ck = 0; ck < closest_k_svdish.length; ck ++) {
+	    if (testIsEnabled("svdishknn")){
+		knnSVD= new KNNLocalSVDish(closest_k_svdish[ck],trainingSet, paperIndexer,
+					   terms, KNNSVDcache);
+		runClusteringMethod(testingSet,knnSVD,outputDir,ks,size);
+	    }
+        }
 
 	
         int[] dimensions = parseIntList(System.getProperty("plusone.svdDimensions", 
