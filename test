@@ -35,7 +35,7 @@ echo Output will go in $out_dir
 #0.1,0.3,0.5,0.7,0.9 \
 args=\
 "-Dplusone.dataFile=/tmp/$userdata \
- -Dplusone.testWordPercents=0.1,0.3,0.5 \
+ -Dplusone.testWordPercents=0.3 \
  -Dplusone.trainPercents=0.95\
  -Dplusone.kValues=1,5,10,15,20 \
  -Dplusone.closestKValues=5,10,25,50,100,250,500 \
@@ -46,24 +46,24 @@ args=\
  -Dplusone.dtrw.nSampleWalks=100 \
  -Dplusone.dtrw.normalizeDocsInWord=true \
  -Dplusone.dtrw.normalizeWordsInDoc=true \
- -Dplusone.svdishknn.nLevels=3 \
- -Dplusone.svdishknn.docEnzs=5,10,30
- -Dplusone.svdishknn.termEnzs=10,20,60
- -Dplusone.svdishknn.dtNs=1000,1000,1000
- -Dplusone.svdishknn.tdNs=1000,1000,1000
- -Dplusone.svdishknn.numLVecs=400,200,100
+ -Dplusone.svdishknn.nLevels=3
+ -Dplusone.svdishknn.docEnzs=20,60,120
+ -Dplusone.svdishknn.termEnzs=40,120,240
+ -Dplusone.svdishknn.dtNs=10,20,50
+ -Dplusone.svdishknn.tdNs=10,20,50
+ -Dplusone.svdishknn.numLVecs=800,400,200
  -Dplusone.enableTest.lda=false \
  -Dplusone.enableTest.knnc=false \
- -Dplusone.enableTest.knn=false \
+ -Dplusone.enableTest.knn=true \
  -Dplusone.enableTest.knnrw=false \
  -Dplusone.enableTest.dtrw=false \
  -Dplusone.enableTest.baseline=true \
- -Dplusone.enableTest.lsi=false \
+ -Dplusone.enableTest.lsi=true \
  -Dplusone.enableTest.svdknn=false \
  -Dplusone.enableTest.svdishknn=true \
  -Dplusone.outPath=$out_dir \
  -Dplusone.dumpMeta=false \
- -Dplusone.randomSeed=10"
+ -Dplusone.randomSeed=11"
 
 # options to sample cpu
 # -agentlib:hprof=cpu=samples

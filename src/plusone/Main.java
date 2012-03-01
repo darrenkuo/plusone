@@ -210,7 +210,6 @@ public class Main {
 	LocalSVDish localSVD;
 	KNNLocalSVDish knnSVD;
 	if (testIsEnabled("svdishknn")){
-	    int[] TODOpar = {50, 50, 50};
 	    localSVD=new LocalSVDish(Integer.getInteger("plusone.svdishknn.nLevels"),
                                      parseIntList(System.getProperty("plusone.svdishknn.docEnzs")),
                                      parseIntList(System.getProperty("plusone.svdishknn.termEnzs")),
@@ -372,6 +371,7 @@ public class Main {
 	System.out.println("data file " + data_file);
 	System.out.println("train percent " + trainPercent);
 	//System.out.println("test word percent " + testWordPercent);
+        System.out.println("Wordindexer size: " + main.wordIndexer.size());
 
 
 	/* These values can be set on the command line.  For example, to set

@@ -28,7 +28,7 @@ public class Terms {
             Term other = (Term)obj;
             int otherCount = other.totalCount;
             if (id == other.id && this != obj) throw new RuntimeException("MOO");
-            return (totalCount == otherCount) ? (id - other.id) : (totalCount - otherCount);
+            return (totalCount == otherCount) ? -(id - other.id) : -(totalCount - otherCount);
 	}
 	
 	public void addDoc(PaperAbstract doc, boolean test){
