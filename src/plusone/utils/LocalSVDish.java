@@ -41,10 +41,11 @@ public class LocalSVDish {
     int[] dtNs;
     int[] tdNs;
     int[] numLVecs;
+    int walkLength;
 
     public LocalSVDish(int nLevels, int[] docEnzs, int[] termEnzs, int[] dtNs, int[] tdNs,
 		       int[] numLVecs,
-		       List<TrainingPaper> trainingSet, int num) {
+		       List<TrainingPaper> trainingSet, int num, int walkLength) {
 
 	this.nLevels = nLevels;
 	this.docEnzs = docEnzs;
@@ -52,6 +53,7 @@ public class LocalSVDish {
 	this.dtNs = dtNs;
 	this.tdNs = tdNs;
 	this.numLVecs = numLVecs;
+	this.walkLength=walkLength;
 
 	this.trainingSet = trainingSet;
 	numTerms = num;
@@ -175,8 +177,11 @@ public class LocalSVDish {
 		//start with a random term.
 		Map<Integer, Double> startTerm = new HashMap<Integer, Double>();
 		startTerm.put(rand.nextInt(numTerms), 1.0);
-		Map<Integer, Double> localVec = walkTermTerm(startTerm, dtNeighbors, tdNeighbors, docEnz, termEnz);
+		Map<Integer,Double> localVec=startTerm;
+		for (int j=0;j<walkLength;j++){
+		localVec = walkTermTerm(localVec, dtNeighbors, tdNeighbors, docEnz, termEnz);
 		l1Normalize(localVec);
+		}
 		for (Map.Entry<Integer, Double> e : localVec.entrySet()) {
 		    localVectorsT[e.getKey()].put(vecNum, e.getValue());
 		}

@@ -124,7 +124,7 @@ public class LocalCOSample {
 		for (Map.Entry<Integer, Double> cEntry : connected.entrySet()) {
 		    // This should be an unbiased estimator for the cEntry.key()-th entry of (row xEntry.key() of A) * xEntry.value()
 		    double p = Math.min(1.0, neighbors * 1.0 / connected.size());
-		    if (rand.nextDouble() < p)
+		    if (rand.nextDouble() <= p)
 			addEntry(step, cEntry.getKey(), cEntry.getValue() * xEntry.getValue() / p);
 		}
 	    }
@@ -133,7 +133,7 @@ public class LocalCOSample {
 	for (Map.Entry<Integer, Double> sEntry : step.entrySet()) {
 	    double p = (step.size()-enz)*1.0*sEntry.getValue() / (l1*(step.size()-1)) + (enz-1)*1.0/(step.size()-1);
 	    p=Math.min(1.0,p);
-	    if (rand.nextDouble() < p)
+	    if (rand.nextDouble() <= p)
 		ret.put(sEntry.getKey(), sEntry.getValue() / p);
 	}
 	return ret;
@@ -178,7 +178,7 @@ public class LocalCOSample {
 	for (Map.Entry<Integer,Double> e:COscore.entrySet()){
 	    int id = e.getKey();
 	    double idf=terms.get(id).trainingIdf(trainingSet.size());
-	    double score = e.getValue()/idf;
+	    double score = e.getValue()*idf;
 	    
 	    if (testPaper.getTrainingTf(id)>0)
 		continue;
