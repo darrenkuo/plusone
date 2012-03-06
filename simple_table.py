@@ -5,7 +5,7 @@ import sys
 col_width = 20
 
 def pad(width, s):
-    return " " * (width - len(s)) + s
+    return s+ " " * (width - len(s))
 
 def read_pred(filename):
     for line in open(filename, "r"):

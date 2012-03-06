@@ -13,6 +13,7 @@ import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
 import plusone.utils.LocalSVDish;
 import java.util.Arrays;
+import plusone.utils.LocalCOSample;
 
 import plusone.clustering.Baseline;
 import plusone.clustering.ClusteringTest;
@@ -22,6 +23,7 @@ import plusone.clustering.KNN;
 import plusone.clustering.KNNLocalSVDish;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.LSI;
+import plusone.clustering.CO;
 //import plusone.clustering.SVDAndKNN;
 
 //import plusone.clustering.Lda;
@@ -59,7 +61,7 @@ public class Main {
     private LSI lsi;
     //private SVDAndKNN svdKnn;
     //private KNNRandomWalkPredictor knnRWPredictor;
-
+    private CO co;
 
     public Main(long randomSeed) {
 	randGen = new Random(randomSeed);
@@ -205,7 +207,6 @@ public class Main {
 					    "1,3,5,10,25,50,100,250,500,1000"));
 	int[] closest_k_svdish = parseIntList(System.getProperty("plusone.closestKSVDishValues", 
 					    "1,3,5,10,25,50,100,250,500,1000"));
-
 	KNNSimilarityCacheLocalSVDish KNNSVDcache = null;
 	LocalSVDish localSVD;
 	KNNLocalSVDish knnSVD;
@@ -216,10 +217,22 @@ public class Main {
                                      parseIntList(System.getProperty("plusone.svdishknn.dtNs")),
                                      parseIntList(System.getProperty("plusone.svdishknn.tdNs")),
                                      parseIntList(System.getProperty("plusone.svdishknn.numLVecs")),
-				     trainingSet,terms.size());
+				     trainingSet,terms.size(),
+				     Integer.getInteger("plusone.svdishknn.walkLength"));
 	    KNNSVDcache = new KNNSimilarityCacheLocalSVDish(trainingSet,testingSet,localSVD);
 	}
+	if (testIsEnabled("localCO")){
+	    co=new CO(Integer.getInteger("plusone.localCO.docEnzs"),
+		      Integer.getInteger("plusone.localCO.termEnzs"),
+		      Integer.getInteger("plusone.localCO.dtNs"),
+		      Integer.getInteger("plusone.localCO.tdNs"),
+		      trainingSet, terms);
+	    runClusteringMethod(testingSet,co,outputDir,ks,size);
+	}
 
+
+		      
+     
 	for (int ck = 0; ck < closest_k.length; ck ++) {
 	    if (testIsEnabled("knn")) {
 		knn = new KNN(closest_k[ck], trainingSet, paperIndexer, 

@@ -52,18 +52,24 @@ args=\
  -Dplusone.svdishknn.dtNs=10,20,50
  -Dplusone.svdishknn.tdNs=10,20,50
  -Dplusone.svdishknn.numLVecs=800,400,200
+ -Dplusone.svdishknn.walkLength=3
+ -Dplusone.localCO.docEnzs=1500
+ -Dplusone.localCO.termEnzs=15000
+ -Dplusone.localCO.dtNs=500
+ -Dplusone.localCO.tdNs=1200
+ -Dplusone.enableTest.localCO=true \
  -Dplusone.enableTest.lda=false \
  -Dplusone.enableTest.knnc=false \
  -Dplusone.enableTest.knn=true \
  -Dplusone.enableTest.knnrw=false \
  -Dplusone.enableTest.dtrw=false \
  -Dplusone.enableTest.baseline=true \
- -Dplusone.enableTest.lsi=true \
+ -Dplusone.enableTest.lsi=false \
  -Dplusone.enableTest.svdknn=false \
- -Dplusone.enableTest.svdishknn=true \
+ -Dplusone.enableTest.svdishknn=false \
  -Dplusone.outPath=$out_dir \
  -Dplusone.dumpMeta=false \
- -Dplusone.randomSeed=11"
+ -Dplusone.randomSeed=7"
 
 # options to sample cpu
 # -agentlib:hprof=cpu=samples
