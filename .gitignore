@@ -4,3 +4,5 @@
 /dist
 /experiment-*
 /lib/lda-c-dist/lda
+/lib/*.jar
+/lib/jars/*.jar
