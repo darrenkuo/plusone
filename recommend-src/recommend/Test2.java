@@ -5,8 +5,8 @@ import java.util.*;
 
 import util.WordIndex;
 
-import recommend.algorithms.Algorithm;
-import recommend.algorithms.CooccurSumIDF;
+import algorithms.Algorithm;
+import algorithms.CooccurSumIDF;
 
 public class Test2 {
 	static final String FILENAME = "med.out";

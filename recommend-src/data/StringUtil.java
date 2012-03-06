@@ -1,4 +1,4 @@
-package recommend.data;
+package data;
 
 public final class StringUtil {
 	public static String textBetween( String str, String start, String end, int index ) {

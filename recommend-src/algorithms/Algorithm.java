@@ -1,4 +1,4 @@
-package recommend.algorithms;
+package algorithms;
 
 import java.util.*;
 

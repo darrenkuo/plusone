@@ -1,4 +1,4 @@
-package recommend.data;
+package data;
 
 import java.io.*;
 import java.util.*;

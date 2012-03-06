@@ -1,28 +1,23 @@
-package recommend.algorithms;
+package algorithms;
 
 import java.util.*;
-
 import util.WordIndex;
 
-public class LSIWKNN extends Algorithm {
+public class LSI extends Algorithm {
 	static final double THRESHOLD = 0.00001;
 	
-	int K1,K2;
+	int K;
 	HashMap<Integer,Double>[] M, MT;
 	
-	double[][] U, UT, V, VT; // U=dxk, UT=kxd, VT=kxt, V=txk
+	double[][] UT, V, VT; // UT=kxd, VT=kxt, V=txk
 	double[] S; // k
 	
-	List<HashMap<Integer,Double>> traindocs;
-	
-	public LSIWKNN( int K1, int K2 ) {
-		super( "LSI-"+K1+":WKNN-"+K2 );
-		this.K1 = K1;
-		this.K2 = K2;
+	public LSI( int K ) {
+		super( "LSI-"+K );
+		this.K = K;
 	}
 
     public void train( List<HashMap<Integer,Double>> traindocs ) {
-    	this.traindocs = traindocs;
 		M = new HashMap[traindocs.size()];
 		MT = new HashMap[WordIndex.size()];
 		
@@ -39,11 +34,11 @@ public class LSIWKNN extends Algorithm {
 		
 		int d = M.length;
 		int t = MT.length;
-		UT = new double[K1][d];
-		S = new double[K1];
-		VT = new double[K1][t];
+		UT = new double[K][d];
+		S = new double[K];
+		VT = new double[K][t];
 		
-		for( int k = 0; k < K1; k++ ) {
+		for( int k = 0; k < K; k++ ) {
 			double[] u = new double[d], up = new double[d];
 			double[] v = new double[t], vp = new double[t];
 			
@@ -124,17 +119,15 @@ public class LSIWKNN extends Algorithm {
 			S[k] = normu * normv;
 		}
 		
-		U = new double[UT[0].length][UT.length];
-		
-		for( int i = 0; i < U.length; i++ )
-			for( int j = 0; j < UT.length; j++ )
-				U[i][j] = UT[j][i];
-		
 		V = new double[VT[0].length][VT.length];
 		
 		for( int i = 0; i < V.length; i++ )
 			for( int j = 0; j < VT.length; j++ )
 				V[i][j] = VT[j][i];
+		
+		System.out.println(Arrays.toString( VT[0] ));
+		System.out.println(VT[0][WordIndex.indexOf( "2" )]);
+		System.out.println(VT[0][WordIndex.indexOf( "patients" )]);
     }
 
     public double[] predict( HashMap<Integer,Double> givenwords ) {
@@ -148,31 +141,8 @@ public class LSIWKNN extends Algorithm {
 		for( int i = 0; i < c.length; i++ )
 			c[0][i] /= S[i];
 		
-		PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
-    	
-    	for( int i = 0; i < U.length; i++ ) {
-    		double similarity = similarity( U[i], c[0] );
-    		
-    		if( pq.size() < K2 ) {
-    			pq.add( new Pair( i, similarity ) );
-    		} else if( similarity > pq.peek().similarity ) {
-    			pq.poll();
-    			pq.add( new Pair( i, similarity ) );
-    		}
-    	}
-		
-    	double[] scores = new double[WordIndex.size()];
-    	
-    	while( !pq.isEmpty() ) {
-    		Pair p = pq.poll();
-    		HashMap<Integer,Double> traindoc = traindocs.get( p.doc );
-    		
-    		for( int word : traindoc.keySet() ) {
-    			scores[word] += p.similarity*traindoc.get( word );
-    		}
-    	}
-    	
-    	return scores;
+		c = matmul( c, VT );
+		return c[0];
     }
 	
 	private static final double[][] matmul( double[][] a, double[][] b ) {
@@ -210,31 +180,5 @@ public class LSIWKNN extends Algorithm {
 			dp += a[i] * b[i];
 		
 		return dp;
-	}
-	
-	private double similarity( double[] traindoc, double[] testdoc ) {
-		double dp = 0;
-		double norm2 = 0;
-		
-		for( int i = 0; i < traindoc.length; i++ ) {
-			dp += traindoc[i]*testdoc[i];
-			norm2 += testdoc[i]*testdoc[i];
-		}
-		
-		return dp/( Math.sqrt( norm2 ) );
-    }
-    
-	private static class Pair implements Comparable<Pair> {
-		int doc;
-		double similarity;
-		
-		public Pair( int doc, double similarity ) {
-			this.doc = doc;
-			this.similarity = similarity;
-		}
-		
-		public int compareTo( Pair p ) {
-			return similarity > p.similarity ? 1 : -1;
-		}
 	}
 }

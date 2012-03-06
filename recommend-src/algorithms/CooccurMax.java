@@ -1,25 +1,30 @@
-package recommend.algorithms;
-
+package algorithms;
 
 import java.util.*;
 
 import util.WordIndex;
 
-public class CooccurSum extends Algorithm {
+public class CooccurMax extends Algorithm {
 	int[] doccount;
+	double[] idf;
 	HashMap<Integer,Integer>[] cooccur;
 	
-	public CooccurSum() {
-		super( "CooccurSum" );
+	public CooccurMax() {
+		super( "CooccurMax" );
 	}
 	
 	public void train( List<HashMap<Integer,Double>> traindocs ) {
 		doccount = new int[WordIndex.size()];
+		idf = new double[WordIndex.size()];
 		
 		for( HashMap<Integer,Double> traindoc : traindocs ) {
 			for( int word : traindoc.keySet() ) {
 				doccount[word]++;
 			}
+		}
+		
+		for( int word = 0; word < idf.length; word++ ) {
+			idf[word] = Math.log( (double)traindocs.size() / (1 + doccount[word]) );
 		}
 		
 		cooccur = new HashMap[WordIndex.size()];
@@ -31,7 +36,7 @@ public class CooccurSum extends Algorithm {
 		for( HashMap<Integer,Double> traindoc : traindocs ) {
 			for( int word1 : traindoc.keySet() ) {
 				for( int word2 : traindoc.keySet() ) {
-					cooccur[word1].put( word2, cooccur[word1].containsKey( word2 ) ? 1+cooccur[word1].get( word2 ) : 1 );
+					cooccur[word1].put( word2, cooccur[word1].containsKey( word2 ) ? 1 + cooccur[word1].get( word2 ) : 1 );
 				}
 			}
 		}
@@ -40,13 +45,11 @@ public class CooccurSum extends Algorithm {
 	public double[] predict( HashMap<Integer,Double> givenwords ) {
 		double[] scores = new double[WordIndex.size()];
 		
-		for( int w1 : givenwords.keySet() ) {
-			if( doccount[w1] < 4 ) {
-				continue;
-			}
-			
-			for( int w2 : cooccur[w1].keySet() ) {
-				scores[w2] += (double)cooccur[w1].get( w2 ) / doccount[w1] * givenwords.get( w1 );
+		for( int g : givenwords.keySet() ) {
+			if( doccount[g] > 5 ) {
+				for( int w : cooccur[g].keySet() ) {
+					scores[w] = Math.max( (double)cooccur[g].get( w ) / doccount[g], scores[w]);
+				}
 			}
 		}
 		

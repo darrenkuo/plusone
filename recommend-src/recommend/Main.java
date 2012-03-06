@@ -5,17 +5,22 @@ import java.util.*;
 import org.json.*;
 
 import util.WordIndex;
-import recommend.algorithms.*;
+import algorithms.*;
 
 public class Main {
 	//static final String FILENAME = "alldata_bf_sample20000d.out";
 	//static final String FILENAME = "test.5000.data";
 	//static final String FILENAME = "movielens-pos.json";
-	static final String FILENAME = "data/med.json"; 
+	static String DATASET;
+	//static final String FILENAME = "test.json";
 	static final Algorithm[] algs = new Algorithm[] {
-            //new SVD( 50 ),
-            //new SVD( 100 ),
-		//new KNN(5)
+		new StochasticRWCooccurSum(),
+		//new StochasticRW( 1 )
+		//new CooccurSum()
+		//new CooccurSumIDF()
+		//new LSI( 1 ),
+		//new Baseline()
+		//new WKNN(5)
 		/*
 		new LSIWKNN( 5, 5 ),
 		new LSIWKNN( 5, 10 ),
@@ -35,8 +40,8 @@ public class Main {
 		//new LSIWKNN( 50, 25 ),
 		//new LSIWKNN( 5, 1000 ),
 		//new LSI( 5 )
-		new Baseline(),
 		/*
+		new Baseline(),
 		new KNN( 1 ),
 		new KNN( 5 ),
 		new KNN( 10 ),
@@ -65,23 +70,32 @@ public class Main {
 		new LSI( 50 ),
 		new LSI( 100 ),
 		*/
-		/*new CooccurSum(),
-		new CooccurSumIDF(),
-		new CooccurMax(),*/
 	};
-	static final Random rand = new Random(0);
+	public static Random rand;
 	
-	static double trainPercent = 0.8;
-	static double testPercent = 0.5;
-	static int RUNS = 5;
-	static int NUM_PRED = 1;
+	static double TRAINPERCENT;
+	static double TESTPERCENT;
+	static int RUNS;
+	static int PREDICTIONS;
 	
 	static int ndocs;
 	static HashMap<Integer,Double>[] docs;
 	
 	public static void main( String[] args ) throws Throwable {
-		System.out.println( "File: " + FILENAME );
-		BufferedReader in = new BufferedReader( new FileReader( FILENAME ) );
+		DATASET = System.getProperty( "dataset", "movielens-pos.json" );
+		TRAINPERCENT = Double.parseDouble( System.getProperty( "trainPercent", "0.8" ) );
+		TESTPERCENT = Double.parseDouble( System.getProperty( "testPercent", "0.5" ) );
+		RUNS = Integer.parseInt( System.getProperty( "runs", "1" ) );
+		PREDICTIONS = Integer.parseInt( System.getProperty( "predictions", "1" ) );
+		//rand = new Random( Integer.parseInt( System.getProperty( "seed", "1" ) ) );
+		rand = new Random();
+		
+		System.out.println( "File: " + DATASET );
+		System.out.println( "Train Percent: " + TRAINPERCENT );
+		System.out.println( "Test Percent: " + TESTPERCENT );
+		System.out.println( "Runs: " + RUNS );
+		System.out.println( "Predictions: " + PREDICTIONS );
+		BufferedReader in = new BufferedReader( new FileReader( DATASET ) );
 		JSONObject json = new JSONObject( in.readLine() );
 		
 		ndocs = json.getInt( "ndocs" );
@@ -110,12 +124,14 @@ public class Main {
 			System.out.print( alg.name + "\t" );
 			double total = 0.0;
 			
+			long startTime = System.nanoTime();
+			
 			for( int run = 0; run < RUNS; run++ ) {
 				ArrayList<HashMap<Integer,Double>> traindocs = new ArrayList<HashMap<Integer,Double>>();
 				ArrayList<HashMap<Integer,Double>> testdocs = new ArrayList<HashMap<Integer,Double>>();
 				
 				for( HashMap<Integer,Double> doc : docs ) {
-					if( rand.nextDouble() < trainPercent )
+					if( rand.nextDouble() < TRAINPERCENT )
 						traindocs.add( doc );
 					else
 						testdocs.add( doc );
@@ -129,7 +145,7 @@ public class Main {
 					HashSet<Integer> testwords = new HashSet<Integer>();
 					
 					for( int word : testdoc.keySet() ) {
-						if( rand.nextDouble() < testPercent ) {
+						if( rand.nextDouble() < TESTPERCENT ) {
 							testwords.add( word );
 						} else {
 							givenwords.put( word, testdoc.get( word ) );
@@ -137,6 +153,7 @@ public class Main {
 					}
 					
 					double[] scores = alg.predict( givenwords );
+					//System.out.println(Arrays.toString( scores ));
 			    	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
 					
 					for( int i = 0; i < scores.length; i++ ) {
@@ -144,7 +161,7 @@ public class Main {
 							continue;
 						}
 							
-						if( pq.size() < NUM_PRED ) {
+						if( pq.size() < PREDICTIONS ) {
 							pq.add( new Pair( i, scores[i] ) );
 						} if( scores[i] > pq.peek().score ) {
 							pq.poll();
@@ -161,10 +178,11 @@ public class Main {
 					}
 				}
 				
-				total += (double)successes/NUM_PRED/testdocs.size();
+				total += (double)successes/PREDICTIONS/testdocs.size();
 			}
 			
 			System.out.println( total/RUNS );
+			System.out.println( ( System.nanoTime()-startTime )/1000000000.0 );
 	    }
 	}
 	
@@ -182,3 +200,4 @@ public class Main {
 		}
 	}
 }
+

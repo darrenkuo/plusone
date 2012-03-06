@@ -1,31 +1,25 @@
-package recommend.algorithms;
+package algorithms;
 
 
 import java.util.*;
 
 import util.WordIndex;
 
-public class CooccurAvgIDF extends Algorithm {
+public class CooccurSum extends Algorithm {
 	int[] doccount;
-	double[] idf;
 	HashMap<Integer,Integer>[] cooccur;
 	
-	public CooccurAvgIDF() {
-		super( "CooccurSum+IDF" );
+	public CooccurSum() {
+		super( "CooccurSum" );
 	}
 	
 	public void train( List<HashMap<Integer,Double>> traindocs ) {
 		doccount = new int[WordIndex.size()];
-		idf = new double[WordIndex.size()];
 		
 		for( HashMap<Integer,Double> traindoc : traindocs ) {
 			for( int word : traindoc.keySet() ) {
 				doccount[word]++;
 			}
-		}
-		
-		for( int word = 0; word < idf.length; word++ ) {
-			idf[word] = Math.log( (double)traindocs.size() / ( 1+doccount[word] ) );
 		}
 		
 		cooccur = new HashMap[WordIndex.size()];
@@ -45,13 +39,10 @@ public class CooccurAvgIDF extends Algorithm {
 	
 	public double[] predict( HashMap<Integer,Double> givenwords ) {
 		double[] scores = new double[WordIndex.size()];
-		int count = 0;
 		
 		for( int w1 : givenwords.keySet() ) {
 			if( doccount[w1] < 4 ) {
 				continue;
-			} else {
-				count++;
 			}
 			
 			for( int w2 : cooccur[w1].keySet() ) {
@@ -59,10 +50,6 @@ public class CooccurAvgIDF extends Algorithm {
 			}
 		}
 		
-		for( int w = 0; w < scores.length; w++ ) {
-			scores[w] *= idf[w] / count;
-		}
-		
-    	return scores;
+		return scores;
 	}
 }

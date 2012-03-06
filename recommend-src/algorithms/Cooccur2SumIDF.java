@@ -1,16 +1,16 @@
-package recommend.algorithms;
+package algorithms;
 
 import java.util.*;
 
 import util.WordIndex;
 
-public class Cooccur2Sum extends Algorithm {
-	static final int MIN = 10;
+public class Cooccur2SumIDF extends Algorithm {
+	static final int MIN = 5;
 	HashMap<Long,Integer> doccount;
 	HashMap<Long,HashMap<Integer,Integer>> cooccur;
 	
-	public Cooccur2Sum() {
-		super( "Cooccur2Sum" );
+	public Cooccur2SumIDF() {
+		super( "Cooccur2Sum+IDF" );
 	}
 	
 	public void train( List<HashMap<Integer,Double>> traindocs ) {
@@ -100,7 +100,7 @@ public class Cooccur2Sum extends Algorithm {
 				HashMap<Integer,Integer> hm = cooccur.get( key );
 				
 				for( int w : hm.keySet() ) {
-					scores[w] += hm.get( w ) / count;
+					scores[w] = Math.max( hm.get( w ) / count, scores[w] );
 				}
 			}
 			
@@ -112,10 +112,14 @@ public class Cooccur2Sum extends Algorithm {
 					HashMap<Integer,Integer> hm = cooccur.get( key );
 					
 					for( int w : hm.keySet() ) {
-						scores[w] += hm.get( w ) / count;
+						scores[w] = Math.max( hm.get( w ) / count, scores[w] );
 					}
 				}
 			}
+		}
+		
+		for( int w = 0; w < WordIndex.size(); w++ ) {
+			scores[w] *= WordIndex.getIDF( w );
 		}
 		
 		return scores;
