@@ -7,7 +7,7 @@ import org.json.*;
 
 import util.WordIndex;
 
-import recommend.algorithms.*;
+import algorithms.*;
 
 public class MainDebug {
 	//static final String FILENAME = "alldata_bf_sample20000d.out";

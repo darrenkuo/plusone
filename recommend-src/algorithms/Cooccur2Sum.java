@@ -1,16 +1,16 @@
-package recommend.algorithms;
+package algorithms;
 
 import java.util.*;
 
 import util.WordIndex;
 
-public class Cooccur2Max extends Algorithm {
-	static final int MIN = 5;
+public class Cooccur2Sum extends Algorithm {
+	static final int MIN = 10;
 	HashMap<Long,Integer> doccount;
 	HashMap<Long,HashMap<Integer,Integer>> cooccur;
 	
-	public Cooccur2Max() {
-		super( "Cooccur2Max" );
+	public Cooccur2Sum() {
+		super( "Cooccur2Sum" );
 	}
 	
 	public void train( List<HashMap<Integer,Double>> traindocs ) {
@@ -48,7 +48,7 @@ public class Cooccur2Max extends Algorithm {
 			for( int g : traindoc.keySet() ) {
 				long key = ((long)g << 32) + Integer.MAX_VALUE;
 				
-				if( doccount.get( key ) > MIN ) {
+				if( doccount.get( key ) >= MIN ) {
 					if( !cooccur.containsKey( key ) ) {
 						cooccur.put( key, new HashMap<Integer,Integer>() );
 					}
@@ -69,7 +69,7 @@ public class Cooccur2Max extends Algorithm {
 				for( int g2 : traindoc.keySet() ) {
 					long key = ((long)g1 << 32) + g2;
 					
-					if( g1 < g2 && doccount.get( key ) > MIN ) {
+					if( g1 < g2 && doccount.get( key ) >= MIN ) {
 						if( !cooccur.containsKey( key ) ) {
 							cooccur.put( key, new HashMap<Integer,Integer>() );
 						}
@@ -100,7 +100,7 @@ public class Cooccur2Max extends Algorithm {
 				HashMap<Integer,Integer> hm = cooccur.get( key );
 				
 				for( int w : hm.keySet() ) {
-					scores[w] = Math.max( hm.get( w ) / count, scores[w] );
+					scores[w] += hm.get( w ) / count;
 				}
 			}
 			
@@ -112,7 +112,7 @@ public class Cooccur2Max extends Algorithm {
 					HashMap<Integer,Integer> hm = cooccur.get( key );
 					
 					for( int w : hm.keySet() ) {
-						scores[w] = Math.max( hm.get( w ) / count, scores[w] );
+						scores[w] += hm.get( w ) / count;
 					}
 				}
 			}

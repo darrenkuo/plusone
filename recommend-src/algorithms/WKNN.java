@@ -1,19 +1,18 @@
-package recommend.algorithms;
+package algorithms;
 
 
 import java.util.*;
 
 import util.WordIndex;
 
-public class WKNNIDF extends Algorithm {
+public class WKNN extends Algorithm {
 	int K;
 	
 	List<HashMap<Integer,Double>> traindocs;
 	double[] trainnorms;
-	double[] idf;
 	
-	public WKNNIDF( int K ) {
-		super( "WKNN+IDF-" + K );
+	public WKNN( int K ) {
+		super( "WKNN-" + K );
 		this.K = K;
 	}
 
@@ -30,20 +29,9 @@ public class WKNNIDF extends Algorithm {
     			norm2 += score*score;
     		}
     		
-    		trainnorms[i] = Math.sqrt( norm2 );
+    		//trainnorms[i] = Math.sqrt( norm2 );
+    		trainnorms[i] = norm2;
     	}
-    	
-		idf = new double[WordIndex.size()];
-		
-		for( HashMap<Integer,Double> traindoc : traindocs ) {
-			for( int word : traindoc.keySet() ) {
-				idf[word]++;
-			}
-		}
-		
-		for( int word = 0; word < idf.length; word++ ) {
-			idf[word] = Math.log( (double)traindocs.size() / ( 1+idf[word] ) );
-		}
     }
 
     public double[] predict( HashMap<Integer,Double> givenwords ) {
@@ -89,7 +77,8 @@ public class WKNNIDF extends Algorithm {
 			norm2 += score*score;
 		}
 		
-		return dp/( trainnorms[doc]*Math.sqrt( norm2 ) );
+		//return dp/( trainnorms[doc]*Math.sqrt( norm2 ) );
+		return dp/( trainnorms[doc]+norm2 - dp );
     }
     
 	private static class Pair implements Comparable<Pair> {

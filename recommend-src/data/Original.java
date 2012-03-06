@@ -1,4 +1,4 @@
-package recommend.data;
+package data;
 
 import java.io.*;
 import java.util.*;
@@ -7,8 +7,8 @@ import org.json.*;
 
 public class Original {
 	public static void main( String[] args ) throws Throwable {
-		BufferedReader in = new BufferedReader( new FileReader( "med.out" ) );
-    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "med.json" ) ) );
+		BufferedReader in = new BufferedReader( new FileReader( "test.out" ) );
+    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "test.json" ) ) );
 		StringTokenizer st;
 
 	    JSONObject json = new JSONObject();
