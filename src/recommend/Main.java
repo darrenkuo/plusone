@@ -2,9 +2,8 @@ package recommend;
 
 import java.io.*;
 import java.util.*;
-import org.json.*;
 
-import recommend.util.WordIndex;
+import recommend.util.*;
 import recommend.algorithms.*;
 
 public class Main {
@@ -95,31 +94,9 @@ public class Main {
 		System.out.println( "Test Percent: " + TESTPERCENT );
 		System.out.println( "Runs: " + RUNS );
 		System.out.println( "Predictions: " + PREDICTIONS );
-		BufferedReader in = new BufferedReader( new FileReader( DATASET ) );
-		JSONObject json = new JSONObject( in.readLine() );
-		
-		ndocs = json.getInt( "ndocs" );
-		docs = new HashMap[ndocs];
-		JSONArray arr = json.getJSONArray( "docs" );
-		
-		for( int i = 0; i < ndocs; i++ ) {
-			JSONObject doc = arr.getJSONObject( i );
-			docs[i] = new HashMap<Integer,Double>();
-			JSONArray terms = doc.getJSONArray( "terms" );
-			
-			for( int j = 0; j < terms.length(); j++ ) {
-				String term = terms.getString( j );
-				WordIndex.add( terms.getString( j ) );
-				int index = WordIndex.indexOf( term );
-				WordIndex.incrementDF( index );
-				docs[i].put( index, 1.0 );
-			}
-		}
-		
-		for( int w = 0; w < WordIndex.size(); w++ ) {
-			WordIndex.setIDF( w, Math.log( (double)ndocs / WordIndex.getDF( w ) ) );
-		}
-		
+                docs = Dataset.loadDataset( DATASET );
+                ndocs = docs.length;
+
 		for( Algorithm alg : algs ) {
 			System.out.print( alg.name + "\t" );
 			double total = 0.0;
