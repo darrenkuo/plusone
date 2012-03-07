@@ -45,10 +45,13 @@ public class GraphProperties {
         appendHtml("<p>" + StringEscapeUtils.escapeHtml(msg) + "</p>\n");
     }
 
-    void reportPlot(DoubleMatrix1D values) {
+    void reportPlot(DoubleMatrix1D values, boolean logX, boolean logY) {
         appendHtml("<div class=\"plot_me\">");
-        for (int i = 0; i < values.size(); ++i)
-            appendHtml(" " + values.get(i));
+        if (logX) appendHtml("s:logX ");
+        if (logY) appendHtml("s:logY ");
+        for (int i = 0; i < values.size(); ++i) {
+            appendHtml((0 == i ? "" : " ") + i + "," + (values.get(i) + 2.0));
+        }
         appendHtml("</div>\n");
     }
 
@@ -73,7 +76,7 @@ public class GraphProperties {
 
         DoubleMatrix1D termFreqs = algebra.mult(termDoc, ones(numDocs));
         report("Sorted term frequencies:");
-        reportPlot(termFreqs.viewSorted());
+        reportPlot(termFreqs.viewSorted(), false, true);
 
         endReport();
     }
