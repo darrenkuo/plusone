@@ -2,6 +2,7 @@
     <info organisation="net.htmlparser" module="recommend"/>
     <dependencies>
         <dependency name="colt" org="colt" rev="1.2.0"/>
+        <dependency name="commons-lang" org="commons-lang" rev="2.6"/>
         <dependency name="jericho-html" org="net.htmlparser.jericho" rev="3.2"/>
         <dependency name="json" org="org.json" rev="20090211"/>
     </dependencies>
