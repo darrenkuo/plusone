@@ -1,9 +1,9 @@
-package algorithms;
+package recommend.algorithms;
 
 
 import java.util.*;
 
-import util.WordIndex;
+import recommend.util.WordIndex;
 
 public class WKNNIDF extends Algorithm {
 	int K;

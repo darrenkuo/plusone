@@ -1,8 +1,8 @@
-package algorithms;
+package recommend.algorithms;
 
 import java.util.*;
 
-import util.WordIndex;
+import recommend.util.WordIndex;
 
 public class CooccurMax extends Algorithm {
 	int[] doccount;

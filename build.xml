@@ -38,10 +38,10 @@
   <property name="lib" location="lib"/>
 
   <path id="library.jars">
-    <fileset dir="${lib}" includes="jars/*.jar"/>
+    <fileset dir="${lib}"/>
   </path>
 
-  <target name="init">
+  <target name="init" depends="retrieve">
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
   </target>
@@ -82,22 +82,7 @@
     <delete dir="${dist}"/>
   </target>
 
-  <target name="recommend-retrieve" depends="init-ivy">
+  <target name="retrieve" depends="init-ivy">
     <ivy:retrieve/>
-  </target>
-
-  <path id="recommend-lib">
-    <fileset dir="lib"/>
-  </path>
-
-  <target name="recommend-build" depends="recommend-retrieve">
-    <mkdir dir="recommend-build"/>
-    <javac sourcepath="" classpathref="recommend-lib" srcdir="recommend-src" destdir="recommend-build" includeantruntime="false">
-      <include name="**/*.java"/>
-    </javac>
-  </target>
-
-  <target name="recommend-run" depends="recommend-build">
-    <java classpathref="recommend-lib" classpath="recommend-build" classname="recommend.Main"/>
   </target>
 </project>

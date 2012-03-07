@@ -4,8 +4,8 @@ import java.io.*;
 import java.util.*;
 import org.json.*;
 
-import util.WordIndex;
-import algorithms.*;
+import recommend.util.WordIndex;
+import recommend.algorithms.*;
 
 public class Main {
 	//static final String FILENAME = "alldata_bf_sample20000d.out";

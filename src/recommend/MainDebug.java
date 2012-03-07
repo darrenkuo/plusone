@@ -5,9 +5,9 @@ import java.util.*;
 
 import org.json.*;
 
-import util.WordIndex;
+import recommend.util.WordIndex;
 
-import algorithms.*;
+import recommend.algorithms.*;
 
 public class MainDebug {
 	//static final String FILENAME = "alldata_bf_sample20000d.out";

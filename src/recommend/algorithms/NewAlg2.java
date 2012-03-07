@@ -1,9 +1,9 @@
-package algorithms;
+package recommend.algorithms;
 
 
 import java.util.*;
 
-import util.WordIndex;
+import recommend.util.WordIndex;
 
 public class NewAlg2 extends Algorithm {
 	double sigma = 0.005;

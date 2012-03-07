@@ -1,9 +1,9 @@
-package algorithms;
+package recommend.algorithms;
 
 import java.util.*;
 
 import recommend.Main;
-import util.WordIndex;
+import recommend.util.WordIndex;
 
 public class StochasticRWCooccurSum extends Algorithm {
 	static final int ITERATIONS = 1000;

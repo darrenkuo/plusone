@@ -3,10 +3,10 @@ package recommend;
 import java.io.*;
 import java.util.*;
 
-import util.WordIndex;
+import recommend.util.WordIndex;
 
-import algorithms.Algorithm;
-import algorithms.CooccurSumIDF;
+import recommend.algorithms.Algorithm;
+import recommend.algorithms.CooccurSumIDF;
 
 public class Test1 {
 	static final String FILENAME = "med.out";

@@ -1,7 +1,7 @@
-package algorithms;
+package recommend.algorithms;
 
 import java.util.*;
-import util.WordIndex;
+import recommend.util.WordIndex;
 
 public class LSI extends Algorithm {
 	static final double THRESHOLD = 0.00001;

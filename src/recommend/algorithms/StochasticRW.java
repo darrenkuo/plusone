@@ -1,8 +1,8 @@
-package algorithms;
+package recommend.algorithms;
 
 import java.util.*;
 
-import util.WordIndex;
+import recommend.util.WordIndex;
 
 public class StochasticRW extends Algorithm {
 	static final int ITERATIONS = 10000;
