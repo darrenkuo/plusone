@@ -15,16 +15,16 @@ import java.util.Queue;
 public class LSI extends ClusteringTest {
 
     class Entry{
-public int docID;
-public int termID;
-public double value;
+	public int docID;
+	public int termID;
+	public double value;
 
 
-public Entry(int docID, int termID, double value) {
-this.docID = docID;
-this.termID = termID;
-this.value = value;
-}
+	public Entry(int docID, int termID, double value) {
+	    this.docID = docID;
+	    this.termID = termID;
+	    this.value = value;
+	}
     }
     protected List<TrainingPaper> trainingSet;
     protected LinkedList<Entry>[] DocTerm;
@@ -38,11 +38,11 @@ this.value = value;
     public int numTerms;
 
     public LSI(int DIMENSION, List<TrainingPaper> trainingSet, Terms terms) {
-super("LSI-" + DIMENSION);
-this.DIMENSION = DIMENSION;
-numTerms=terms.size();
+	super("LSI-" + DIMENSION);
+	this.DIMENSION = DIMENSION;
+	numTerms=terms.size();
 
-svd = new SVD(DIMENSION, trainingSet, numTerms);
+	svd = new SVD(DIMENSION, trainingSet, numTerms);
     }
 
     public Integer[] predict(int k, PredictionPaper testPaper) {

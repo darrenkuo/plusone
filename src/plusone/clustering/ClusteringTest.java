@@ -11,6 +11,9 @@ public abstract class ClusteringTest implements ClusteringMethod {
     public ClusteringTest(String testName) {
 	this.testName = testName;
     }
+    public String getName(){
+	return testName;
+    }
 
     public Integer[] predict(int k, PredictionPaper testPaper) { 
 	return null;

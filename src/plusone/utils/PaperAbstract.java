@@ -23,6 +23,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
     private Map<Integer, Integer> testingTf;
     private Map<Integer, Integer> tf;
     public double norm;
+    public int group=0;  // Group # for cross-validation
 
     public PaperAbstract(int index, Integer[] inReferences, 
 			 Integer[] outReferences, 
@@ -39,6 +40,13 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 	}
     }
 
+    public void setGroup(int gp){
+	this.group=gp;
+    }
+
+    public int getGroup(){
+	return group;
+    }
     public PaperAbstract(int index, Integer[] inReferences, 
 			 Integer[] outReferences, 
 			 int[] tf) {
