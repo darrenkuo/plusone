@@ -50,7 +50,7 @@ public class GraphProperties {
         if (logX) appendHtml("s:logX ");
         if (logY) appendHtml("s:logY ");
         for (int i = 0; i < values.size(); ++i) {
-            appendHtml((0 == i ? "" : " ") + i + "," + (values.get(i) + 2.0));
+            appendHtml((0 == i ? "" : " ") + (logX ? 1+i : i) + "," + (values.get(i) + 2.0));
         }
         appendHtml("</div>\n");
     }
@@ -74,9 +74,13 @@ public class GraphProperties {
         int numTerms = docTerm.columns();
         report("" + numDocs + " documents and " + numTerms + " terms");
 
+        /* Term frequencies. */
         DoubleMatrix1D termFreqs = algebra.mult(termDoc, ones(numDocs));
+        DoubleMatrix1D sortedTermFreqs = termFreqs.viewSorted().viewFlip();
         report("Sorted term frequencies:");
-        reportPlot(termFreqs.viewSorted(), false, true);
+        reportPlot(sortedTermFreqs, true, true);
+
+        
 
         endReport();
     }
