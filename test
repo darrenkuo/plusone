@@ -35,9 +35,11 @@ echo Output will go in $out_dir
 #0.1,0.3,0.5,0.7,0.9 \
 args=\
 "-Dplusone.dataFile=/tmp/$userdata \
+ -Dplusone.crossValidation.FOLD=10 \
+ -Dplusone.crossValidation.run=false \
  -Dplusone.testWordPercents=0.3 \
  -Dplusone.trainPercents=0.95\
- -Dplusone.kValues=1,5,10,15,20 \
+ -Dplusone.kValues=1 \
  -Dplusone.closestKValues=5,10,25,50,100,250,500 \
  -Dplusone.closestKSVDishValues=5,10,25,50,100,250,500 \
  -Dplusone.svdDimensions=5,15,25 \
@@ -57,19 +59,19 @@ args=\
  -Dplusone.localCO.termEnzs=15000
  -Dplusone.localCO.dtNs=500
  -Dplusone.localCO.tdNs=1200
- -Dplusone.enableTest.localCO=true \
+ -Dplusone.enableTest.localCO=false \
  -Dplusone.enableTest.lda=false \
  -Dplusone.enableTest.knnc=false \
- -Dplusone.enableTest.knn=true \
+ -Dplusone.enableTest.knn=false \
  -Dplusone.enableTest.knnrw=false \
  -Dplusone.enableTest.dtrw=false \
  -Dplusone.enableTest.baseline=true \
  -Dplusone.enableTest.lsi=false \
  -Dplusone.enableTest.svdknn=false \
- -Dplusone.enableTest.svdishknn=false \
+ -Dplusone.enableTest.svdishknn=true \
  -Dplusone.outPath=$out_dir \
  -Dplusone.dumpMeta=false \
- -Dplusone.randomSeed=7"
+ -Dplusone.randomSeed=9"
 
 # options to sample cpu
 # -agentlib:hprof=cpu=samples
@@ -79,4 +81,4 @@ args=\
 # -Xmx4096m
 
 #java -agentlib:hprof=cpu=samples -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar $args plusone.Main
-java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar:lib/jars/gson-1.7.1.jar $args plusone.Main
+java -Xmx4096m -cp Plusone.jar:lib/jars/ejml-0.17.jar:lib/jars/gson-1.7.1.jar:lib/colt-1.2.0.jar:lib/commons-lang-2.6.jar $args plusone.Main

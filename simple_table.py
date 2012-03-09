@@ -9,7 +9,7 @@ def pad(width, s):
 
 def read_pred(filename):
     for line in open(filename, "r"):
-        return line[11:-1]
+        return line[16:-1]
 
 if "__main__" == __name__:
     top = sys.argv[1]
