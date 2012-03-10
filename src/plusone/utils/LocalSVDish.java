@@ -3,6 +3,7 @@ package plusone.utils;
 import plusone.Main;
 import plusone.utils.TrainingPaper;
 import plusone.utils.PredictionPaper;
+import plusone.utils.Plot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,13 +28,13 @@ public class LocalSVDish {
     }
 
     protected List<TrainingPaper> trainingSet;
-    protected LinkedList<Entry>[] DocTerm;
-    protected LinkedList<Entry>[] TermDoc;
     protected Map<Integer, Double>[] DocTermB, TermDocB;
     protected Map<Integer, Double>[] localVectorsT;  // The result of training.
     protected Map<Integer, Map<Integer, Double>> trainingRepresentations;
     public int numTerms;
     private Random rand=new Random();
+    private Plot plot;
+    private List<Double>[][] plotData;
 
     int nLevels;
     int[] docEnzs;
@@ -54,48 +55,38 @@ public class LocalSVDish {
 	this.tdNs = tdNs;
 	this.numLVecs = numLVecs;
 	this.walkLength=walkLength;
-
+	this.plot = new Plot("localSVD.html");
 	this.trainingSet = trainingSet;
 	numTerms = num;
+	plotData = new List[nLevels][walkLength+1];
+	for (int j=0;j<nLevels;++j) {
+	    for (int i=0;i<walkLength+1;i++){
+		plotData[j][i]=new LinkedList<Double>();
+	    }
+	}
 
 	long t1 = System.currentTimeMillis();
 	System.out.println("[SVDLocalSVDish] training");
 
-	DocTerm = new LinkedList[trainingSet.size()];
-	TermDoc = new LinkedList[numTerms];
 	DocTermB = new Map[trainingSet.size()];
         for (int i = 0; i < DocTermB.length; ++i) DocTermB[i] = new HashMap<Integer, Double>();
 	TermDocB = new Map[numTerms];
         for (int i = 0; i < TermDocB.length; ++i) TermDocB[i] = new HashMap<Integer, Double>();
 	for (int i = 0; i < trainingSet.size(); i ++) {
 	    TrainingPaper doc = trainingSet.get(i);
-	    DocTerm[i] = new LinkedList<Entry>();
 
 	    for (Integer word : doc.getTrainingWords()) {
 		Entry temp = new Entry(i, word, doc.getTrainingTf(word));
-		DocTerm[i].add(temp);
 		addEntry(DocTermB[i], word, doc.getTrainingTf(word));
-		if (TermDoc[word] == null){
-		    TermDoc[word] = new LinkedList<Entry>();
-		}
-		TermDoc[word].add(temp);
 		addEntry(TermDocB[word], i, doc.getTrainingTf(word));
 	    }
 	}
 
 	this.train();
-
 	System.out.format("[LocalSVDish]] took %.3f seconds.\n",
 			  (System.currentTimeMillis() - t1)/1000.0);
     }
 
-    public double dotProduct(double[] a, double[] b){
-	double result = 0.0;
-	for (int i = 0; i < a.length; i ++){
-	    result += a[i] * b[i];
-	}
-	return result;
-    }
 
     public double sparseDot(Map<Integer,Double> x, Map<Integer,Double> y)
     {
@@ -130,6 +121,17 @@ public class LocalSVDish {
 	for (Map.Entry<Integer, Double> e : x.entrySet()) ret2 +=e.getValue() * e.getValue();
 	return Math.sqrt(ret2);
     }
+    public Map<Integer, Double> oneFullStep(Map<Integer,Double>[] A, Map<Integer,Double> x){
+	Map<Integer,Double> ret = new HashMap<Integer,Double>();
+	for (Map.Entry<Integer, Double> xEntry : x.entrySet())
+	    {
+		Map<Integer, Double> connected = A[xEntry.getKey()];
+		for (Map.Entry<Integer, Double> cEntry : connected.entrySet()) {
+		    addEntry(ret, cEntry.getKey(), cEntry.getValue() * xEntry.getValue()/connected.size());
+		}
+	    }
+	return ret;
+    }
 
     public Map<Integer, Double> walkOneWay(Map<Integer,Double> x, int neighbors, int enz, Map<Integer, Double>[] A)
     {
@@ -147,8 +149,9 @@ public class LocalSVDish {
 	Map<Integer, Double> ret = new HashMap<Integer, Double>();
 	double l1 = l1Norm(step);
 	for (Map.Entry<Integer, Double> sEntry : step.entrySet()) {
-	    double p = Math.min(1.0, sEntry.getValue() / l1 * enz);
-	    if (rand.nextDouble() < p)
+    	    double p = (step.size()-enz)*1.0*sEntry.getValue() / (l1*(step.size()-1)) + (enz-1)*1.0/(step.size()-1);
+	    p=Math.min(1.0,p);
+	    if (rand.nextDouble() <= p)
 		ret.put(sEntry.getKey(), sEntry.getValue() / p);
 	}
 	return ret;
@@ -163,9 +166,13 @@ public class LocalSVDish {
 	double l1 = l1Norm(x);
 	for (Map.Entry<Integer, Double> e : x.entrySet()) e.setValue(e.getValue() / l1);
     }
-
+    public double spreadiness(Map<Integer,Double> vec){
+	Map<Integer,Double> nextVec = oneFullStep(DocTermB,oneFullStep(TermDocB,vec));
+	return sparseDot(nextVec,vec);
+    }
     public void train(){
 	localVectorsT = new Map[numTerms];
+	plot.beginReport();
         for (int i = 0; i < localVectorsT.length; ++i) localVectorsT[i] = new HashMap<Integer, Double>();
 	int vecNum = 0;
 	for (int level = 0; level < nLevels; ++level) {
@@ -175,11 +182,14 @@ public class LocalSVDish {
 	    int tdNeighbors = tdNs[level];
 	    for (int i = 0; i < numLVecs[level]; ++i) {
 		//start with a random term.
+		
 		Map<Integer, Double> startTerm = new HashMap<Integer, Double>();
 		startTerm.put(rand.nextInt(numTerms), 1.0);
 		Map<Integer,Double> localVec=startTerm;
+		plotData[level][0].add(spreadiness(localVec));
 		for (int j=0;j<walkLength;j++){
-		localVec = walkTermTerm(localVec, dtNeighbors, tdNeighbors, docEnz, termEnz);
+		    localVec = walkTermTerm(localVec, dtNeighbors, tdNeighbors, docEnz, termEnz);
+		    plotData[level][j+1].add(spreadiness(localVec));
 		l1Normalize(localVec);
 		}
 		for (Map.Entry<Integer, Double> e : localVec.entrySet()) {
@@ -187,9 +197,15 @@ public class LocalSVDish {
 		}
 		++ vecNum;
 	    }
+	    for (int i=0;i<walkLength+1;i++){
+		plot.report("Level: "+ level+ " walkLength: "+i);
+		plot.reportHistogram(plotData[level][i],100);
+	    }
 	}
+	plot.endReport();
 
 	trainingRepresentations = new HashMap<Integer, Map<Integer, Double>>();
+       
 	for (int i = 0; i < trainingSet.size(); ++i) {
             TrainingPaper tr = trainingSet.get(i);
 	    trainingRepresentations.put(tr.getIndex(), represent(tr));

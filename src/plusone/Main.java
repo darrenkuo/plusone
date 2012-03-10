@@ -58,9 +58,6 @@ public class Main {
     private static int FOLD; // cross validation parameter
     private static Dataset dataset;
 
-    public Main(){
-	super();
-    }
     public static void load_data(String filename) {
 	dataset = Dataset.loadDatasetFromPath(filename);
 	wordIndexer = dataset.getWordIndexer();
@@ -99,7 +96,9 @@ public class Main {
 
     private void runExperiments(String path){
 	Boolean crossValid = Boolean.getBoolean("plusone.crossValidation.run");
-
+	
+	if (crossValid)
+	    System.out.println("We will do "+FOLD+"-fold cross validation");
 	double[] testWordPercents = 
 	    parseDoubleList(System.getProperty("plusone.testWordPercents", 
 					       "0.3,0.5"));
@@ -197,6 +196,32 @@ public class Main {
 		runClusteringMethod(lsi, ks, size);
 	    }
 	}
+	
+	// KNNSVDish
+	int[] closest_k_svdish = parseIntList(System.getProperty("plusone.closestKSVDishValues", 
+			"1,3,5,10,25,50,100,250,500,1000"));
+	KNNSimilarityCacheLocalSVDish KNNSVDcache = null;
+	LocalSVDish localSVD;
+	KNNLocalSVDish knnSVD;
+	if (testIsEnabled("svdishknn")){
+		localSVD=new LocalSVDish(Integer.getInteger("plusone.svdishknn.nLevels"),
+				parseIntList(System.getProperty("plusone.svdishknn.docEnzs")),
+				parseIntList(System.getProperty("plusone.svdishknn.termEnzs")),
+				parseIntList(System.getProperty("plusone.svdishknn.dtNs")),
+				parseIntList(System.getProperty("plusone.svdishknn.tdNs")),
+				parseIntList(System.getProperty("plusone.svdishknn.numLVecs")),
+				trainingSet,terms.size(),
+				Integer.getInteger("plusone.svdishknn.walkLength"));
+		KNNSVDcache = new KNNSimilarityCacheLocalSVDish(trainingSet,testingSet,localSVD);
+	}
+	for (int ck = 0; ck < closest_k_svdish.length; ck ++) {
+		if (testIsEnabled("svdishknn")){
+			knnSVD= new KNNLocalSVDish(closest_k_svdish[ck],trainingSet, paperIndexer,
+					terms, KNNSVDcache);
+			runClusteringMethod(knnSVD, ks,size);
+		}
+	}
+
 		
 	/*CommonNeighbors cn;
 	  DTRandomWalkPredictor dtRWPredictor;
@@ -235,22 +260,7 @@ public class Main {
 
 
 	
-	  int[] closest_k_svdish = parseIntList(System.getProperty("plusone.closestKSVDishValues", 
-	  "1,3,5,10,25,50,100,250,500,1000"));
-	  KNNSimilarityCacheLocalSVDish KNNSVDcache = null;
-	  LocalSVDish localSVD;
-	  KNNLocalSVDish knnSVD;
-	  if (testIsEnabled("svdishknn")){
-	  localSVD=new LocalSVDish(Integer.getInteger("plusone.svdishknn.nLevels"),
-	  parseIntList(System.getProperty("plusone.svdishknn.docEnzs")),
-	  parseIntList(System.getProperty("plusone.svdishknn.termEnzs")),
-	  parseIntList(System.getProperty("plusone.svdishknn.dtNs")),
-	  parseIntList(System.getProperty("plusone.svdishknn.tdNs")),
-	  parseIntList(System.getProperty("plusone.svdishknn.numLVecs")),
-	  trainingSet,terms.size(),
-	  Integer.getInteger("plusone.svdishknn.walkLength"));
-	  KNNSVDcache = new KNNSimilarityCacheLocalSVDish(trainingSet,testingSet,localSVD);
-	  }
+	  
 
 
 
@@ -295,13 +305,7 @@ public class Main {
 
 	/*	}
 
-		for (int ck = 0; ck < closest_k_svdish.length; ck ++) {
-		if (testIsEnabled("svdishknn")){
-		knnSVD= new KNNLocalSVDish(closest_k_svdish[ck],trainingSet, paperIndexer,
-		terms, KNNSVDcache);
-		runClusteringMethod(testingSet,knnSVD,outputDir,ks,size);
-		}
-		}
+		
 
 
 	*/
