@@ -6,10 +6,9 @@ import recommend.Main;
 import recommend.util.WordIndex;
 
 public class StochasticRWCooccurSum extends Algorithm {
-	static final int ITERATIONS = 1000;
+	static final int ITERATIONS = 3000;
 	
 	int[][] neigh;
-	int length;
 	
 	public StochasticRWCooccurSum() {
 	    super( "StochasticRWCooccurSum" );
@@ -64,6 +63,7 @@ public class StochasticRWCooccurSum extends Algorithm {
 	    
 	    for( int i = 0; i < scores.length; i++ ) {
 	    	scores[i] /= ITERATIONS;
+	    	scores[i] *= WordIndex.size();
 	    }
 	    
 	    return scores;

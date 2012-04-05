@@ -1,6 +1,7 @@
 package recommend.algorithms;
 
 import java.util.*;
+
 import recommend.util.WordIndex;
 
 public class LSI extends Algorithm {
@@ -124,10 +125,6 @@ public class LSI extends Algorithm {
 		for( int i = 0; i < V.length; i++ )
 			for( int j = 0; j < VT.length; j++ )
 				V[i][j] = VT[j][i];
-		
-		System.out.println(Arrays.toString( VT[0] ));
-		System.out.println(VT[0][WordIndex.indexOf( "2" )]);
-		System.out.println(VT[0][WordIndex.indexOf( "patients" )]);
     }
 
     public double[] predict( HashMap<Integer,Double> givenwords ) {

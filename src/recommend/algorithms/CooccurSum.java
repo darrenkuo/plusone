@@ -5,6 +5,7 @@ import java.util.*;
 
 import recommend.util.WordIndex;
 
+
 public class CooccurSum extends Algorithm {
 	int[] doccount;
 	HashMap<Integer,Integer>[] cooccur;

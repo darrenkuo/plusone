@@ -5,6 +5,7 @@ import java.util.*;
 
 import recommend.util.WordIndex;
 
+
 public class KNN extends Algorithm {
 	int K;
 	
@@ -52,7 +53,6 @@ public class KNN extends Algorithm {
     	
     	while( !pq.isEmpty() ) {
     		Pair p = pq.poll();
-    		//System.out.println(p.similarity);
     		HashMap<Integer,Double> traindoc = traindocs.get( p.doc );
     		
     		for( int word : traindoc.keySet() ) {
@@ -78,7 +78,6 @@ public class KNN extends Algorithm {
 			norm2 += score*score;
 		}
 		
-		System.out.println(dp/( trainnorms[doc]*Math.sqrt( norm2 ) ));
 		return dp/( trainnorms[doc]*Math.sqrt( norm2 ) );
 		//return dp/( trainnorms[doc] + norm2 - dp );
     }

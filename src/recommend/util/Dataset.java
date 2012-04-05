@@ -1,40 +1,58 @@
 package recommend.util;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+
 import org.json.*;
 
 public class Dataset {
-    /* Loads a set of documents and sets up WordIndex. */
-    public static HashMap<Integer, Double>[] loadDataset(String DATASET) throws IOException, JSONException {
-        if (WordIndex.size() > 0)
-            throw new RuntimeException("Dataset.loadDataset: please start from an empty WordIndex!");
-
-        BufferedReader in = new BufferedReader( new FileReader( DATASET ) );
-        JSONObject json = new JSONObject( in.readLine() );
-
-        int ndocs = json.getInt( "ndocs" );
-        HashMap<Integer, Double>[] docs = new HashMap[ndocs];
-        JSONArray arr = json.getJSONArray( "docs" );
-
-        for( int i = 0; i < ndocs; i++ ) {
-            JSONObject doc = arr.getJSONObject( i );
-            docs[i] = new HashMap<Integer,Double>();
-            JSONArray terms = doc.getJSONArray( "terms" );
-
-            for( int j = 0; j < terms.length(); j++ ) {
-                String term = terms.getString( j );
-                WordIndex.add( terms.getString( j ) );
-                int index = WordIndex.indexOf( term );
-                WordIndex.incrementDF( index );
-                docs[i].put( index, 1.0 );
-            }
-        }
-
-        for( int w = 0; w < WordIndex.size(); w++ ) {
-            WordIndex.setIDF( w, Math.log( (double)ndocs / WordIndex.getDF( w ) ) );
-        }
-
-        return docs;
-    }
+	public int ndocs, nterms, nfolds;
+	public String[] termindex, docindex;
+	public HashMap<Integer,Double>[] docs;
+	public HashMap<Integer,Double>[][] folds;
+	
+	public Dataset( String file ) throws IOException, JSONException {
+		BufferedReader in = new BufferedReader( new FileReader( file ) );
+		JSONObject json = new JSONObject( in.readLine() );
+		
+		this.ndocs = json.getInt( "ndocs" );
+		this.nterms = json.getInt( "nterms" );
+		this.nfolds = json.getInt( "nfolds" );
+		
+		JSONArray termindex = json.getJSONArray( "termindex" );
+		this.termindex = new String[nterms];
+		
+		for( int i = 0; i < nterms; i++ ) {
+			this.termindex[i] = termindex.getString( i );
+		}
+		
+		JSONArray docindex = json.getJSONArray( "docindex" );
+		this.docindex = new String[ndocs];
+		
+		for( int i = 0; i < ndocs; i++ ) {
+			this.docindex[i] = docindex.getString( i );
+		}
+		
+		JSONArray folds = json.getJSONArray( "folds" );
+		this.docs = new HashMap[ndocs];
+		this.folds = new HashMap[nfolds][];
+		int index = 0;
+		
+		for( int i = 0; i < nfolds; i++ ) {
+			JSONArray fold = folds.getJSONArray( i );
+			this.folds[i] = new HashMap[fold.length()];
+			
+			for( int j = 0; j < fold.length(); j++ ) {
+				JSONArray doc = fold.getJSONArray( j );
+				this.folds[i][j] = new HashMap<Integer,Double>();
+				
+				for( int k = 0; k < doc.length(); k++ ) {
+					JSONArray term = doc.getJSONArray( k );
+					this.folds[i][j].put( term.getInt( 0 ), term.getDouble( 1 ) );
+				}
+				
+				docs[index++] = this.folds[i][j];
+			}
+		}
+	}
 }

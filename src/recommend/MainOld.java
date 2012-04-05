@@ -1,12 +1,19 @@
 package recommend;
 
+import java.io.*;
 import java.util.*;
+import org.json.*;
+
 import recommend.algorithms.*;
 import recommend.util.*;
 
-public class Main {
+
+public class MainOld {
 	static String DATASET;
 	static final Algorithm[] algs = new Algorithm[] {
+		//new WeightedNeighbors(),
+		//new StochasticRWWKNN(),
+		//new WKNN( 25 )
 		new Baseline(),
 		new StochasticRWCooccurSum(),
 		new StochasticRWWKNN(),
@@ -71,6 +78,7 @@ public class Main {
 	};
 	public static Random rand;
 	
+	static double TRAINPERCENT;
 	static double TESTPERCENT;
 	static int RUNS;
 	static int PREDICTIONS;
@@ -79,21 +87,20 @@ public class Main {
 	static HashMap<Integer,Double>[] docs;
 	
 	public static void main( String[] args ) throws Throwable {
-		DATASET = System.getProperty( "dataset", "med5.json" );
+		DATASET = System.getProperty( "dataset", "movielens-pos.json" );
+		TRAINPERCENT = Double.parseDouble( System.getProperty( "trainPercent", "0.8" ) );
 		TESTPERCENT = Double.parseDouble( System.getProperty( "testPercent", "0.5" ) );
-		RUNS = Integer.parseInt( System.getProperty( "runs", "5" ) );
+		RUNS = Integer.parseInt( System.getProperty( "runs", "1" ) );
 		PREDICTIONS = Integer.parseInt( System.getProperty( "predictions", "1" ) );
-		rand = System.getProperty( "seed" ) == null ? new Random() : new Random( Integer.parseInt( System.getProperty( "seed" ) ) );
+		//rand = new Random( Integer.parseInt( System.getProperty( "seed", "1" ) ) );
+		rand = new Random();
 		
 		System.out.println( "File: " + DATASET );
+		System.out.println( "Train Percent: " + TRAINPERCENT );
 		System.out.println( "Test Percent: " + TESTPERCENT );
 		System.out.println( "Runs: " + RUNS );
 		System.out.println( "Predictions: " + PREDICTIONS );
-		Dataset dataset = new Dataset( DATASET );
-		
-		for( String term : dataset.termindex ) {
-			WordIndex.add( term );
-		}
+		docs = DatasetOld.loadDataset( DATASET );
 		
 		for( Algorithm alg : algs ) {
 			System.out.print( alg.name + "\t" );
@@ -105,18 +112,12 @@ public class Main {
 			for( int run = 0; run < RUNS; run++ ) {
 				ArrayList<HashMap<Integer,Double>> traindocs = new ArrayList<HashMap<Integer,Double>>();
 				ArrayList<HashMap<Integer,Double>> testdocs = new ArrayList<HashMap<Integer,Double>>();
-				int testfold = RUNS >= dataset.nfolds ? run : rand.nextInt( dataset.nfolds );
 				
-				for( int i = 0; i < dataset.nfolds; i++ ) {
-					if( i == testfold ) {
-						for( HashMap<Integer,Double> doc : dataset.folds[i] ) {
-							testdocs.add( doc );
-						}
-					} else {
-						for( HashMap<Integer,Double> doc : dataset.folds[i] ) {
-							traindocs.add( doc );
-						}
-					}
+				for( HashMap<Integer,Double> doc : docs ) {
+					if( rand.nextDouble() < TRAINPERCENT )
+						traindocs.add( doc );
+					else
+						testdocs.add( doc );
 				}
 				
 				long startTime = System.nanoTime();

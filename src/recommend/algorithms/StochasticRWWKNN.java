@@ -2,38 +2,45 @@ package recommend.algorithms;
 
 import java.util.*;
 
+import recommend.Main;
 import recommend.util.WordIndex;
 
-
-public class StochasticRW extends Algorithm {
-	static final int ITERATIONS = 10000;
+public class StochasticRWWKNN extends Algorithm {
+	static final int ITERATIONS = 3000;
 	
 	int[][] neigh;
-	int length;
+	double[] docnorm2;
 	
-	public StochasticRW( int length ) {
-	    super( "StochasticRW-"+length );
-	    this.length = length;
+	public StochasticRWWKNN() {
+	    super( "StochasticRWWKNN" );
     }
 
     public void train( List<HashMap<Integer,Double>> traindocs ) {
-    	LinkedList<Integer>[] ll = new LinkedList[WordIndex.size()];
+    	LinkedList<Integer>[] ll = new LinkedList[WordIndex.size()+traindocs.size()];
+    	docnorm2 = new double[traindocs.size()];
+    	int i;
     	
-    	for( int i = 0; i < ll.length; i++ ) {
+    	for( i = 0; i < ll.length; i++ ) {
     		ll[i] = new LinkedList<Integer>();
     	}
     	
+    	i = 0;
 	    for( HashMap<Integer,Double> hm : traindocs ) {
+	    	double norm = 0.0;
+	    	
 	    	for( Integer u : hm.keySet() ) {
-	    		for( Integer v : hm.keySet() ) {
-	    			ll[u].add( v );
-	    		}
+	    		ll[ll.length-i-1].add( u );
+	    		ll[u].add( ll.length-i-1 );
+	    		norm += 1.0;
 	    	}
+	    	
+	    	docnorm2[i] = Math.sqrt( norm );
+	    	i++;
 	    }
 	    
 	    neigh = new int[ll.length][];
 	    
-	    for( int i = 0; i < ll.length; i++ ) {
+	    for( i = 0; i < ll.length; i++ ) {
 	    	neigh[i] = new int[ll[i].size()];
 	    	int j = 0;
 	    	
@@ -53,12 +60,11 @@ public class StochasticRW extends Algorithm {
 	    	
 	    	for( int i = 0; i < ITERATIONS; i++ ) {
 	    		int u = start;
-	    		
-	    		for( int j = 0; j < length; j++ ) {
-	    			u = neigh[u][(int)(neigh[u].length*Math.random())];
-	    		}
-	    		
-	    		scores[u]++;
+	    		double factor = neigh[u].length;
+	    		u = neigh[u][Main.rand.nextInt( neigh[u].length )];
+	    		factor *= neigh[u].length / docnorm2[neigh.length-u-1];
+	    		u = neigh[u][Main.rand.nextInt( neigh[u].length )];
+	    		scores[u] += factor;
 	    	}
 	    }
 	    

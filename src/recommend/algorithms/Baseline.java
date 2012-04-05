@@ -5,6 +5,7 @@ import java.util.*;
 
 import recommend.util.WordIndex;
 
+
 public class Baseline extends Algorithm {
 	double[] scores;
 	

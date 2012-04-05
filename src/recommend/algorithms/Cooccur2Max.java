@@ -4,6 +4,7 @@ import java.util.*;
 
 import recommend.util.WordIndex;
 
+
 public class Cooccur2Max extends Algorithm {
 	static final int MIN = 5;
 	HashMap<Long,Integer> doccount;

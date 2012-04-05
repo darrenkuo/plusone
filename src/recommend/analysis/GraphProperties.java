@@ -7,7 +7,7 @@ import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.SingularValueDecomposition;
 import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
-import recommend.util.Dataset;
+import recommend.util.DatasetOld;
 import recommend.util.DocAlgebra;
 
 public class GraphProperties {
@@ -154,7 +154,7 @@ public class GraphProperties {
 
         /* Loading the dataset. */
         report("dataset path: " + datasetPath);
-        Map<Integer, Double>[] docs = Dataset.loadDataset(datasetPath);
+        Map<Integer, Double>[] docs = DatasetOld.loadDataset(datasetPath);
         DoubleMatrix2D docTerm = DocAlgebra.docsToMatrix(docs);
         DoubleMatrix2D termDoc = docTerm.viewDice();
 

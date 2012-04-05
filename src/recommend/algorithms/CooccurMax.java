@@ -4,6 +4,7 @@ import java.util.*;
 
 import recommend.util.WordIndex;
 
+
 public class CooccurMax extends Algorithm {
 	int[] doccount;
 	double[] idf;

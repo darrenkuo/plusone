@@ -7,8 +7,8 @@ import org.json.*;
 
 public class Original {
 	public static void main( String[] args ) throws Throwable {
-		BufferedReader in = new BufferedReader( new FileReader( "test.out" ) );
-    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "test.json" ) ) );
+		BufferedReader in = new BufferedReader( new FileReader( "cran.out" ) );
+    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "cran.json" ) ) );
 		StringTokenizer st;
 
 	    JSONObject json = new JSONObject();
@@ -56,6 +56,6 @@ public class Original {
     	json.put( "docs", docs );
     	out.println( json.toString() );
     	out.close();
-    	//System.out.println( json.toString( 4 ) );
+    	//System.out.println( json.toString( 1 ) );
     }
 }

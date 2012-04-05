@@ -4,6 +4,7 @@ import java.util.*;
 
 import recommend.util.WordIndex;
 
+
 public class LSIWKNN extends Algorithm {
 	static final double THRESHOLD = 0.00001;
 	

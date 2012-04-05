@@ -4,15 +4,12 @@ import java.util.*;
 
 import recommend.util.WordIndex;
 
-public class WKNN extends Algorithm {
-	int K;
-	
+public class WeightedNeighbors extends Algorithm {
 	List<HashMap<Integer,Double>> traindocs;
 	double[] trainnorms;
 	
-	public WKNN( int K ) {
-		super( "WKNN-" + K );
-		this.K = K;
+	public WeightedNeighbors() {
+		super( "WeightedNeighbors" );
 	}
 
     public void train( List<HashMap<Integer,Double>> traindocs ) {
@@ -33,27 +30,14 @@ public class WKNN extends Algorithm {
     }
 
     public double[] predict( HashMap<Integer,Double> givenwords ) {
-    	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
-    	
-    	for( int i = 0; i < traindocs.size(); i++ ) {
-    		double similarity = similarity( givenwords, i );
-    		
-    		if( pq.size() < K ) {
-    			pq.add( new Pair( i, similarity ) );
-    		} else if( similarity > pq.peek().similarity ) {
-    			pq.poll();
-    			pq.add( new Pair( i, similarity ) );
-    		}
-    	}
-    	
     	double[] scores = new double[WordIndex.size()];
     	
-    	while( !pq.isEmpty() ) {
-    		Pair p = pq.poll();
-    		HashMap<Integer,Double> traindoc = traindocs.get( p.doc );
+    	for( int i = 0; i < traindocs.size(); i++ ) {
+    		HashMap<Integer,Double> traindoc = traindocs.get( i );
+    		double similarity = similarity( givenwords, i );
     		
     		for( int word : traindoc.keySet() ) {
-    			scores[word] += p.similarity*traindoc.get( word );
+    			scores[word] += similarity*traindoc.get( word );
     		}
     	}
     	
@@ -72,18 +56,4 @@ public class WKNN extends Algorithm {
 		
 		return dp/trainnorms[doc];
     }
-    
-	private static class Pair implements Comparable<Pair> {
-		int doc;
-		double similarity;
-		
-		public Pair( int doc, double similarity ) {
-			this.doc = doc;
-			this.similarity = similarity;
-		}
-		
-		public int compareTo( Pair p ) {
-			return similarity > p.similarity ? 1 : -1;
-		}
-	}
 }
