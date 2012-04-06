@@ -12,7 +12,7 @@ public class Jester {
 	    json.put( "nterms", 100 );
     	JSONArray docs = new JSONArray();
 	    
-	    Scanner in = new Scanner( new File( "jester-data.csv" ) );
+	    Scanner in = new Scanner( new File( "rawdata/jester-data.csv" ) );
     	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "jester-pos.json" ) ) );
 	    
 	    for( int i = 0; i < 24983+23500+24938; i++ ) {

@@ -7,11 +7,10 @@ import org.json.*;
 
 public class MovieLens {
 	public static void main( String[] args ) throws Throwable {
-	    Scanner in = new Scanner( new File( "ratings.dat" ) );
-    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "movielens-pos.json" ) ) );
+	    Scanner in = new Scanner( new File( "rawdata/ratings.dat" ) );
+    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "reg_movielens.json" ) ) );
 	    String s;
-	    HashMap<Integer,HashSet<Integer>> hm = new HashMap<Integer,HashSet<Integer>>();
-	    HashSet<Integer> movies = new HashSet<Integer>();
+	    HashMap<Integer,HashSet<Pair>> hm = new HashMap<Integer,HashSet<Pair>>();
 	    
 	    while( in.hasNextLine() ) {
 	    	String[] arr = in.nextLine().split( "::" );
@@ -20,43 +19,47 @@ public class MovieLens {
 	    	int rating = Integer.parseInt( arr[2] );
 	    	int time = Integer.parseInt( arr[3] );
 	    	
-	    	if( rating < 3 ) {
-	    		continue;
-	    	}
-	    	
 	    	if( hm.containsKey( user ) ) {
-	    		hm.get( user ).add( movie );
+	    		hm.get( user ).add( new Pair( movie, rating ) );
 	    	} else {
-	    		hm.put( user, new HashSet<Integer>() );
-	    		hm.get( user ).add( movie );
+	    		hm.put( user, new HashSet<Pair>() );
+	    		hm.get( user ).add( new Pair( movie, rating ) );
 	    	}
-	    	
-	    	movies.add( movie );
 	    }
 	    
 	    JSONObject json = new JSONObject();
-    	json.put( "ndocs", hm.keySet().size() );
-    	json.put( "nterms", movies.size() );
-    	
-    	JSONArray docs = new JSONArray();
+    	json.put( "num_users", hm.keySet().size() );
+    	JSONArray users = new JSONArray();
 	    
-	    for( Integer user : hm.keySet() ) {
-	    	JSONObject doc = new JSONObject();
-	    	doc.put( "docid", user );
+	    for( Integer name : hm.keySet() ) {
+	    	JSONObject user = new JSONObject();
+	    	user.put( "name", String.valueOf( name ) );
+	    	JSONArray items = new JSONArray();
+	    	JSONArray scores = new JSONArray();
 	    	
-	    	JSONArray terms = new JSONArray();
-	    	
-	    	for( Integer movie : hm.get( user ) ) {
-	    		terms.put( String.valueOf( movie ) );
+	    	for( Pair p : hm.get( name ) ) {
+	    		items.put( String.valueOf( p.movie ) );
+	    		scores.put( p.rating );
 	    	}
 	    	
-	    	doc.put( "terms", terms );
-	    	docs.put( doc );
+	    	user.put( "items", items );
+	    	user.put( "scores", scores );
+	    	users.put( user );
 	    }
 	    
-    	json.put( "docs", docs );
+    	json.put( "users", users );
     	out.println( json.toString() );
     	out.close();
     	//System.out.println( json.toString( 4 ) );
     }
+	
+	static class Pair {
+		int movie;
+		int rating;
+		
+		public Pair( int movie, int rating ) {
+			this.movie = movie;
+			this.rating = rating;
+		}
+	}
 }

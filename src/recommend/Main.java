@@ -75,11 +75,11 @@ public class Main {
 	static int RUNS;
 	static int PREDICTIONS;
 	
-	static int ndocs;
-	static HashMap<Integer,Double>[] docs;
+	static int num_users;
+	static HashMap<Integer,Double>[] users;
 	
 	public static void main( String[] args ) throws Throwable {
-		DATASET = System.getProperty( "dataset", "med5.json" );
+		DATASET = System.getProperty( "dataset", "reg_movielens5.json" );
 		TESTPERCENT = Double.parseDouble( System.getProperty( "testPercent", "0.5" ) );
 		RUNS = Integer.parseInt( System.getProperty( "runs", "5" ) );
 		PREDICTIONS = Integer.parseInt( System.getProperty( "predictions", "1" ) );
@@ -91,7 +91,7 @@ public class Main {
 		System.out.println( "Predictions: " + PREDICTIONS );
 		Dataset dataset = new Dataset( DATASET );
 		
-		for( String term : dataset.termindex ) {
+		for( String term : dataset.itemindex ) {
 			WordIndex.add( term );
 		}
 		
@@ -103,48 +103,48 @@ public class Main {
 			long predictTime = 0;
 			
 			for( int run = 0; run < RUNS; run++ ) {
-				ArrayList<HashMap<Integer,Double>> traindocs = new ArrayList<HashMap<Integer,Double>>();
-				ArrayList<HashMap<Integer,Double>> testdocs = new ArrayList<HashMap<Integer,Double>>();
-				int testfold = RUNS >= dataset.nfolds ? run : rand.nextInt( dataset.nfolds );
+				ArrayList<HashMap<Integer,Double>> training = new ArrayList<HashMap<Integer,Double>>();
+				ArrayList<HashMap<Integer,Double>> testing = new ArrayList<HashMap<Integer,Double>>();
+				int testfold = RUNS >= dataset.num_folds ? run : rand.nextInt( dataset.num_folds );
 				
-				for( int i = 0; i < dataset.nfolds; i++ ) {
+				for( int i = 0; i < dataset.num_folds; i++ ) {
 					if( i == testfold ) {
 						for( HashMap<Integer,Double> doc : dataset.folds[i] ) {
-							testdocs.add( doc );
+							testing.add( doc );
 						}
 					} else {
 						for( HashMap<Integer,Double> doc : dataset.folds[i] ) {
-							traindocs.add( doc );
+							training.add( doc );
 						}
 					}
 				}
 				
 				long startTime = System.nanoTime();
-				alg.train( traindocs );
+				alg.train( training );
 				trainTime += System.nanoTime()-startTime;
 				
 				int successes = 0;
 				
-				for( HashMap<Integer,Double> testdoc : testdocs ) {
-					HashMap<Integer,Double> givenwords = new HashMap<Integer,Double>();
-					HashSet<Integer> testwords = new HashSet<Integer>();
+				for( HashMap<Integer,Double> testuser : testing ) {
+					HashMap<Integer,Double> givenitems = new HashMap<Integer,Double>();
+					HashSet<Integer> testitems = new HashSet<Integer>();
 					
-					for( int word : testdoc.keySet() ) {
+					for( int word : testuser.keySet() ) {
 						if( rand.nextDouble() < TESTPERCENT ) {
-							testwords.add( word );
+							testitems.add( word );
 						} else {
-							givenwords.put( word, testdoc.get( word ) );
+							givenitems.put( word, testuser.get( word ) );
 						}
 					}
 					
 					startTime = System.nanoTime();
-					double[] scores = alg.predict( givenwords );
+					double[] scores = alg.predict( givenitems );
 					predictTime += System.nanoTime()-startTime;
 					//System.out.println(Arrays.toString( scores ));
 					PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
 					
 					for( int i = 0; i < scores.length; i++ ) {
-						if( givenwords.containsKey( i ) ) {
+						if( givenitems.containsKey( i ) ) {
 							continue;
 						}
 							
@@ -158,14 +158,14 @@ public class Main {
 					
 					while( !pq.isEmpty() ) {
 						Pair pair = pq.poll();
-						//System.out.println( WordIndex.get( pair.word ) + "\t" + pair.score + "\t" + testwords.contains( pair.word ) );
-						if( testwords.contains( pair.word ) ) {
+						//System.out.println( WordIndex.get( pair.item ) + "\t" + pair.score + "\t" + testitems.contains( pair.item ) );
+						if( testitems.contains( pair.item ) ) {
 							successes++;
 						}
 					}
 				}
 				
-				total += (double)successes/PREDICTIONS/testdocs.size();
+				total += (double)successes/PREDICTIONS/testing.size();
 			}
 			
 			System.out.println( total/RUNS + "\t" + ( trainTime/1000000000.0/RUNS ) + "\t" + ( predictTime/1000000000.0/RUNS ) );
@@ -173,11 +173,11 @@ public class Main {
 	}
 	
 	private static class Pair implements Comparable<Pair> {
-		int word;
+		int item;
 		double score;
 		
 		public Pair( int word, double score ) {
-			this.word = word;
+			this.item = word;
 			this.score = score;
 		}
 		

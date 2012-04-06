@@ -7,8 +7,8 @@ import org.json.*;
 
 public class Original {
 	public static void main( String[] args ) throws Throwable {
-		BufferedReader in = new BufferedReader( new FileReader( "cran.out" ) );
-    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "cran.json" ) ) );
+		BufferedReader in = new BufferedReader( new FileReader( "med.out" ) );
+    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "reg_med.json" ) ) );
 		StringTokenizer st;
 
 	    JSONObject json = new JSONObject();

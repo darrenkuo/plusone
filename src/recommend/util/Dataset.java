@@ -6,52 +6,53 @@ import java.util.HashMap;
 import org.json.*;
 
 public class Dataset {
-	public int ndocs, nterms, nfolds;
-	public String[] termindex, docindex;
-	public HashMap<Integer,Double>[] docs;
+	public int num_users, num_items, num_folds;
+	public String[] itemindex, userindex;
+	public HashMap<Integer,Double>[] users;
 	public HashMap<Integer,Double>[][] folds;
 	
 	public Dataset( String file ) throws IOException, JSONException {
 		BufferedReader in = new BufferedReader( new FileReader( file ) );
 		JSONObject json = new JSONObject( in.readLine() );
 		
-		this.ndocs = json.getInt( "ndocs" );
-		this.nterms = json.getInt( "nterms" );
-		this.nfolds = json.getInt( "nfolds" );
+		this.num_users = json.getInt( "num_users" );
+		this.num_items = json.getInt( "num_items" );
+		this.num_folds = json.getInt( "num_folds" );
 		
-		JSONArray termindex = json.getJSONArray( "termindex" );
-		this.termindex = new String[nterms];
+		JSONArray itemindex = json.getJSONArray( "itemindex" );
+		this.itemindex = new String[num_items];
 		
-		for( int i = 0; i < nterms; i++ ) {
-			this.termindex[i] = termindex.getString( i );
+		for( int i = 0; i < num_items; i++ ) {
+			this.itemindex[i] = itemindex.getString( i );
 		}
 		
-		JSONArray docindex = json.getJSONArray( "docindex" );
-		this.docindex = new String[ndocs];
+		JSONArray userindex = json.getJSONArray( "userindex" );
+		this.userindex = new String[num_users];
 		
-		for( int i = 0; i < ndocs; i++ ) {
-			this.docindex[i] = docindex.getString( i );
+		for( int i = 0; i < num_users; i++ ) {
+			this.userindex[i] = userindex.getString( i );
 		}
 		
 		JSONArray folds = json.getJSONArray( "folds" );
-		this.docs = new HashMap[ndocs];
-		this.folds = new HashMap[nfolds][];
+		this.users = new HashMap[num_users];
+		this.folds = new HashMap[num_folds][];
 		int index = 0;
 		
-		for( int i = 0; i < nfolds; i++ ) {
+		for( int i = 0; i < num_folds; i++ ) {
 			JSONArray fold = folds.getJSONArray( i );
 			this.folds[i] = new HashMap[fold.length()];
 			
 			for( int j = 0; j < fold.length(); j++ ) {
-				JSONArray doc = fold.getJSONArray( j );
+				JSONObject user = fold.getJSONObject( j );
 				this.folds[i][j] = new HashMap<Integer,Double>();
+				JSONArray items = user.getJSONArray( "items" );
+				JSONArray scores = user.getJSONArray( "scores" );
 				
-				for( int k = 0; k < doc.length(); k++ ) {
-					JSONArray term = doc.getJSONArray( k );
-					this.folds[i][j].put( term.getInt( 0 ), term.getDouble( 1 ) );
+				for( int k = 0; k < items.length(); k++ ) {
+					this.folds[i][j].put( items.getInt( k ), scores.getDouble( k ) );
 				}
 				
-				docs[index++] = this.folds[i][j];
+				users[index++] = this.folds[i][j];
 			}
 		}
 	}
