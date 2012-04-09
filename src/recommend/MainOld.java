@@ -14,7 +14,7 @@ public class MainOld {
 		//new WeightedNeighbors(),
 		//new StochasticRWWKNN(),
 		//new WKNN( 25 )
-		new Baseline(),
+		new ItemAverage(),
 		new StochasticRWCooccurSum(),
 		new StochasticRWWKNN(),
 		//new StochasticRW( 1 )

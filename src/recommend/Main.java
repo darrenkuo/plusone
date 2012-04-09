@@ -7,7 +7,7 @@ import recommend.util.*;
 public class Main {
 	static String DATASET;
 	static final Algorithm[] algs = new Algorithm[] {
-		new Baseline(),
+		new ItemAverage(),
 		new StochasticRWCooccurSum(),
 		new StochasticRWWKNN(),
 		//new StochasticRW( 1 )

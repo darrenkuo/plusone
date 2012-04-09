@@ -9,8 +9,8 @@ import recommend.util.WordIndex;
 
 public class CreateFolds {
 	static int NFOLDS = 5;
-	static String INFILE = "reg_movielens.json";
-	static String OUTFILE = "reg_movielens5.json";
+	static String INFILE = "reg_jester.json";
+	static String OUTFILE = "reg_jester5.json";
 	
 	public static void main( String[] args ) throws Throwable {
 	    BufferedReader in = new BufferedReader( new FileReader( INFILE ) );
