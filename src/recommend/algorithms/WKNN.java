@@ -9,6 +9,8 @@ public class WKNN extends Algorithm {
 	
 	List<HashMap<Integer,Double>> traindocs;
 	double[] trainnorms;
+	double[] itemAverages;
+
 	
 	public WKNN( int K ) {
 		super( "WKNN-" + K );
@@ -16,6 +18,10 @@ public class WKNN extends Algorithm {
 	}
 
     public void train( List<HashMap<Integer,Double>> traindocs ) {
+    	ItemAverage items = new ItemAverage();
+    	items.train(traindocs);
+    	itemAverages = items.predict(traindocs.get(0));
+    	
     	this.traindocs = traindocs;
     	trainnorms = new double[traindocs.size()];
     	
@@ -35,9 +41,10 @@ public class WKNN extends Algorithm {
     public double[] predict( HashMap<Integer,Double> givenwords ) {
     	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
     	
+    	double sumOfSims = 0.0;
+    	
     	for( int i = 0; i < traindocs.size(); i++ ) {
     		double similarity = similarity( givenwords, i );
-    		
     		if( pq.size() < K ) {
     			pq.add( new Pair( i, similarity ) );
     		} else if( similarity > pq.peek().similarity ) {
@@ -46,14 +53,20 @@ public class WKNN extends Algorithm {
     		}
     	}
     	
+    	for (Iterator<Pair> i = pq.iterator(); i.hasNext();) {
+    		sumOfSims += i.next().similarity;
+    	}
     	double[] scores = new double[WordIndex.size()];
     	
     	while( !pq.isEmpty() ) {
     		Pair p = pq.poll();
     		HashMap<Integer,Double> traindoc = traindocs.get( p.doc );
     		
-    		for( int word : traindoc.keySet() ) {
-    			scores[word] += p.similarity*traindoc.get( word );
+    		for( int word = 0; word < WordIndex.size(); word++ ) {
+    			if (traindoc.get(word) != null)
+    				scores[word] += (p.similarity*traindoc.get( word ))/sumOfSims;
+    			 else
+    				scores[word] += p.similarity*itemAverages[word]/sumOfSims;
     		}
     	}
     	
@@ -63,13 +76,13 @@ public class WKNN extends Algorithm {
     private double similarity( HashMap<Integer,Double> words, int doc ) {
 		int dp = 0;
 		HashMap<Integer,Double> traindoc = traindocs.get( doc );
-		
+
 		for( int word : words.keySet() ) {
 			if( traindoc.containsKey( word ) ) {
 				dp += words.get( word )*traindoc.get( word );
 			}
 		}
-		
+
 		return dp/trainnorms[doc];
     }
     

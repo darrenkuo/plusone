@@ -9,41 +9,49 @@ import recommend.util.WordIndex;
 public class KNN extends Algorithm {
 	int K;
 	
-	List<HashMap<Integer,Double>> traindocs;
-	double[] trainnorms;
+	List<HashMap<Integer,Double>> users;
+	double[] usernorms;
+	double[] itemAverages;
 	
 	public KNN( int K ) {
 		super( "KNN-" + K );
 		this.K = K;
 	}
 
-    public void train( List<HashMap<Integer,Double>> traindocs ) {
-    	this.traindocs = traindocs;
-    	trainnorms = new double[traindocs.size()];
+    public void train( List<HashMap<Integer,Double>> users ) {
     	
-    	for( int i = 0; i < trainnorms.length; i++ ) {
+    	ItemAverage items = new ItemAverage();
+    	items.train(users);
+    	itemAverages = items.predict(users.get(0));
+    	
+    	this.users = users;
+    	usernorms = new double[users.size()];
+    	
+    	for( int i = 0; i < usernorms.length; i++ ) {
     		double norm2 = 0;
-    		HashMap<Integer,Double> traindoc = traindocs.get( i );
+    		HashMap<Integer,Double> user = users.get( i );
     		
-    		for( Integer word : traindoc.keySet() ) {
-    			double score = traindoc.get( word );
+    		for( Integer item : user.keySet() ) {
+    			double score = user.get( item );
     			norm2 += score*score;
     		}
     		
-    		trainnorms[i] = Math.sqrt( norm2 );
+    		usernorms[i] = Math.sqrt( norm2 );
     		//trainnorms[i] = norm2;
     	}
     }
 
     public double[] predict( HashMap<Integer,Double> givenwords ) {
     	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
+    	double sumOfSims = 0.0;
     	
-    	for( int i = 0; i < traindocs.size(); i++ ) {
+    	for( int i = 0; i < users.size(); i++ ) {
     		double similarity = similarity( givenwords, i );
-    		
+    		sumOfSims += similarity;
+
     		if( pq.size() < K ) {
     			pq.add( new Pair( i, similarity ) );
-    		} else if( similarity > pq.peek().similarity ) {
+    		} else if( similarity > pq.peek().similarity) {
     			pq.poll();
     			pq.add( new Pair( i, similarity ) );
     		}
@@ -53,10 +61,13 @@ public class KNN extends Algorithm {
     	
     	while( !pq.isEmpty() ) {
     		Pair p = pq.poll();
-    		HashMap<Integer,Double> traindoc = traindocs.get( p.doc );
+    		HashMap<Integer,Double> traindoc = users.get( p.doc );
     		
-    		for( int word : traindoc.keySet() ) {
-    			scores[word] += traindoc.get( word );
+    		for( int word = 0; word < WordIndex.size(); word++) {
+    			if (traindoc.get(word) != null)
+    				scores[word] += traindoc.get( word )/K;
+    			else
+    				scores[word] += itemAverages[word]/K;
     		}
     	}
     	
@@ -65,7 +76,7 @@ public class KNN extends Algorithm {
 	
     private double similarity( HashMap<Integer,Double> words, int doc ) {
 		int dp = 0;
-		HashMap<Integer,Double> traindoc = traindocs.get( doc );
+		HashMap<Integer,Double> traindoc = users.get( doc );
 		
 		for( int word : words.keySet() )
 			if( traindoc.containsKey( word ) )
@@ -77,9 +88,7 @@ public class KNN extends Algorithm {
 			double score = words.get( word );
 			norm2 += score*score;
 		}
-		
-		return dp/( trainnorms[doc]*Math.sqrt( norm2 ) );
-		//return dp/( trainnorms[doc] + norm2 - dp );
+		return dp/( usernorms[doc]*Math.sqrt( norm2 ) );
     }
     
 	private static class Pair implements Comparable<Pair> {

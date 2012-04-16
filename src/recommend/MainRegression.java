@@ -9,6 +9,25 @@ public class MainRegression {
 	static final Algorithm[] algs = new Algorithm[] {
 		new ItemAverage(),
 		new UserAverage(),
+		
+		/*new KNN(1),
+		new KNN(2),
+		new KNN(5),
+		new KNN(10),
+		new KNN(50),
+		new KNN(100),
+		new KNN(1000),
+		*/
+		
+		/*new WKNN(1),
+		new WKNN(2),
+		new WKNN(5),
+		new WKNN(10),
+		new WKNN(50),
+		new WKNN(100),
+		new WKNN(1000),
+		new WKNN(100000),*/
+		//new WeightedNeighbors(),
 	};
 	public static Random rand;
 	
@@ -20,8 +39,9 @@ public class MainRegression {
 	
 	public static void main( String[] args ) throws Throwable {
 		DATASET = System.getProperty( "dataset", "reg_movielens5.json" );
+		//DATASET = System.getProperty( "dataset", "reg_simple.json" );
 		TESTPERCENT = Double.parseDouble( System.getProperty( "testPercent", "0.5" ) );
-		RUNS = Integer.parseInt( System.getProperty( "runs", "5" ) );
+		RUNS = Integer.parseInt( System.getProperty( "runs", "1" ) );
 		rand = System.getProperty( "seed" ) == null ? new Random() : new Random( Integer.parseInt( System.getProperty( "seed" ) ) );
 		
 		System.out.println( "File: " + DATASET );

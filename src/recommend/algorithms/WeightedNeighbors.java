@@ -7,12 +7,17 @@ import recommend.util.WordIndex;
 public class WeightedNeighbors extends Algorithm {
 	List<HashMap<Integer,Double>> traindocs;
 	double[] trainnorms;
+	double[] itemAverages;
 	
 	public WeightedNeighbors() {
 		super( "WeightedNeighbors" );
 	}
 
     public void train( List<HashMap<Integer,Double>> traindocs ) {
+    	ItemAverage items = new ItemAverage();
+    	items.train(traindocs);
+    	itemAverages = items.predict(traindocs.get(0));
+    	
     	this.traindocs = traindocs;
     	trainnorms = new double[traindocs.size()];
     	
@@ -31,13 +36,21 @@ public class WeightedNeighbors extends Algorithm {
 
     public double[] predict( HashMap<Integer,Double> givenwords ) {
     	double[] scores = new double[WordIndex.size()];
+    	double sumOfSims = 0.0;
     	
+    	for( int i = 0; i < traindocs.size(); i++ ) {
+    		double similarity = similarity( givenwords, i );
+    		sumOfSims += similarity;
+    	}
     	for( int i = 0; i < traindocs.size(); i++ ) {
     		HashMap<Integer,Double> traindoc = traindocs.get( i );
     		double similarity = similarity( givenwords, i );
-    		
-    		for( int word : traindoc.keySet() ) {
-    			scores[word] += similarity*traindoc.get( word );
+
+    		for( int word = 0; word < WordIndex.size(); word++ ) {
+    			if (traindoc.get(word) != null)
+    				scores[word] += similarity*traindoc.get( word )/sumOfSims;
+    			else
+    				scores[word] += similarity*itemAverages[word]/sumOfSims;
     		}
     	}
     	
@@ -53,7 +66,6 @@ public class WeightedNeighbors extends Algorithm {
 				dp += words.get( word )*traindoc.get( word );
 			}
 		}
-		
 		return dp/trainnorms[doc];
     }
 }
