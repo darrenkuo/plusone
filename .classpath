@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="lib/jars/ejml-0.17.jar"/>
+	<classpathentry kind="lib" path="lib/jars/gson-1.7.1.jar"/>
+	<classpathentry kind="lib" path="lib/jars/jericho-html-3.2.jar"/>
+	<classpathentry kind="lib" path="lib/jars/json.jar"/>
+	<classpathentry kind="lib" path="/Users/andrewgambardella/Research/plusone/lib/jars/colt.jar"/>
+	<classpathentry kind="lib" path="/Users/andrewgambardella/Research/plusone/lib/jars/commons-lang-2.6.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

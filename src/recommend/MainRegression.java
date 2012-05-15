@@ -38,8 +38,9 @@ public class MainRegression {
 	static HashMap<Integer,Double>[] users;
 	
 	public static void main( String[] args ) throws Throwable {
-		DATASET = System.getProperty( "dataset", "reg_movielens5.json" );
+		//DATASET = System.getProperty( "dataset", "reg_movielens5.json" );
 		//DATASET = System.getProperty( "dataset", "reg_simple.json" );
+		DATASET = System.getProperty( "dataset", "reg_test.json" );
 		TESTPERCENT = Double.parseDouble( System.getProperty( "testPercent", "0.5" ) );
 		RUNS = Integer.parseInt( System.getProperty( "runs", "1" ) );
 		rand = System.getProperty( "seed" ) == null ? new Random() : new Random( Integer.parseInt( System.getProperty( "seed" ) ) );
