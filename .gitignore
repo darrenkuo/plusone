@@ -6,3 +6,7 @@
 /lib/lda-c-dist/lda
 /lib/*.jar
 /lib/jars/*.jar
+.DS_Store
+.metadata
+.project
+.classpath
