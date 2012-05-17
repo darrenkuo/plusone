@@ -7,16 +7,23 @@ public class MainMakeJSON {
 	public static void main(String[] args) {
 		
 		//Needs to be changed depending on where file is located
-		StringBuffer filestem = new StringBuffer("/Users/andrewgambardella/Research/makeJSON/src/");
+		StringBuffer filestem = new StringBuffer("/Users/andrewgambardella/Research/");
 		StringBuffer thisfile = filestem.append("test.txt");
-		FileInputStream filecontents = null;
+		File fixedFile = null;
 		try {
-			filecontents = new FileInputStream(thisfile.toString());
-		} catch (FileNotFoundException e) {
-			System.out.println("Check your filepath");
+			fixedFile = preprocess(thisfile.toString());
+		} catch (IOException e) {
+			System.out.println("Could not preprocess");
 			System.exit(1);
 		}
-		Scanner lines = new Scanner(filecontents);
+		
+		Scanner lines = null;
+		try {
+			lines = new Scanner(new FileInputStream(fixedFile));
+		} catch (FileNotFoundException e) {
+			System.out.println("Could not get file from preprocess");
+			System.exit(1);
+		}
 		
 		int count = 0;
 		int numUsers = 0;
@@ -79,6 +86,55 @@ public class MainMakeJSON {
 			}
 		}
 		System.out.print("]}");
+	}
+	
+	private static File preprocess(String filepath) throws IOException {
+		File f = new File("temporaryfilepleaseignore.txt");
+		f.deleteOnExit();
+		FileWriter writer = null;
+		try {
+			writer = new FileWriter(f);
+		} catch (IOException e) {
+			System.out.println("Check your filepath");
+			System.exit(1);
+		}
+		
+		FileInputStream filecontents = null;
+		try {
+			filecontents = new FileInputStream(filepath);
+		} catch (FileNotFoundException e) {
+			System.out.println("Check your filepath");
+			System.exit(1);
+		}
+		Scanner lines = new Scanner(filecontents);
+		while (lines.hasNextLine()) {
+			String itemLine = lines.nextLine();
+			String scoreLine = lines.nextLine();
+			ArrayList<Integer> removeTheseItems = new ArrayList<Integer>();
+			String[] potentialItems = itemLine.split(" ");
+			String[] potentialScores = scoreLine.split(" ");
+			for (int i = 0; i < potentialScores.length; i++) {
+				if (potentialScores[i].equals("0")) {
+					removeTheseItems.add(i);
+				}
+			}
+
+			for (int i = 0; i < potentialItems.length; i++) {
+				if (!removeTheseItems.contains(i)) {
+					writer.write(potentialItems[i] + " ");
+				}
+			}
+			writer.write("\n");
+			for (int i = 0; i < potentialScores.length; i++) {
+				if (!removeTheseItems.contains(i)) {
+					writer.write(potentialScores[i] + " ");
+				}
+			}
+			writer.write("\n");
+		}
+		writer.close();
+		
+		return f;
 	}
 
 }
