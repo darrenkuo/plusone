@@ -5,7 +5,7 @@ from math import e
 
 import random
 from random import random as rand
-from random import shuffle
+from random import sample as rsample
 
 import numpy
 from numpy.random.mtrand import dirichlet
@@ -49,8 +49,11 @@ def count(words):
     return word_count
 
 def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
-                  alpha=None, beta=None):
+                  alpha=None, beta=None, noise=0):
+    """noise is given as a percentage of words_per_doc, typically 5
+    """
     p = Poisson(words_per_doc)
+    n = Poisson(int(words_per_doc * (noise / 100.0)))
     if alpha == None:
         alpha = [1]*num_topics
     if beta == None:
@@ -64,13 +67,15 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
     docs = []
     topic_dists = []
     for i in range(num_docs):
-        words_per_doc = p.sample()
+        noise_per_doc = n.sample()
+        words_per_doc = p.sample() - noise_per_doc
         doc = []
         topic_dist = dirichlet(alpha)
         topic_dists.append(topic_dist)
         for word in range(words_per_doc):
             topic = sample(topic_dist)
             doc.append(sample(word_dist[topic]))
+        doc.append(rsample(range(len(vocab_size)), noise_per_doc))
         docs.append(doc)
     return docs, word_dist, topic_dists
 
