@@ -12,3 +12,4 @@
 .classpath
 .py*
 bin/*
+*-out
