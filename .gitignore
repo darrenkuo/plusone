@@ -10,3 +10,5 @@
 .metadata
 .project
 .classpath
+.py*
+bin/*
