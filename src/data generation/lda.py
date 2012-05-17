@@ -75,7 +75,7 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
         for word in range(words_per_doc):
             topic = sample(topic_dist)
             doc.append(sample(word_dist[topic]))
-        doc.append(rsample(range(len(vocab_size)), noise_per_doc))
+        doc += rsample(range(vocab_size), noise_per_doc)
         docs.append(doc)
     return docs, word_dist, topic_dists
 
