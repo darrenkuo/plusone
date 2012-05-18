@@ -1,19 +1,20 @@
 package recommend;
 
 import java.util.*;
+import plusone.clustering.*;
 import recommend.algorithms.*;
 import recommend.util.*;
 
 public class Main {
 	static String DATASET;
 	static final Algorithm[] algs = new Algorithm[] {
-		new ItemAverage(),
-		new StochasticRWCooccurSum(),
-		new StochasticRWWKNN(),
+		//new ItemAverage(),
+		//new StochasticRWCooccurSum(),
+		//new StochasticRWWKNN(),
 		//new StochasticRW( 1 )
 		//new CooccurSum(),
 		//new CooccurSumIDF(),
-		//new Baseline(),
+		//new recommend.algorithms.Baseline(null, null),
 		/*
 		new Baseline(),
 		new KNN( 5 ),

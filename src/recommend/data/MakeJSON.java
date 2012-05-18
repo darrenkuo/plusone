@@ -1,9 +1,9 @@
-package recommend;
+package recommend.data;
 
 import java.io.*;
 import java.util.*;
 
-public class MainMakeJSON {
+public class MakeJSON {
 	public static void main(String[] args) {
 		
 		//Needs to be changed depending on where file is located

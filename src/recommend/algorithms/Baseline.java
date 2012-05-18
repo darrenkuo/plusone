@@ -1,13 +1,16 @@
 package recommend.algorithms;
 
-
 import java.util.*;
+
+import plusone.utils.PredictionPaper;
+import plusone.utils.Terms;
+import plusone.utils.TrainingPaper;
 
 import recommend.util.WordIndex;
 
 
 public class Baseline extends Algorithm {
-	double[] scores;
+	/*double[] scores;
 	
 	public Baseline() {
 		super( "Baseline" );
@@ -26,4 +29,25 @@ public class Baseline extends Algorithm {
 	public double[] predict( HashMap<Integer,Double> givenwords ) {
 		return scores;
 	}
+	*/
+	
+	private List<TrainingPaper> trainingSet;
+    private Terms terms;    
+
+    public Baseline(List<TrainingPaper> trainingSet, Terms terms) {
+    	super("Baseline");
+    	this.trainingSet = trainingSet;
+    	this.terms = terms;
+    }
+	
+	public double[] predict(int k, PredictionPaper paper) {
+		double[] scores = new double[WordIndex.size()];
+		for (TrainingPaper t : trainingSet) {
+			for (Integer w : t.getTrainingWords()) {
+				scores[w] += t.getTrainingTf(w);
+			}
+		}
+		return scores;
+	}
+	
 }

@@ -20,5 +20,5 @@ public interface ClusteringMethod {
      * @return p, where p[i][j] is the j-th predicted word for the i-th
      *         document.
      */
-    public Integer[] predict(int k, PredictionPaper paper);
+    public double[] predict(int k, PredictionPaper paper);
 }

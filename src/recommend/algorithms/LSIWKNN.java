@@ -2,10 +2,16 @@ package recommend.algorithms;
 
 import java.util.*;
 
+import plusone.utils.PaperAbstract;
+import plusone.utils.PredictionPaper;
+import plusone.utils.Terms;
+import plusone.utils.TrainingPaper;
+
 import recommend.util.WordIndex;
 
 
 public class LSIWKNN extends Algorithm {
+	/*
 	static final double THRESHOLD = 0.00001;
 	
 	int K1,K2;
@@ -225,6 +231,235 @@ public class LSIWKNN extends Algorithm {
 		return dp/( Math.sqrt( norm2 ) );
     }
     
+	private static class Pair implements Comparable<Pair> {
+		int doc;
+		double similarity;
+		
+		public Pair( int doc, double similarity ) {
+			this.doc = doc;
+			this.similarity = similarity;
+		}
+		
+		public int compareTo( Pair p ) {
+			return similarity > p.similarity ? 1 : -1;
+		}
+	}
+	*/
+	static final double THRESHOLD = 0.00001;
+	
+	int K1, K2;
+	private List<TrainingPaper> trainingSet;
+    private Terms terms;
+	HashMap<Integer,Double>[] MT;
+	TrainingPaper[] M;
+	
+	double[][] U, UT, V, VT; // UT=kxd, VT=kxt, V=txk
+	double[] S; // k
+	
+	public LSIWKNN( int K1, int K2, List<TrainingPaper> trainingSet, Terms terms ) {
+		super( "LSI-"+K1+":WKNN-"+K2 );
+		this.K1 = K1;
+		this.K2 = K2;
+		this.trainingSet = trainingSet;
+    	this.terms = terms;
+	}
+
+    public double[] predict( int k, PredictionPaper paper ) {
+    	M = new TrainingPaper[trainingSet.size()];
+		MT = new HashMap[terms.size()];
+		
+		for( int i = 0; i < MT.length; i++ )
+			MT[i] = new HashMap<Integer,Double>();
+		
+		for( int i = 0; i < trainingSet.size(); i++ ) {
+			M[i] = trainingSet.get( i );
+			
+			for( int word : M[i].getTrainingWords() ) {
+				MT[word].put( i, MT[i].containsKey( word ) ? MT[i].get( word ) + 1 : 1 );
+			}
+		}
+		
+		int d = M.length;
+		int t = MT.length;
+		UT = new double[K1][d];
+		S = new double[K1];
+		VT = new double[K1][t];
+		
+		for( int z = 0; z < K1; z++ ) {
+			double[] u = new double[d], up = new double[d];
+			double[] v = new double[t], vp = new double[t];
+			
+			for( int i = 0; i < d; i++ )
+				up[i] = 1.0;
+			
+			for( int i = 0; i < t; i++ )
+				vp[i] = 1.0;
+			
+			double norm2u, norm2up = norm2( up );
+			double norm2v, norm2vp = norm2( vp );
+			
+			while( true ) {
+				for( int i = 0; i < d; i++ )
+					u[i] = up[i];
+				
+				for( int j = 0; j < t; j++ )
+					v[j] = vp[j];
+				
+				norm2u = norm2up;
+				norm2v = norm2vp;
+				
+				double[] t1 = new double[z];
+				
+				for( int a = 0; a < z; a++ )
+					t1[a] = dotproduct( v, VT[a] );
+				
+				for( int i = 0; i < d; i++ ) {
+					up[i] = 0.0;
+					
+					for( int word : M[i].getTrainingWords() )
+						up[i] += M[i].getTrainingTf( word ) * v[word];
+					
+					for( int a = 0; a < z; a++ )
+						up[i] -= UT[a][i] * S[a] * t1[a];
+					
+					up[i] /= norm2v;
+				}
+				
+				norm2up = norm2( up );
+				
+				if( norm2up < THRESHOLD*THRESHOLD )
+					break;
+				
+				for( int a = 0; a < z; a++ )
+					t1[a] = dotproduct( up, UT[a] );
+				
+				for( int j = 0; j < t; j++ ) {
+					vp[j] = 0.0;
+					
+					for( int paper2 : MT[j].keySet() )
+						vp[j] += MT[j].get( paper2 ) * up[paper2];
+					
+					for( int a = 0; a < z; a++ )
+						vp[j] -= VT[a][j] * S[a] * t1[a];
+					
+					vp[j] /= norm2up;
+				}
+				
+				norm2vp = norm2( vp );
+				
+				if( norm2vp < THRESHOLD*THRESHOLD )
+					break;
+				
+				if( Math.abs( norm2u * norm2v - norm2up * norm2vp ) < THRESHOLD * norm2u * norm2v )
+					break;
+			}
+			
+			double normu = norm( u );
+			double normv = norm( v );
+			
+			for( int i = 0; i < d; i++ )
+				UT[z][i] = up[i] / normu;
+			
+			for( int j = 0; j < t; j++ )
+				VT[z][j] = vp[j] / normv;
+			
+			S[z] = normu * normv;
+		}
+		
+		V = new double[VT[0].length][VT.length];
+		
+		for( int i = 0; i < V.length; i++ )
+			for( int j = 0; j < VT.length; j++ )
+				V[i][j] = VT[j][i];
+    	
+		//prediction starts here
+		
+    	double[][] c = new double[1][WordIndex.size()];
+		
+		for( int word : ((PaperAbstract) paper).getTestingWords() )
+			c[0][word] = ((PaperAbstract) paper).getTestingTf( word );
+		
+		c = matmul( c, V );
+		
+		for( int i = 0; i < c.length; i++ )
+			c[0][i] /= S[i];
+				
+		PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
+    	
+    	for( int i = 0; i < U.length; i++ ) {
+    		double similarity = similarity( U[i], c[0] );
+    		
+    		if( pq.size() < K2 ) {
+    			pq.add( new Pair( i, similarity ) );
+    		} else if( similarity > pq.peek().similarity ) {
+    			pq.poll();
+    			pq.add( new Pair( i, similarity ) );
+    		}
+    	}
+		
+    	double[] scores = new double[WordIndex.size()];
+    	
+    	while( !pq.isEmpty() ) {
+    		Pair p = pq.poll();
+    		TrainingPaper traindoc = trainingSet.get( p.doc );
+    		
+    		for( int word : traindoc.getTrainingWords() ) {
+    			scores[word] += p.similarity*traindoc.getTrainingTf( word );
+    		}
+    	}
+    	
+		return scores;
+    }
+	
+	private static final double[][] matmul( double[][] a, double[][] b ) {
+		double[][] c = new double[a.length][b[0].length];
+		
+		for( int i = 0; i < c.length; i++ ) {
+			for( int j = 0; j < c[0].length; j++ ) {
+				for( int k = 0; k < b.length; k++ ) {
+					c[i][j] += a[i][k] * b[k][j];
+				}
+			}
+		}
+		
+		return c;
+	}
+	
+	private static final double norm2( double[] a ) {
+		double norm2 = 0.0;
+		
+		for( int i = 0; i < a.length; i++ ) {
+			norm2 += a[i] * a[i];
+		}
+		
+		return norm2;
+	}
+	
+	private static final double norm( double[] a ) {
+		return Math.sqrt( norm2( a ) );
+	}
+	
+	private static final double dotproduct( double[] a, double[] b ) {
+		double dp = 0.0;
+		
+		for( int i = 0; i < a.length; i++ )
+			dp += a[i] * b[i];
+		
+		return dp;
+	}
+	
+	private double similarity( double[] traindoc, double[] testdoc ) {
+		double dp = 0;
+		double norm2 = 0;
+		
+		for( int i = 0; i < traindoc.length; i++ ) {
+			dp += traindoc[i]*testdoc[i];
+			norm2 += testdoc[i]*testdoc[i];
+		}
+		
+		return dp/( Math.sqrt( norm2 ) );
+    }
+	
 	private static class Pair implements Comparable<Pair> {
 		int doc;
 		double similarity;
