@@ -31,7 +31,7 @@ def generate_ratings(num_types, num_users, ratings_per_user=20, num_items=100,
         type_dists.append(type_dist)
         rating = []
         indices = []
-        for j in items:
+        for j in rsample(range(num_items), ratings_per_user):
             if rand() < noise:
                 rating.append(rint(1,5))
             else:
