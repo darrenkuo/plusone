@@ -71,8 +71,10 @@ def write(data):
             f.write('\n')
 
 def main():
-    data = generate_ratings(4, 20)
+    data = generate_ratings(10, 200)
+    print "writing data to file...",
     write(data)
+    print "done."
     return data
 
 if __name__ == '__main__':
