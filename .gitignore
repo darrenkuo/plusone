@@ -10,3 +10,10 @@
 .metadata
 .project
 .classpath
+.py*
+bin/*
+*-out
+*.aux
+*.pdf
+*.log
+*.pyc
