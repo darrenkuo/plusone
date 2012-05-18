@@ -2,12 +2,15 @@ import sys
 
 import math
 from math import e
+from math import gamma
+
+import operator
 
 import random
 from random import random as rand
 from random import sample as rsample
 
-import numpy
+import numpy as np
 from numpy.random.mtrand import dirichlet
 
 class Poisson(object):
@@ -90,6 +93,13 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
 
 def normalize(dist):
     return dist / sum(dist)
+
+def dirichlet_pdf(x, alpha):
+    density = reduce(operator.mul, 
+                   [x[i]**(alpha[i]-1.0) for i in range(len(alpha))])
+    norm_top = gamma(np.sum(alpha))
+    norm_bot = reduce(operator.mul, [gamma(a) for a in alpha])
+    return (norm_top / norm_bot) * density
 
 def write(data):
     docs, words, topics = data
