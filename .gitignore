@@ -13,3 +13,7 @@
 .py*
 bin/*
 *-out
+*.aux
+*.pdf
+*.log
+*.pyc

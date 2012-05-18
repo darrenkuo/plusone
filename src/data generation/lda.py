@@ -49,7 +49,7 @@ def count(words):
     return word_count
 
 def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
-                  alpha=None, beta=None, noise=0):
+                  alpha=None, beta=None, noise=0, plsi=False):
     """noise is given as a percentage of words_per_doc, typically 5
     """
     p = Poisson(words_per_doc)
@@ -63,14 +63,22 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
         print "alpha supplied:", len(alpha), "(needed", num_topics, ")"
         print "beta supplied:", len(beta), "(needed", vocab_size, ")" 
         return
-    word_dist = [dirichlet(beta) for i in range(num_topics)]
+    if plsi:
+        word_dist = [normalize(array([rand() for w in range(vocab_size)],
+                                     'double')) for t in range(num_topics)]
+    else:
+        word_dist = [dirichlet(beta) for i in range(num_topics)]
     docs = []
     topic_dists = []
     for i in range(num_docs):
         noise_per_doc = n.sample()
         words_per_doc = p.sample() - noise_per_doc
         doc = []
-        topic_dist = dirichlet(alpha)
+        if plsi:
+            topic_dist = normalize(array([rand() for t in range(num_topics)],
+                                         'double'))
+        else:
+            topic_dist = dirichlet(alpha)
         topic_dists.append(topic_dist)
         for word in range(words_per_doc):
             topic = sample(topic_dist)
@@ -79,11 +87,25 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
         docs.append(doc)
     return docs, word_dist, topic_dists
 
-def write(docs):
+def normalize(dist):
+    return dist / sum(dist)
+
+def write(data):
+    docs, words, topics = data
     with open('lda-out', 'w') as f:
         for doc in docs:
             for word in doc:
                 f.write(str(word) + " ")
+            f.write('\n')
+    with open('lda_model-out', 'w') as f:
+        for topic in words:
+            for word in topic:
+                f.write(str(word) + " ")
+            f.write('\n')
+        f.write('V\n')
+        for doc in topics:
+            for topic in doc:
+                f.write(str(topic) + " ")
             f.write('\n')
 
 def main():
@@ -99,7 +121,7 @@ def main():
     data = generate_docs(num_topics, num_docs)
     if '-w' in args:
         print "writing data to file...",
-        write(data[0])
+        write(data)
         print "done"
     return data
 

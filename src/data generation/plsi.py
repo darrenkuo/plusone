@@ -1,6 +1,7 @@
 import lda
 from lda import Poisson
 from lda import sample
+from lda import normalize
 
 import numpy as np
 from numpy import array
@@ -25,21 +26,24 @@ def generate_ratings(num_types, num_users, ratings_per_user=20, num_items=100,
         type_dists.append(type_dist)
         rating = []
         indices = []
-        for j in rsample(range(num_items), ratings_per_user):
+        items = rsample(range(num_items), ratings_per_user)
+        items_left = range(num_items)
+        for item in items:
+            items_left.remove(item)
+        for j in items:
             type = sample(type_dist)
             rating.append(ratings[type][j])
             indices.append(j)
-        erasures = int((noise / 100.0) * ratings_per_user)
-        for k in rsample(range(len(rating)), erasures):
-            rating[k] = 0 
+        additions = int((noise / 100.0) * ratings_per_user)
+        print "ratings", ratings_per_user
+        print "additions", additions
+        for k in rsample(items_left, additions):
+            rating.append(rint(1,5)) 
         user_ratings.append(rating)
         user_indices.append(indices)
     user_ratings = user_indices, user_ratings
     
     return user_ratings, ratings, type_dists
-
-def normalize(dist):
-    return dist / sum(dist)
 
 def write(user_ratings):
     user_indices, user_ratings = user_ratings
