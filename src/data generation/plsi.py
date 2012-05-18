@@ -13,7 +13,7 @@ from random import randint as rint
 from random import sample as rsample
 
 def generate_ratings(num_types, num_users, ratings_per_user=20, num_items=100,
-                     alpha=None, noise=0, plsi=False):
+                     alpha=None, noise=-1, plsi=False):
     p = Poisson(ratings_per_user)
     ratings = [[rint(1,5) for i in range(num_items)] for i in range(num_types)]
     if alpha == None:
@@ -31,17 +31,13 @@ def generate_ratings(num_types, num_users, ratings_per_user=20, num_items=100,
         type_dists.append(type_dist)
         rating = []
         indices = []
-        items = rsample(range(num_items), ratings_per_user)
-        items_left = range(num_items)
-        for item in items:
-            items_left.remove(item)
         for j in items:
-            type = sample(type_dist)
-            rating.append(ratings[type][j])
+            if rand() < noise:
+                rating.append(rint(1,5))
+            else:
+                type = sample(type_dist)
+                rating.append(ratings[type][j])
             indices.append(j)
-        additions = int((noise / 100.0) * ratings_per_user)
-        for k in rsample(items_left, additions):
-            rating.append(rint(1,5)) 
         user_ratings.append(rating)
         user_indices.append(indices)
     user_ratings = user_indices, user_ratings

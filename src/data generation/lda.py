@@ -49,11 +49,11 @@ def count(words):
     return word_count
 
 def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
-                  alpha=None, beta=None, noise=0, plsi=False):
-    """noise is given as a percentage of words_per_doc, typically 5
+                  alpha=None, beta=None, noise=-1, plsi=False):
+    """noise is given as a probability (typically 5) that each word will be
+       generated at random instead of from the multinomial
     """
     p = Poisson(words_per_doc)
-    n = Poisson(int(words_per_doc * (noise / 100.0)))
     if alpha == None:
         alpha = [1]*num_topics
     if beta == None:
@@ -71,8 +71,7 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
     docs = []
     topic_dists = []
     for i in range(num_docs):
-        noise_per_doc = n.sample()
-        words_per_doc = p.sample() - noise_per_doc
+        words_per_doc = p.sample()
         doc = []
         if plsi:
             topic_dist = normalize(array([rand() for t in range(num_topics)],
@@ -81,9 +80,11 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
             topic_dist = dirichlet(alpha)
         topic_dists.append(topic_dist)
         for word in range(words_per_doc):
-            topic = sample(topic_dist)
-            doc.append(sample(word_dist[topic]))
-        doc += rsample(range(vocab_size), noise_per_doc)
+            if rand() < noise:
+                doc.append(rsample(range(vocab_size), 1))
+            else:
+                topic = sample(topic_dist)
+                doc.append(sample(word_dist[topic]))
         docs.append(doc)
     return docs, word_dist, topic_dists
 
