@@ -53,8 +53,39 @@ def count(words):
 
 def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
                   alpha=None, beta=None, noise=-1, plsi=False):
-    """noise is given as a probability (typically 5) that each word will be
-       generated at random instead of from the multinomial
+    """Generates documents according to plsi or lda
+    
+    Attributes:
+        num_topics: 
+            the number of underlying latent topics
+        num_docs: 
+            the number of documents to generate
+        words_per_doc: 
+            parameter to a Poisson distribution;
+            determines the average words in a documents
+        vocab_size: 
+            the number of words in the vocabulary
+        alpha: 
+            parameters to dirichlet distribution for topics
+        beta: 
+            parameters to dirichlet distribution for words
+        noise: 
+            given as a probability; each word will be replaced with a random
+            word with noise probability
+        plsi:
+            flag to determine which distribution to draw from,
+            a random distribution or a sample from a dirichlet distribution
+            
+    Returns:
+        docs:
+            the list of documents, each a list of words (represented by their
+            indices in range(vocab_size)
+        word_dist:
+            the distribution over words for each topic; 
+            each row is the distribution for a different topic 
+        topics_dist:
+            the distribution over topics for each document;
+            each row is the distribution for a different document
     """
     p = Poisson(words_per_doc)
     if alpha == None:
