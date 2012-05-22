@@ -1,10 +1,7 @@
-import lda
-from lda import Poisson
-from lda import sample
-from lda import normalize
+import util
+from util import *
 
 import numpy as np
-from numpy import array
 from numpy.random.mtrand import dirichlet
 
 import random
@@ -24,8 +21,7 @@ def generate_ratings(num_types, num_users, ratings_per_user=20, num_items=100,
     for i in range(num_users):
         ratings_per_user = p.sample()
         if plsi:
-            type_dist = normalize(array([rand() for t in range(num_types)], 
-                                        'double'))
+            type_dist = normalize([rand() for t in range(num_types)])
         else:
             type_dist = dirichlet(alpha)
         type_dists.append(type_dist)

@@ -1,11 +1,5 @@
 import sys
 
-import math
-from math import e
-from math import gamma
-
-import operator
-
 import random
 from random import random as rand
 from random import sample as rsample
@@ -13,49 +7,14 @@ from random import sample as rsample
 import numpy as np
 from numpy.random.mtrand import dirichlet
 
-class Poisson(object):
-    def __init__(self, L=15):
-        self.lamb = L
-        
-    def sample(self):
-        L = e ** (-self.lamb)
-        k, p = 1, rand()
-        while p > L:
-            k += 1
-            p *= rand()
-        return k - 1
-
-def sample(dist):
-    """takes a list of probabilities and samples from it by index
-       assumes a multinomial distribution
-    Documentation TODO
-    """
-    p = rand()
-    res = 0
-    for i in range(len(dist)):
-        res += dist[i]
-        if res > p:
-            return i
-    #for debugging purposes only *SHOULD NOT REACH THIS LINE*
-    print res, p
-
-def count(words):
-    word_count = {}
-    num_words = 0
-    for word in words:
-        num_words += 1
-        if word_count.has_key(word):
-            word_count[word] += 1
-        else:
-            word_count[word] = 1
-    word_count["total"] = num_words
-    return word_count
+import util
+from util import *
 
 def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
                   alpha=None, beta=None, noise=-1, plsi=False):
     """Generates documents according to plsi or lda
     
-    Attributes:
+    Args:
         num_topics: 
             the number of underlying latent topics
         num_docs: 
@@ -98,8 +57,8 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
         print "beta supplied:", len(beta), "(needed", vocab_size, ")" 
         return
     if plsi:
-        word_dist = [normalize(array([rand() for w in range(vocab_size)],
-                                     'double')) for t in range(num_topics)]
+        word_dist = [normalize([rand() for w in range(vocab_size)])
+                     for t in range(num_topics)]
     else:
         word_dist = [dirichlet(beta) for i in range(num_topics)]
     docs = []
@@ -108,8 +67,7 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
         words_per_doc = p.sample()
         doc = []
         if plsi:
-            topic_dist = normalize(array([rand() for t in range(num_topics)],
-                                         'double'))
+            topic_dist = normalize([rand() for t in range(num_topics)])
         else:
             topic_dist = dirichlet(alpha)
         topic_dists.append(topic_dist)
@@ -122,24 +80,14 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
         docs.append(doc)
     return docs, word_dist, topic_dists
 
-def normalize(dist):
-    return dist / sum(dist)
-
-def dirichlet_pdf(x, alpha):
-    density = reduce(operator.mul, 
-                   [x[i]**(alpha[i]-1.0) for i in range(len(alpha))])
-    norm_top = gamma(np.sum(alpha))
-    norm_bot = reduce(operator.mul, [gamma(a) for a in alpha])
-    return (norm_top / norm_bot) * density
-
 def write(data):
     docs, words, topics = data
-    with open('lda-out', 'w') as f:
+    with open('documents-out', 'w') as f:
         for doc in docs:
             for word in doc:
                 f.write(str(word) + " ")
             f.write('\n')
-    with open('lda_model-out', 'w') as f:
+    with open('documents_model-out', 'w') as f:
         for topic in words:
             for word in topic:
                 f.write(str(word) + " ")
