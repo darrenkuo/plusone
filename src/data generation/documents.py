@@ -1,4 +1,4 @@
-import sys
+import argparse
 
 import random
 from random import random as rand
@@ -82,12 +82,12 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
 
 def write(data):
     docs, words, topics = data
-    with open('documents-out', 'w') as f:
+    with open('output/documents-out', 'w') as f:
         for doc in docs:
             for word in doc:
                 f.write(str(word) + " ")
             f.write('\n')
-    with open('documents_model-out', 'w') as f:
+    with open('output/documents_model-out', 'w') as f:
         for topic in words:
             for word in topic:
                 f.write(str(word) + " ")
@@ -99,17 +99,44 @@ def write(data):
             f.write('\n')
 
 def main():
-    args = sys.argv[1:]
-    if len(args) == 2:
-        num_topics, num_docs = [int(arg) for arg in args]
-    else:
-        num_topics, num_docs = 4, 20
-        print "using default parameters for num_docs and num_topics"
+    parser = argparse.ArgumentParser(description="Document generator. Default\
+    parameters are noted in parentheses.")
+    parser.add_argument('-w', action="store_true", default=False,
+                        help="write flag (false)")
+    parser.add_argument('-k', action="store", metavar='num_topics', type=int,
+                        default=4, help="number of latent topics (4)")
+    parser.add_argument('-n', action="store", metavar='num_docs', type=int,
+                        default=20, help="number of documents to generate (20)")
+    parser.add_argument('-l', action="store", type=int, default=50, 
+                        help="average number of words per document (50)")
+    parser.add_argument('-m', action="store", type=int, default=30,
+                        help="size of the vocabulary (30)")
+    parser.add_argument('-s', action="store", metavar='noise', type=float, 
+                        default=-1, help="probability each word is generated\
+                        randomly (0)")
+    parser.add_argument('-plsi', action="store_true", default=False,
+                        help="flag to use plsi instead of lda (false)")
     
-    print "generating", num_docs, "documents with", num_topics, "topics"
+    args = parser.parse_args()
+    
     print ""
-    data = generate_docs(num_topics, num_docs)
-    if '-w' in args:
+    print "generating documents with parameters:"
+    print "k    = ", args.k, "(number of topics)"
+    print "n    = ", args.n, "(number of documents)"
+    print "l    = ", args.l, "(average number of words)"
+    print "m    = ", args.m, "(size of vocabulary)"
+    print "s    = ", args.s, "(noise probability)"
+    print "plsi = ", args.plsi, "(whether to draw from plsi or lda model)"
+    print ""
+    
+    if args.s == 0:
+        noise = -1
+    else:
+        noise = args.s
+    
+    data = generate_docs(args.k, args.n, args.l, args.m, 
+                         noise=noise, plsi=args.plsi)
+    if args.w:
         print "writing data to file...",
         write(data)
         print "done"

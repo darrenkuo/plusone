@@ -5,9 +5,10 @@
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
 
 \f0\fs24 \cf0 documents.py usage:\
+to see full usage, run "python documents.py -h"\
 \
 to run from the command line:\
-python documents.py num_topics num_docs words_per_doc vocab_size alpha beta noise plsi\
+python documents.py -k num_topics -n num_docs -l words_per_doc -m vocab_size -s noise (-plsi)\
 \
 \pard\pardeftab720\ql\qnatural
 \cf0 num_topics (4): \
@@ -32,12 +33,21 @@ plsi (false):\
 \
 The default parameters are noted in parentheses\
 \
+EXAMPLE:\
+python documents.py -k 12 -n 100 -l 50 -m 1000 -plsi\
+will generate 100 documents according to the plsi model; each document will have on average 50 words,\
+the vocabulary will consist of 1000 unique words, and there will be 12 underlying latent topics\
+\
+TODO: handle alpha and beta arguments from the command line\
+\
+\
 \
 ratings.py usage\
+to see full usage, run "python ratings.py -h"\
 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
 \cf0 to run from the command line:\
-python ratings.py num_types num_users ratings_per_user num_items alpha noise plsi\
+python ratings.py -k num_types -n num_users -l ratings_per_user -m num_items -s noise (-plsi)\
 \
 \pard\pardeftab720\ql\qnatural
 \cf0 num_types (10): \
@@ -58,4 +68,11 @@ plsi (false):\
 	flag to determine which distribution to draw from,\
 	a random distribution or a sample from a dirichlet distribution\
 \
-The default parameters are noted in parentheses}
+The default parameters are noted in parentheses\
+\
+EXAMPLE:\
+python documents.py -k 10 -n 100 -l 20 -m 100 -plsi\
+will generate 100 users according to the plsi model; each user will have on average 20 ratings,\
+there will be 100 different items to rate, and there will be 10 underlying latent user types\
+\
+TODO: handle alpha arguments from the command line}

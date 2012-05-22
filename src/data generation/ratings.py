@@ -1,3 +1,5 @@
+import argparse
+
 import util
 from util import *
 
@@ -43,7 +45,7 @@ def generate_ratings(num_types, num_users, ratings_per_user=20, num_items=100,
 def write(data):
     user_ratings, ratings, types = data
     user_indices, user_ratings = user_ratings
-    with open('ratings-out', 'w') as f:
+    with open('output/ratings-out', 'w') as f:
         for i in range(len(user_indices)):
             for index in user_indices[i]:
                 f.write(str(index) + " ")
@@ -51,7 +53,7 @@ def write(data):
             for rating in user_ratings[i]:
                 f.write(str(rating) + " ")
             f.write('\n')
-    with open('ratings_model-out', 'w') as f:
+    with open('output/ratings_model-out', 'w') as f:
         for user in types:
             for type in user:
                 f.write(str(type) + " ")
@@ -63,10 +65,47 @@ def write(data):
             f.write('\n')
 
 def main():
-    data = generate_ratings(10, 200)
-    print "writing data to file...",
-    write(data)
-    print "done."
+    parser = argparse.ArgumentParser(description="Ratings generator. Default\
+    parameters are noted in parentheses.")
+    parser.add_argument('-w', action="store_true", default=False,
+                        help="write flag (false)")
+    parser.add_argument('-k', action="store", metavar='num_types', type=int,
+                        default=10, help="number of latent user types (10)")
+    parser.add_argument('-n', action="store", metavar='num_users', type=int,
+                        default=100, help="number of users to generate (100)")
+    parser.add_argument('-l', action="store", type=int, default=20, 
+                        help="average number of ratings per user (20)")
+    parser.add_argument('-m', action="store", type=int, default=100,
+                        help="number of items (100)")
+    parser.add_argument('-s', action="store", metavar='noise', type=float, 
+                        default=-1, help="probability each rating is generated\
+                        randomly (0)")
+    parser.add_argument('-plsi', action="store_true", default=False,
+                        help="flag to use plsi instead of lda (false)")
+    
+    args = parser.parse_args()
+    
+    print ""
+    print "generating documents with parameters:"
+    print "k    = ", args.k, "(number of user types)"
+    print "n    = ", args.n, "(number of users)"
+    print "l    = ", args.l, "(average number of ratings)"
+    print "m    = ", args.m, "(number of items)"
+    print "s    = ", args.s, "(noise probability)"
+    print "plsi = ", args.plsi, "(whether to draw from plsi or lda model)"
+    print ""
+    
+    if args.s == 0:
+        noise = -1
+    else:
+        noise = args.s
+    
+    data = generate_ratings(args.k, args.n, args.l, args.m, 
+                         noise=noise, plsi=args.plsi)
+    if args.w:
+        print "writing data to file...",
+        write(data)
+        print "done"
     return data
 
 if __name__ == '__main__':
