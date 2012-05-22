@@ -32,21 +32,23 @@ public class Baseline extends Algorithm {
 	*/
 	
 	private List<TrainingPaper> trainingSet;
-    private Terms terms;    
+    private Terms terms;
+    double[] scores;
 
     public Baseline(List<TrainingPaper> trainingSet, Terms terms) {
     	super("Baseline");
     	this.trainingSet = trainingSet;
     	this.terms = terms;
-    }
-	
-	public double[] predict(int k, PredictionPaper paper) {
-		double[] scores = new double[WordIndex.size()];
+    	
+    	scores = new double[WordIndex.size()];
 		for (TrainingPaper t : trainingSet) {
 			for (Integer w : t.getTrainingWords()) {
 				scores[w] += t.getTrainingTf(w);
 			}
 		}
+    }
+	
+	public double[] predict(int k, PredictionPaper paper) {
 		return scores;
 	}
 	

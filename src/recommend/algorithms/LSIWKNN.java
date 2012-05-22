@@ -262,9 +262,7 @@ public class LSIWKNN extends Algorithm {
 		this.K2 = K2;
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-
-    public double[] predict( int k, PredictionPaper paper ) {
+    	
     	M = new TrainingPaper[trainingSet.size()];
 		MT = new HashMap[terms.size()];
 		
@@ -371,9 +369,10 @@ public class LSIWKNN extends Algorithm {
 		for( int i = 0; i < V.length; i++ )
 			for( int j = 0; j < VT.length; j++ )
 				V[i][j] = VT[j][i];
+	}
+
+    public double[] predict( int k, PredictionPaper paper ) {    	
     	
-		//prediction starts here
-		
     	double[][] c = new double[1][WordIndex.size()];
 		
 		for( int word : ((PaperAbstract) paper).getTestingWords() )

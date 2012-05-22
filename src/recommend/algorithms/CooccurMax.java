@@ -74,9 +74,7 @@ public class CooccurMax extends Algorithm {
 		super( "CooccurMax" );
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-    
-	public double[] predict( int k, PredictionPaper paper ) {
+    	
 		doccount = new int[WordIndex.size()];
 		idf = new double[WordIndex.size()];
 		
@@ -103,9 +101,10 @@ public class CooccurMax extends Algorithm {
 				}
 			}
 		}
-		
-		//Beginning prediction
-		
+	}
+    
+	public double[] predict( int k, PredictionPaper paper ) {
+				
 		double[] scores = new double[WordIndex.size()];
 		
 		for( int g : ((PaperAbstract)paper).getTestingWords() ) {

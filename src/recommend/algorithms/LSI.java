@@ -203,9 +203,7 @@ public class LSI extends Algorithm {
 		this.K = K;
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-
-    public double[] predict( int k, PredictionPaper paper ) {
+    	
     	M = new TrainingPaper[trainingSet.size()];
 		MT = new HashMap[WordIndex.size()];
 		
@@ -312,8 +310,9 @@ public class LSI extends Algorithm {
 		for( int i = 0; i < V.length; i++ )
 			for( int j = 0; j < VT.length; j++ )
 				V[i][j] = VT[j][i];
-    	
-		//prediction starts here
+	}
+
+    public double[] predict( int k, PredictionPaper paper ) {
 		
     	double[][] c = new double[1][WordIndex.size()];
 		

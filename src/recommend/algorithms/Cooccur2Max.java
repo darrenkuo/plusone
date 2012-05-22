@@ -138,9 +138,7 @@ public class Cooccur2Max extends Algorithm {
 		super( "Cooccur2Max" );
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-	
-	public double[] predict( int k, PredictionPaper paper ) {
+    	
 		doccount = new HashMap<Long,Integer>();
 		
 		for( TrainingPaper t : trainingSet ) {
@@ -214,9 +212,10 @@ public class Cooccur2Max extends Algorithm {
 				}
 			}
 		}
-		
-		//Beginning prediction
-		
+	}
+	
+	public double[] predict( int k, PredictionPaper paper ) {
+				
 		double[] scores = new double[WordIndex.size()];
 		
 		for( int g1 : ((PaperAbstract)paper).getTestingWords() ) {

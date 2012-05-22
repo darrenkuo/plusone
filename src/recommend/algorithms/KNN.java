@@ -125,11 +125,6 @@ public class KNN extends Algorithm {
 		this.K = K;
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-
-    public double[] predict( int k, PredictionPaper paper ) {
-    	ItemAverage items = new ItemAverage(trainingSet, terms);
-    	itemAverages = items.predict(k, paper);
     	
     	usernorms = new double[trainingSet.size()];
     	
@@ -145,6 +140,11 @@ public class KNN extends Algorithm {
     		usernorms[i] = Math.sqrt( norm2 );
     		//trainnorms[i] = norm2;
     	}
+	}
+
+    public double[] predict( int k, PredictionPaper paper ) {
+    	ItemAverage items = new ItemAverage(trainingSet, terms);
+    	itemAverages = items.predict(k, paper);
     	
     	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
     	

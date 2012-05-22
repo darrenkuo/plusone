@@ -74,9 +74,7 @@ public class CooccurSumIDF extends Algorithm {
 		super( "CooccurSum+IDF" );
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-	
-	public double[] predict( int k, PredictionPaper paper ) {
+    	
 		doccount = new int[WordIndex.size()];
 		
 		for( TrainingPaper t : trainingSet ) {
@@ -98,8 +96,10 @@ public class CooccurSumIDF extends Algorithm {
 				}
 			}
 		}
-		
-		//Beginning prediction
+	}
+	
+	public double[] predict( int k, PredictionPaper paper ) {
+
 		double[] scores = new double[WordIndex.size()];
 		
 		for( int w1 : ((PaperAbstract)paper).getTestingWords() ) {

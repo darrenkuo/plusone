@@ -128,11 +128,6 @@ int K;
 		this.K = K;
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-
-    public double[] predict( int k, PredictionPaper paper ) {
-    	ItemAverage items = new ItemAverage(trainingSet, terms);
-    	itemAverages = items.predict(k, paper);
     	
     	usernorms = new double[trainingSet.size()];
     	
@@ -159,6 +154,11 @@ int K;
 		for( int word = 0; word < idf.length; word++ ) {
 			idf[word] = Math.log( (double) trainingSet.size() / ( 1+idf[word] ) );
 		}
+	}
+
+    public double[] predict( int k, PredictionPaper paper ) {
+    	ItemAverage items = new ItemAverage(trainingSet, terms);
+    	itemAverages = items.predict(k, paper);
     	
     	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
     	double sumOfSims = 0.0;

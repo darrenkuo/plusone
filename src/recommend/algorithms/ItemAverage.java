@@ -56,9 +56,7 @@ public class ItemAverage extends Algorithm {
     	super("ItemAverage");
     	this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-	
-	public double[] predict(int k, PredictionPaper paper) {
+    	
 		int avg = 0;
 		int count = 0;
 		scores = new double[WordIndex.size()];
@@ -83,6 +81,9 @@ public class ItemAverage extends Algorithm {
 				scores[i] = avg;
 			}
 		}
+	}
+	
+	public double[] predict(int k, PredictionPaper paper) {
 		return scores;
 	}
 }

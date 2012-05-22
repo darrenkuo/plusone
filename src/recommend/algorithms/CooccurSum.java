@@ -71,9 +71,7 @@ public class CooccurSum extends Algorithm {
 		super( "CooccurSum" );
 		this.trainingSet = trainingSet;
     	this.terms = terms;
-	}
-	
-	public double[] predict( int k, PredictionPaper paper ) {
+    	
 		doccount = new int[WordIndex.size()];
 		
 		for( TrainingPaper t : trainingSet ) {
@@ -95,9 +93,10 @@ public class CooccurSum extends Algorithm {
 				}
 			}
 		}
-		
-		//Begining prediction
-		
+	}
+	
+	public double[] predict( int k, PredictionPaper paper ) {
+				
 		double[] scores = new double[WordIndex.size()];
 		
 		for( int w1 : ((PaperAbstract)paper).getTestingWords() ) {

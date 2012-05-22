@@ -121,8 +121,8 @@ public class Main {
 				}
 				
 				long startTime = System.nanoTime();
-				alg.train( training );
-				trainTime += System.nanoTime()-startTime;
+				/*alg.train( training );
+				trainTime += System.nanoTime()-startTime;*/
 				
 				int successes = 0;
 				

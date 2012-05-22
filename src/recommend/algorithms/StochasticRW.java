@@ -84,9 +84,7 @@ public class StochasticRW extends Algorithm {
 	    this.length = length;
 	    this.trainingSet = trainingSet;
     	this.terms = terms;
-    }
-	
-	public double[] predict( int k, PredictionPaper paper ) {
+    	
 		LinkedList<Integer>[] ll = new LinkedList[terms.size()];
     	
     	for( int i = 0; i < ll.length; i++ ) {
@@ -111,9 +109,11 @@ public class StochasticRW extends Algorithm {
 	    		neigh[i][j++] = v;
 	    	}
 	    }
-	    
-	    //prediction starts here
-	    double[] scores = new double[WordIndex.size()];
+    }
+	
+	public double[] predict( int k, PredictionPaper paper ) {
+
+		double[] scores = new double[WordIndex.size()];
 	    
 	    for( int start : ((PaperAbstract)paper).getTestingWords() ) {
 	    	if( neigh[start].length == 0 ) {
