@@ -24,6 +24,7 @@ public class Terms {
 	    doc_test = new ArrayList<PaperAbstract>();
 	}
 	
+	//sorts terms by frequency (determined by totalCount)
 	public int compareTo(Object obj) {
             Term other = (Term)obj;
             int otherCount = other.totalCount;
