@@ -29,7 +29,7 @@ public class DatasetJSON {
 
     /* Member fields. */
 	public int num_users, num_items, num_folds;
-	public String[] itemindex, userindex;////////
+	public String[] itemindex, userindex;
 	public HashMap<Integer,Integer>[] users;
 	public HashMap<Integer,Integer>[][] folds;
 	
