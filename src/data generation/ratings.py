@@ -78,7 +78,7 @@ def main():
     parser.add_argument('-m', action="store", type=int, default=100,
                         help="number of items (100)")
     parser.add_argument('-s', action="store", metavar='noise', type=float, 
-                        default=-1, help="probability each rating is generated\
+                        default=0, help="probability each rating is generated\
                         randomly (0)")
     parser.add_argument('-plsi', action="store_true", default=False,
                         help="flag to use plsi instead of lda (false)")

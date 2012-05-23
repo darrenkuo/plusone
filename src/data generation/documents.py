@@ -112,7 +112,7 @@ def main():
     parser.add_argument('-m', action="store", type=int, default=30,
                         help="size of the vocabulary (30)")
     parser.add_argument('-s', action="store", metavar='noise', type=float, 
-                        default=-1, help="probability each word is generated\
+                        default=0, help="probability each word is generated\
                         randomly (0)")
     parser.add_argument('-plsi', action="store_true", default=False,
                         help="flag to use plsi instead of lda (false)")
