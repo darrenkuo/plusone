@@ -17,11 +17,11 @@ import org.json.*;
 public class DatasetJSON {
 
     class Paper {
-		Integer[] abstractWords;
+		Map<Integer,Integer> abstractWords;
 		Integer index;
 		Integer group;
 	
-		public Paper(Integer index, Integer[] abstractWords) {
+		public Paper(Integer index, Map<Integer,Integer> abstractWords) {
 		    this.abstractWords = abstractWords;
 		    this.index = index;
 		}
@@ -30,8 +30,8 @@ public class DatasetJSON {
     /* Member fields. */
 	public int num_users, num_items, num_folds;
 	public String[] itemindex, userindex;////////
-	public HashMap<Integer,Double>[] users;
-	public HashMap<Integer,Double>[][] folds;
+	public HashMap<Integer,Integer>[] users;
+	public HashMap<Integer,Integer>[][] folds;
 	
     List<PaperAbstract> documents = new ArrayList<PaperAbstract>();
     public List<PaperAbstract> getDocuments() { return documents; }
@@ -44,12 +44,7 @@ public class DatasetJSON {
     public Indexer<PaperAbstract> getPaperIndexer() { return paperIndexer; }
 
     /* Private method used by loadDataset. */
-    void loadInPlaceFromPath(String filename) {
-		List<Paper> papers = new ArrayList<Paper>();
-	
-		Indexer<Paper> tempPaperIndexer = new Indexer<Paper>();
-		Map<Integer, Integer> paperIndexMap = new HashMap<Integer, Integer>();
-	
+    void loadInPlaceFromPath(String filename) {	
 		try {
 			BufferedReader in = new BufferedReader( new FileReader( filename ) );
 			JSONObject json = new JSONObject( in.readLine() );
@@ -83,46 +78,27 @@ public class DatasetJSON {
 				
 				for( int j = 0; j < fold.length(); j++ ) {
 					JSONObject user = fold.getJSONObject( j );
-					this.folds[i][j] = new HashMap<Integer,Double>();
+					this.folds[i][j] = new HashMap<Integer,Integer>();
 					items = user.getJSONArray( "items" );
 					scores = user.getJSONArray( "scores" );
-					
+					//put the jth user of the ith fold in folds[i][j]
 					for( int k = 0; k < items.length(); k++ ) {
-						this.folds[i][j].put( items.getInt( k ), scores.getDouble( k ) );
+						this.folds[i][j].put( items.getInt( k ), scores.getInt( k ) );
 					}
 					
-					users[index++] = this.folds[i][j];
+					PaperAbstract p = new PaperAbstract(index++, null, null, this.folds[i][j]);
+					documents.add(p);
+					paperIndexer.add(p);
 				}
 			}
 	
-			Integer[] abstractWords = new Integer[num_items];
-	
 			for (int i = 0; i < num_items; i ++) {
-			    abstractWords[i] = 
-				wordIndexer.fastAddAndGetIndex(items.getString(i));
+				wordIndexer.fastAddAndGetIndex(itemindex.getString(i));
 			}
-			
-			Paper p = new Paper(index, abstractWords);
-	
-			papers.add(p);
-			paperIndexMap.put(index, tempPaperIndexer.addAndGetIndex(p));
 		} catch(Exception e) {
 		    e.printStackTrace();
 		}
-	
-		int inref_zero = 0;
-		for (Paper a : papers) {
-		    PaperAbstract p = new PaperAbstract(paperIndexMap.get(a.index),
-							null,
-							null,
-							a.abstractWords); //ignoring inreferences/outreferences
-			
-		    documents.add(p);
-		    paperIndexer.add(p);
-		 //   inref_zero += inReferences.length == 0 ? 1 : 0;
-		 //   inref_zero += outReferences.length == 0 ? 1 : 0;	    
-		}
-		System.out.println("inref zero: " + inref_zero);
+
 		System.out.println("total number of papers: " + documents.size());
     }
 
