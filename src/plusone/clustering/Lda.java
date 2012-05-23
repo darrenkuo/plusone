@@ -110,52 +110,7 @@ public class Lda extends ClusteringTest {
 		 */
 	}
 
-	/**
-	 * Takes a file output by lda-c-dist and stores it in a matrix.
-	 * 
-	 * @param filename	file to be read
-	 * @param start		TODO use for start (typically 0)
-	 * @param exp		whether to exponentiate the read entries
-	 * @return	a double[][] (matrix) with the contents of filename 
-	 */
-	private double[][] readLdaResultFile(String filename, int start, 
-			boolean exp) {
-		List<String[]> gammas = new ArrayList<String[]>();
-		double[][] results = null;
-		// System.out.println("reading lda results file starting at : " +
-		// start);
-		try {
-			FileInputStream fstream = new FileInputStream(filename);
-			DataInputStream in = new DataInputStream(fstream);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String strLine;
-
-			int c = 0;
-			while ((strLine = br.readLine()) != null) {
-				if (c >= start) {
-					gammas.add(strLine.trim().split(" "));
-				}
-				c++;
-			}
-			// System.out.println("C got to " + c);
-
-			results = new double[gammas.size()][];
-			for (int i = 0; i < gammas.size(); i++) {
-				results[i] = new double[gammas.get(i).length];
-				for (int j = 0; j < gammas.get(i).length; j++) {
-					results[i][j] = new Double(gammas.get(i)[j]);
-					if (exp)
-						results[i][j] = Math.exp(results[i][j]);
-
-				}
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return results;
-	}
+	
 
 	public double[][] predict(List<PaperAbstract> testDocs){
 	
@@ -168,6 +123,12 @@ public class Lda extends ClusteringTest {
 		
 		double[][] gammasMatrix = readLdaResultFile("lda/output-gamma.dat",
 				testDocs.size(), false);
+		double alpha = readAlpha("lda/final.other");
+		for (int i=0; i<gammasMatrix.length; i++) {
+			for (int j=0; j<gammasMatrix[i].length; j++) {
+				gammasMatrix[i][j] -= alpha;
+			}
+		}
 		gammas = new SimpleMatrix(gammasMatrix);
 		SimpleMatrix results = gammas.mult(beta);
 		
@@ -240,5 +201,57 @@ public class Lda extends ClusteringTest {
 		fileWriter.close();
 		
 		System.out.println("done.");
+	}
+	
+	/**
+	 * Takes a file output by lda-c-dist and stores it in a matrix.
+	 * 
+	 * @param filename	file to be read
+	 * @param start		TODO use for start (typically 0)
+	 * @param exp		whether to exponentiate the read entries
+	 * @return	a double[][] (matrix) with the contents of filename 
+	 */
+	private double[][] readLdaResultFile(String filename, int start, 
+			boolean exp) {
+		List<String[]> gammas = new ArrayList<String[]>();
+		double[][] results = null;
+		// System.out.println("reading lda results file starting at : " +
+		// start);
+		try {
+			FileInputStream fstream = new FileInputStream(filename);
+			DataInputStream in = new DataInputStream(fstream);
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String strLine;
+
+			int c = 0;
+			while ((strLine = br.readLine()) != null) {
+				if (c >= start) {
+					gammas.add(strLine.trim().split(" "));
+				}
+				c++;
+			}
+			// System.out.println("C got to " + c);
+
+			results = new double[gammas.size()][];
+			for (int i = 0; i < gammas.size(); i++) {
+				results[i] = new double[gammas.get(i).length];
+				for (int j = 0; j < gammas.get(i).length; j++) {
+					results[i][j] = new Double(gammas.get(i)[j]);
+					if (exp)
+						results[i][j] = Math.exp(results[i][j]);
+
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return results;
+	}
+	
+	private double readAlpha(String filename) {
+		//TODO
+		return 0.0;
 	}
 }
