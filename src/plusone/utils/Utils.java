@@ -17,7 +17,17 @@ public class Utils {
 	    System.err.println("Error: " + e.getMessage());
 	}
     }
-
+    
+    /**
+     * Executes a command line input (eg ls -a) with the option to hide the
+     * output (to System.out) that command usually would give. If the command
+     * fails, will display all error output from the command line.
+     * 
+     * @param command		the command to be run, exactly as if typed
+     * 						into the command line (a String)
+     * @param streamOutput	a flag to determine whether or not to display
+     * 						any output the command might give
+     */
     public static void runCommand(String command, boolean streamOutput) {
 
 	System.out.println("Running command: " + command);

@@ -4,6 +4,8 @@
 /dist
 /experiment-*
 /lib/lda-c-dist/lda
+/lib/lda-c-dist/result
+lib/lda-c-dist/data
 /lib/*.jar
 /lib/jars/*.jar
 .DS_Store
