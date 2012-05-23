@@ -5,20 +5,14 @@ import plusone.utils.PaperAbstract;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.Terms;
 import plusone.utils.Utils;
-import plusone.utils.ItemAndScore;
-
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Scanner;
 
 import org.ejml.simple.SimpleMatrix;
@@ -134,7 +128,14 @@ public class Lda extends ClusteringTest {
 		gammas = new SimpleMatrix(gammasMatrix);
 		SimpleMatrix results = gammas.mult(beta);
 		
-		return null;
+		double[][] result = new double[results.numRows()][results.numCols()];
+		for (int row=0; row<results.numRows(); row++) {
+			for (int col=0; col<results.numCols(); col++) {
+				result[row][col] = results.get(row, col);
+			}
+		}
+		
+		return result;
 	}
 	                
 	/*public Integer[][] predictTopKWords(int k, boolean outputUsedWords) {
