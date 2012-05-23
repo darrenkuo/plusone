@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Scanner;
 
 import org.ejml.simple.SimpleMatrix;
 
@@ -251,7 +253,18 @@ public class Lda extends ClusteringTest {
 	}
 	
 	private double readAlpha(String filename) {
-		//TODO
-		return 0.0;
+		FileInputStream filecontents = null;
+		try {
+			filecontents = new FileInputStream(filename);
+		} catch (FileNotFoundException e) {
+			System.out.println("Check your filepath");
+			System.exit(1);
+		}
+		Scanner lines = new Scanner(filecontents);
+		String alphaLine = lines.nextLine();
+		alphaLine = lines.nextLine();
+		alphaLine = lines.nextLine();
+		String[] splitLine = alphaLine.split(" ");
+		return Double.parseDouble(splitLine[1]);
 	}
 }
