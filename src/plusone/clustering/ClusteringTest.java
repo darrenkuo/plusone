@@ -4,6 +4,7 @@ import java.io.File;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
 import plusone.utils.MetadataLogger.TestMetadata;
+import java.util.List;
 
 public abstract class ClusteringTest implements ClusteringMethod {
 
@@ -19,6 +20,9 @@ public abstract class ClusteringTest implements ClusteringMethod {
     public double[] predict(PredictionPaper testPaper) { 
 
 	return null;
+    }
+    public double[][] predict(List<PredictionPaper> testPaper){
+    	return null;
     }
 
     protected PlusoneFileWriter makePredictionWriter(int k, 

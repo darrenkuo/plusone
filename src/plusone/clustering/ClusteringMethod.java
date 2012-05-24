@@ -1,6 +1,7 @@
 package plusone.clustering;
 
 import java.io.File;
+import java.util.List;
 
 import plusone.utils.PredictionPaper;
 
@@ -23,6 +24,6 @@ public interface ClusteringMethod {
 
     public double[] predict(PredictionPaper paper);
 
-
+    public double[][] predict(List<PredictionPaper> papers);
 
 }

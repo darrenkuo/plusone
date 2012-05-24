@@ -25,9 +25,10 @@ import plusone.clustering.KNNLocalSVDish;
 import plusone.clustering.KNNWithCitation;
 import plusone.clustering.LSI;
 import plusone.clustering.CO;
+import plusone.clustering.PLSI;
 //import plusone.clustering.SVDAndKNN;
 
-//import plusone.clustering.Lda;
+import plusone.clustering.Lda;
 //import plusone.clustering.KNNRandomWalkPredictor;
 import java.util.Arrays;
 import java.util.Map;
@@ -160,7 +161,7 @@ public class Main {
 		// Baseline
 		if (testIsEnabled("baseline")) {
 			Baseline baseline = new Baseline(trainingSet, terms);
-			runClusteringMethod(baseline, ks, size);
+			runClusteringMethod(baseline, ks, size, false);
 		}
 
 		// KNN
@@ -175,7 +176,7 @@ public class Main {
 			if (testIsEnabled("knn")) {
 				knn = new KNN(closest_k[ck], trainingSet, paperIndexer, 
 						terms, knnSimilarityCache);
-				runClusteringMethod(knn, ks, size);
+				runClusteringMethod(knn, ks, size, false);
 			}
 		}
 
@@ -187,20 +188,44 @@ public class Main {
 					Integer.getInteger("plusone.localCO.dtNs"),
 					Integer.getInteger("plusone.localCO.tdNs"),
 					trainingSet, terms);
-			runClusteringMethod(co,ks,size);
+			runClusteringMethod(co,ks,size,false);
 		}
 		// LSI
 		LSI lsi;
-		int[] dimensions = parseIntList(System.getProperty("plusone.svdDimensions", 
-				"1,5,10,20"));
-		for (int dk = 0; dk < dimensions.length; dk ++) {
-			if (testIsEnabled("lsi")) {
+		if (testIsEnabled("lsi")){
+			int[] dimensions = parseIntList(System.getProperty("plusone.svdDimensions", 
+					"1,5,10,20"));
+			for (int dk = 0; dk < dimensions.length; dk ++) {
+
 				lsi = new LSI(dimensions[dk], trainingSet, terms);
 
-				runClusteringMethod(lsi, ks, size);
+				runClusteringMethod(lsi, ks, size,false);
+
 			}
 		}
+		//PLSI
+		PLSI plsi;
+		if (testIsEnabled("plsi")){
+			int[] dimensions = parseIntList(System.getProperty("plusone.plsi.dimensions", 
+					"1,5,10,20"));
+			plsi = new PLSI(trainingSet, terms.size());
+			for (int dk = 0; dk < dimensions.length; dk ++) {
+				plsi.train(dimensions[dk]);
+				runClusteringMethod(plsi, ks, size, false);
 
+			}
+		}
+		//lda
+		Lda lda;
+		if (testIsEnabled("lda")){
+			int[] dimensions = parseIntList(System.getProperty("plusone.lda.dimensions", 
+					"20"));
+			for (int dk = 0; dk < dimensions.length; dk ++) {
+				lda = new Lda(trainingSet, wordIndexer, terms,dimensions[dk]);
+				runClusteringMethod(lda, ks, size, true);
+
+			}
+		}
 		// KNNSVDish
 		int[] closest_k_svdish = parseIntList(System.getProperty("plusone.closestKSVDishValues", 
 				"1,3,5,10,25,50,100,250,500,1000"));
@@ -222,7 +247,7 @@ public class Main {
 			if (testIsEnabled("svdishknn")){
 				knnSVD= new KNNLocalSVDish(closest_k_svdish[ck],trainingSet, paperIndexer,
 						terms, KNNSVDcache);
-				runClusteringMethod(knnSVD, ks,size);
+				runClusteringMethod(knnSVD, ks,size,false);
 			}
 		}
 
@@ -322,32 +347,43 @@ public class Main {
 		allResults[ki].get(expName).addResult(result[0],result[1],result[2]);
 	}
 
-	public void runClusteringMethod(ClusteringTest test, int[] ks, int size) {
+	public void runClusteringMethod(ClusteringTest test, int[] ks, int size, boolean bulk) {
 		long t1 = System.currentTimeMillis();
-
 		System.out.println("[" + test.testName + "] starting test" );
-		for (PredictionPaper testingPaper : testingSet) {
-			double[] itemScores= test.predict(testingPaper);
-			
+		double[][] allScores=new double[testingSet.size()][terms.size()];
+		if (bulk){
+			allScores = test.predict(testingSet);
+		}
+
+
+		for (int id=0;id<testingSet.size();id++){
+			PredictionPaper testingPaper=testingSet.get(id);
+			double[] itemScores;
+			if (!bulk)
+				itemScores= test.predict(testingPaper);
+			else
+				itemScores=allScores[id];
+
+
 			int largestK=ks[ks.length-1];
 			Queue<ItemAndScore> queue = new PriorityQueue<ItemAndScore>(largestK + 1);
 			for (int i=0;i<itemScores.length;i++) {
-			    if (testingPaper.getTrainingTf(i) > 0.0)
-			    	continue;
+				if (testingPaper.getTrainingTf(i) > 0.0)
+					continue;
 
-			    if (queue.size() < largestK || 
-				(double)itemScores[i] > queue.peek().score) {
-				if (queue.size() >= largestK)
-				    queue.poll();
-				queue.add(new ItemAndScore(i, itemScores[i], true));
-			    }
+				if (queue.size() < largestK || 
+						(double)itemScores[i] > queue.peek().score) {
+					if (queue.size() >= largestK)
+						queue.poll();
+					queue.add(new ItemAndScore(i, itemScores[i], true));
+				}
 			}
-			
+
 			List<Integer> topPrdcts = new ArrayList<Integer>();
 			while (!queue.isEmpty()) {
-			    topPrdcts.add(0,(Integer)queue.poll().item);
+				topPrdcts.add(0,(Integer)queue.poll().item);
 			}
-						
+
 			for (int ki = 0; ki < ks.length; ki ++) {
 				int k = ks[ki];
 
@@ -355,9 +391,9 @@ public class Main {
 				MetadataLogger.TestMetadata meta = getMetadataLogger().getTestMetadata("k=" + k + test.testName);
 				test.addMetadata(meta);
 				List<Double> predictionScores = new ArrayList<Double>();
-				
+
 				Integer[] predict = topPrdcts.subList(0, k).toArray(new Integer[k]);
-				
+
 				double[] result = evaluate(testingPaper, predict, size, k);
 				for (int j = 0; j < 4; ++j) results[j] += result[j];
 				predictionScores.add(result[0]);

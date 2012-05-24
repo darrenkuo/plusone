@@ -2,6 +2,8 @@ package plusone.clustering;
 
 import plusone.utils.Indexer;
 import plusone.utils.PaperAbstract;
+import plusone.utils.TrainingPaper;
+import plusone.utils.PredictionPaper;
 import plusone.utils.PlusoneFileWriter;
 import plusone.utils.Terms;
 import plusone.utils.Utils;
@@ -19,23 +21,20 @@ import org.ejml.simple.SimpleMatrix;
 
 public class Lda extends ClusteringTest {
 
-	private List<PaperAbstract> trainingSet;
+	private List<TrainingPaper> trainingSet;
 	private Indexer<String> wordIndexer;
 	private Terms terms;
-	private static final int CLUSTERS = 30;
+	private int numTopics;
 	private SimpleMatrix beta;
 	private SimpleMatrix gammas;
 
-	public Lda(List<PaperAbstract> trainingSet, Indexer<String> wordIndexer,
-			Terms terms) {
+	public Lda(List<TrainingPaper> trainingSet, Indexer<String> wordIndexer,
+			Terms terms, int numTopics) {
 		super("Lda");
-		this.trainingSet = trainingSet;
-		for (PaperAbstract paper : trainingSet) {
-			paper.generateTf(0, null, false);
-		}
-		
+		this.trainingSet = trainingSet;		
 		this.wordIndexer = wordIndexer;
 		this.terms = terms;
+		this.numTopics=numTopics;
 		train();
 	}
 
@@ -76,7 +75,7 @@ public class Lda extends ClusteringTest {
 		String trainingData = "lda/train.dat";
 
 		createLdaInput(trainingData, trainingSet);
-		Utils.runCommand("lib/lda-c-dist/lda est 1 " + CLUSTERS
+		Utils.runCommand("lib/lda-c-dist/lda est 1 " + numTopics
 				+ " lib/lda-c-dist/settings.txt " + trainingData
 				+ " random lda", false);
 
@@ -121,11 +120,12 @@ public class Lda extends ClusteringTest {
 	 * @param testDocs	the list of documents to run prediction on
 	 * @return	the expected number of times each word appears per document
 	 */
-	public double[][] predict(List<PaperAbstract> testDocs){
+	@Override
+	public double[][] predict(List<PredictionPaper> testDocs){
 	
 		String testData = "lda/test.dat";
 
-		createLdaInput(testData, testDocs);
+		createLdaInputTest(testData, testDocs);
 		Utils.runCommand("lib/lda-c-dist/lda inf " + 
 				" lib/lda-c-dist/settings.txt " + "lda/final " + 
 				testData + " lda/output", false);
@@ -190,7 +190,24 @@ public class Lda extends ClusteringTest {
 		}
 		return results;
 	}*/
+	private void createLdaInput(String filename, List<TrainingPaper> papers){
+		System.out.print("creating lda input in file: " + filename + " ... ");
 
+		PlusoneFileWriter fileWriter = new PlusoneFileWriter(filename);
+
+		for (TrainingPaper paper : papers) {
+			fileWriter.write(paper.getTrainingWords().size() + " ");
+			
+			for (int word : paper.getTrainingWords()) {
+				fileWriter.write(word + ":" + paper.getTrainingTf(word) + " ");
+			}
+			fileWriter.write("\n");
+		}
+
+		fileWriter.close();
+		
+		System.out.println("done.");
+	}
 	/**
 	 * Takes a list of PaperAbstract documents and writes them to file according
 	 * to the format specified by lda-c-dist
@@ -199,13 +216,13 @@ public class Lda extends ClusteringTest {
 	 * 					if it already exists)
 	 * @param papers	list of papers to be written to file 
 	 */
-	private void createLdaInput(String filename, List<PaperAbstract> papers) {
+	private void createLdaInputTest(String filename, List<PredictionPaper> papers) {
 
 		System.out.print("creating lda input in file: " + filename + " ... ");
 
 		PlusoneFileWriter fileWriter = new PlusoneFileWriter(filename);
 
-		for (PaperAbstract paper : papers) {
+		for (PredictionPaper paper : papers) {
 			fileWriter.write(paper.getTrainingWords().size() + " ");
 			
 			for (int word : paper.getTrainingWords()) {
