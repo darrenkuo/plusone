@@ -88,7 +88,7 @@ public class StochasticRWCooccurSum extends Algorithm {
 	    this.trainingSet = trainingSet;
     	this.terms = terms;
     	
-		LinkedList<Integer>[] ll = new LinkedList[WordIndex.size()+trainingSet.size()];
+		LinkedList<Integer>[] ll = new LinkedList[terms.size()+trainingSet.size()];
     	int i;
     	
     	for( i = 0; i < ll.length; i++ ) {
@@ -117,9 +117,9 @@ public class StochasticRWCooccurSum extends Algorithm {
 	    }
     }
 	
-	public double[] predict( int k, PredictionPaper paper ) {
+	public double[] predict( PredictionPaper paper ) {
 
-	    double[] scores = new double[WordIndex.size()];
+	    double[] scores = new double[terms.size()];
 	    
 	    for( int start : ((PaperAbstract)paper).getTestingWords() ) {
 	    	if( neigh[start].length == 0 ) {
@@ -137,7 +137,7 @@ public class StochasticRWCooccurSum extends Algorithm {
 	    
 	    for( int j = 0; j < scores.length; j++ ) {
 	    	scores[j] /= ITERATIONS;
-	    	scores[j] *= WordIndex.size();
+	    	scores[j] *= terms.size();
 	    }
 	    
 	    return scores;

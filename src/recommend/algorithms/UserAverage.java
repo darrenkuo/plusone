@@ -45,7 +45,7 @@ public class UserAverage extends Algorithm {
     	this.terms = terms;
 	}
 	 
-	public double[] predict(int k, PredictionPaper paper) {
+	public double[] predict( PredictionPaper paper ) {
 		int sum = 0;
 		
 		for( Integer value : ((PaperAbstract) paper).getTestingWords() ) {
@@ -53,7 +53,7 @@ public class UserAverage extends Algorithm {
 		}
 		
 		sum /= ((PaperAbstract) paper).getTestingWords().size();
-		double[] scores = new double[WordIndex.size()];
+		double[] scores = new double[terms.size()];
 		
 		for( int i = 0; i < scores.length; i++ ) {
 			scores[i] = sum;

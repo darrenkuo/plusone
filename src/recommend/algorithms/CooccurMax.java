@@ -75,8 +75,8 @@ public class CooccurMax extends Algorithm {
 		this.trainingSet = trainingSet;
     	this.terms = terms;
     	
-		doccount = new int[WordIndex.size()];
-		idf = new double[WordIndex.size()];
+		doccount = new int[terms.size()];
+		idf = new double[terms.size()];
 		
 		for( TrainingPaper t : trainingSet ) {
 			for( int word : t.getTrainingWords() ) {
@@ -88,7 +88,7 @@ public class CooccurMax extends Algorithm {
 			idf[word] = Math.log( (double)trainingSet.size() / (1 + doccount[word]) );
 		}
 		
-		cooccur = new HashMap[WordIndex.size()];
+		cooccur = new HashMap[terms.size()];
 		
 		for( int i = 0; i < cooccur.length; i++ ) {
 			cooccur[i] = new HashMap<Integer,Integer>();
@@ -103,9 +103,9 @@ public class CooccurMax extends Algorithm {
 		}
 	}
     
-	public double[] predict( int k, PredictionPaper paper ) {
+	public double[] predict( PredictionPaper paper ) {
 				
-		double[] scores = new double[WordIndex.size()];
+		double[] scores = new double[terms.size()];
 		
 		for( int g : ((PaperAbstract)paper).getTestingWords() ) {
 			if( doccount[g] > 5 ) {

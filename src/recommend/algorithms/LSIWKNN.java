@@ -371,9 +371,9 @@ public class LSIWKNN extends Algorithm {
 				V[i][j] = VT[j][i];
 	}
 
-    public double[] predict( int k, PredictionPaper paper ) {    	
+    public double[] predict( PredictionPaper paper ) {    	
     	
-    	double[][] c = new double[1][WordIndex.size()];
+    	double[][] c = new double[1][terms.size()];
 		
 		for( int word : ((PaperAbstract) paper).getTestingWords() )
 			c[0][word] = ((PaperAbstract) paper).getTestingTf( word );
@@ -396,7 +396,7 @@ public class LSIWKNN extends Algorithm {
     		}
     	}
 		
-    	double[] scores = new double[WordIndex.size()];
+    	double[] scores = new double[terms.size()];
     	
     	while( !pq.isEmpty() ) {
     		Pair p = pq.poll();

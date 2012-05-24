@@ -91,7 +91,7 @@ public class StochasticRWWKNN extends Algorithm {
 	    this.trainingSet = trainingSet;
     	this.terms = terms;
     	
-		LinkedList<Integer>[] ll = new LinkedList[WordIndex.size()+trainingSet.size()];
+		LinkedList<Integer>[] ll = new LinkedList[terms.size()+trainingSet.size()];
     	docnorm2 = new double[trainingSet.size()];
     	int i;
     	
@@ -125,9 +125,9 @@ public class StochasticRWWKNN extends Algorithm {
 	    }
     }
 	
-	public double[] predict( int k, PredictionPaper paper ) {
+	public double[] predict( PredictionPaper paper ) {
 	    
-	    double[] scores = new double[WordIndex.size()];
+	    double[] scores = new double[terms.size()];
 	    
 	    for( int start : ((PaperAbstract)paper).getTestingWords() ) {
 	    	if( neigh[start].length == 0 ) {

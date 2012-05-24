@@ -205,7 +205,7 @@ public class LSI extends Algorithm {
     	this.terms = terms;
     	
     	M = new TrainingPaper[trainingSet.size()];
-		MT = new HashMap[WordIndex.size()];
+		MT = new HashMap[terms.size()];
 		
 		for( int i = 0; i < MT.length; i++ )
 			MT[i] = new HashMap<Integer,Double>();
@@ -312,9 +312,9 @@ public class LSI extends Algorithm {
 				V[i][j] = VT[j][i];
 	}
 
-    public double[] predict( int k, PredictionPaper paper ) {
+    public double[] predict( PredictionPaper paper ) {
 		
-    	double[][] c = new double[1][WordIndex.size()];
+    	double[][] c = new double[1][terms.size()];
 		
 		for( int word : ((PaperAbstract) paper).getTestingWords() )
 			c[0][word] = ((PaperAbstract) paper).getTestingTf( word );

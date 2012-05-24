@@ -72,7 +72,7 @@ public class CooccurSum extends Algorithm {
 		this.trainingSet = trainingSet;
     	this.terms = terms;
     	
-		doccount = new int[WordIndex.size()];
+		doccount = new int[terms.size()];
 		
 		for( TrainingPaper t : trainingSet ) {
 			for( int word : t.getTrainingWords() ) {
@@ -80,7 +80,7 @@ public class CooccurSum extends Algorithm {
 			}
 		}
 		
-		cooccur = new HashMap[WordIndex.size()];
+		cooccur = new HashMap[terms.size()];
 		
 		for( int i = 0; i < cooccur.length; i++ ) {
 			cooccur[i] = new HashMap<Integer,Integer>();
@@ -95,9 +95,9 @@ public class CooccurSum extends Algorithm {
 		}
 	}
 	
-	public double[] predict( int k, PredictionPaper paper ) {
+	public double[] predict( PredictionPaper paper ) {
 				
-		double[] scores = new double[WordIndex.size()];
+		double[] scores = new double[terms.size()];
 		
 		for( int w1 : ((PaperAbstract)paper).getTestingWords() ) {
 			if( doccount[w1] < 4 ) {
