@@ -145,9 +145,10 @@ def plot_types(types):
         none, but plots the distribution
     """
     offset = 0
+    width = 0.01
     for type in types:
-        bar(offset, type, 0.01)
-        offset += 0.01
-    xticks(np.arange(.005, .1, .01), range(len(types)))
+        bar(offset, type, width)
+        offset += width
+    xticks(np.arange(width / 2, width * len(types), .01), range(len(types)))
     
 #hist(words, range(vocab_size + 1)
