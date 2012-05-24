@@ -1,6 +1,6 @@
 package plusone;
 
-import plusone.utils.Dataset;
+import plusone.utils.DatasetJSON;
 import plusone.utils.Indexer;
 import plusone.utils.ItemAndScore;
 import plusone.utils.KNNGraphDistanceCache;
@@ -59,10 +59,10 @@ public class Main {
 
 
 	private static int FOLD; // cross validation parameter
-	private static Dataset dataset;
+	private static DatasetJSON dataset;
 
 	public static void load_data(String filename) {
-		dataset = Dataset.loadDatasetFromPath(filename);
+		dataset = DatasetJSON.loadDatasetFromPath(filename);
 		wordIndexer = dataset.getWordIndexer();
 		paperIndexer = dataset.getPaperIndexer();
 	}

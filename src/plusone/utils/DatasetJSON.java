@@ -92,9 +92,6 @@ public class DatasetJSON {
 				}
 			}
 	
-			for (int i = 0; i < num_items; i ++) {
-				wordIndexer.fastAddAndGetIndex(itemindex.getString(i));
-			}
 		} catch(Exception e) {
 		    e.printStackTrace();
 		}

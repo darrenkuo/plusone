@@ -41,12 +41,21 @@ public class KNNLocalSVDish extends ClusteringTest {
     }
     
     @Override
-    public Integer[] predict(int k, PredictionPaper testPaper) {
+    public double[] predict(PredictionPaper testPaper) {
 	Integer[] kList = kNbr(testPaper, K_CLOSEST);
-	    
-	List<Integer> words = 
-	    predictTopKWordsWithKList(kList, testPaper, k);
-	return words.toArray(new Integer[words.size()]);
+	
+	double[] ret = new double[terms.size()];
+	
+	for (int i = 0; i < kList.length; i++){
+	    Integer paperIndex = kList[i];
+	    TrainingPaper a = paperIndexer.get(paperIndex);
+
+	    for (Integer word : a.getTrainingWords()) {
+		ret[word] += a.getTrainingTf(word);
+	    }
+	}
+	return ret;
+	
     }
     
     protected List<Integer> predictTopKWordsWithKList
