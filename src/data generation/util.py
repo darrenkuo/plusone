@@ -135,7 +135,7 @@ def count(words):
     word_count["unique"] = unique_words
     return word_count
 
-def plot_dist(types):
+def plot_dist(types, color='b'):
     """Plots a distribution as a bar graph.
     
     Given a distribution, plots a bar graph. Each bar is an element in the
@@ -150,10 +150,10 @@ def plot_dist(types):
     offset = 0
     width = 0.01
     for type in types:
-        bar(offset, type, width)
+        bar(offset, type, width, color=color)
         offset += width
     xticks(np.arange(width / 2, width * len(types), .01), range(len(types)))
 
-def plot_hist(words):
+def plot_hist(words, color='b'):
     word_count = count(words)
-    hist(words, range(word_count['unique'] + 1))
+    hist(words, range(word_count['unique'] + 1), color=color)
