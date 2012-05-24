@@ -5,7 +5,7 @@ import java.util.*;
 
 public class MakeJSON {
 	public static void main(String[] args) throws IOException {
-    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "out.json" ) ) );
+    	//PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "out2.json" ) ) );
 		
 		//Needs to be changed depending on where file is located
 		StringBuffer filestem = new StringBuffer("/Users/andrewgambardella/Research/");
@@ -30,38 +30,38 @@ public class MakeJSON {
 		int count = 0;
 		int numUsers = 0;
 		int numItems = 0;
-		out.print("{\"folds\":[");
+		System.out.print("{\"folds\":[");
 		if (regression) {
 			while (lines.hasNextLine()) {
 				String thisLine = lines.nextLine();
 				if ((count % 2) == 0) {
 					String[] items = thisLine.split(" ");
-					out.print("[{\"id\":" + ((count/2) + 1) + ",\"items\":[");
+					System.out.print("[{\"id\":" + ((count/2) + 1) + ",\"items\":[");
 					for (int i = 0; i < items.length; i++) {
-						out.print(items[i]);
+						System.out.print(items[i]);
 						if (Integer.parseInt(items[i]) + 1 > numItems) {
 							numItems = Integer.parseInt(items[i]) + 1;
 						}
 						if (i != items.length - 1) {
-							out.print(",");
+							System.out.print(",");
 						}
 					}
-					out.print("],");
+					System.out.print("],");
 					count++;
 					numUsers++;
 				} else {
 					String[] scores = thisLine.split(" ");
-					out.print("\"scores\":[");
+					System.out.print("\"scores\":[");
 					for (int i = 0; i < scores.length; i++) {
-						out.print(scores[i]);
+						System.out.print(scores[i]);
 						if (i != scores.length - 1) {
-							out.print(",");
+							System.out.print(",");
 						}
 					}
 					if (lines.hasNextLine()) {
-						out.print("]}],");
+						System.out.print("]}],");
 					} else {
-						out.print("]}]],");
+						System.out.print("]}]],");
 					}
 					count++;
 				}
@@ -70,44 +70,48 @@ public class MakeJSON {
 			while (lines.hasNextLine()) {
 				String thisLine = lines.nextLine();
 				String[] items = thisLine.split(" ");
-				out.print("[{\"id\":" + ((count) + 1) + ",\"items\":[");
+				System.out.print("[{\"id\":" + ((count) + 1) + ",\"items\":[");
 				for (int i = 0; i < items.length; i++) {
-					out.print(items[i]);
+					System.out.print(items[i]);
 					if (Integer.parseInt(items[i]) + 1 > numItems) {
 						numItems = Integer.parseInt(items[i]) + 1;
 					}
 					if (i != items.length - 1) {
-						out.print(",");
+						System.out.print(",");
 					}
 				}
-				out.print("],");
+				if (lines.hasNextLine()) {
+					System.out.print("]}],");
+				} else {
+					System.out.print("]}]],");
+				}
 				count++;
 				numUsers++;
 			}
 		}
 		//items and scores printed
-		out.print("\"itemindex\":[");
+		System.out.print("\"itemindex\":[");
 		for (int i = 1; i <= numItems; i++) {
-			out.print("\"" + i + "\"");
+			System.out.print("\"" + i + "\"");
 			if (i != numItems) {
-				out.print(",");
+				System.out.print(",");
 			}
 		}
-		out.print("],");
+		System.out.print("],");
 		//itemindex printed
 		
-		out.print("\"num_folds\":5,");
-		out.print("\"num_items\":" + numItems + ",");
-		out.print("\"num_users\":" + numUsers + ",");
+		System.out.print("\"num_folds\":5,");
+		System.out.print("\"num_items\":" + numItems + ",");
+		System.out.print("\"num_users\":" + numUsers + ",");
 		
-		out.print("\"userindex\":[");
+		System.out.print("\"userindex\":[");
 		for (int i = 1; i <= numUsers; i++) {
-			out.print("\"" + i + "\"");
+			System.out.print("\"" + i + "\"");
 			if (i != numUsers) {
-				out.print(",");
+				System.out.print(",");
 			}
 		}
-		out.print("]}");
+		System.out.print("]}");
 	}
 	
 	private static File preprocess(String filepath) throws IOException {

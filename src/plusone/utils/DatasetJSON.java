@@ -70,7 +70,7 @@ public class DatasetJSON {
 			this.users = new HashMap[num_users];
 			this.folds = new HashMap[num_folds][];
 			int index = 0;
-			JSONArray items = null, scores;
+			JSONArray items = null, scores = null;
 			
 			for( int i = 0; i < num_folds; i++ ) {
 				JSONArray fold = folds.getJSONArray( i );
@@ -80,10 +80,22 @@ public class DatasetJSON {
 					JSONObject user = fold.getJSONObject( j );
 					this.folds[i][j] = new HashMap<Integer,Integer>();
 					items = user.getJSONArray( "items" );
-					scores = user.getJSONArray( "scores" );
+					try	{
+						scores = user.getJSONArray( "scores" );
+					} catch (JSONException e) {
+						scores = null;
+					}
 					//put the jth user of the ith fold in folds[i][j]
 					for( int k = 0; k < items.length(); k++ ) {
-						this.folds[i][j].put( items.getInt( k ), scores.getInt( k ) );
+						if (scores == null) {
+							if (this.folds[i][j].get( items.getInt( k ) ) == null) {
+								this.folds[i][j].put( items.getInt( k ), 1 );
+							} else {
+								this.folds[i][j].put( items.getInt( k ), this.folds[i][j].get( items.getInt( k ) ) + 1 );
+							}
+						} else {
+							this.folds[i][j].put( items.getInt( k ), scores.getInt( k ) );
+						}
 					}
 					
 					PaperAbstract p = new PaperAbstract(index++, null, null, this.folds[i][j]);
