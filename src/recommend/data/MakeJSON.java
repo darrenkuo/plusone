@@ -3,14 +3,31 @@ package recommend.data;
 import java.io.*;
 import java.util.*;
 
+/** Makes a JSON file corresponding to a file given by the string on the first line of the main method. If regression is true,
+ *  the input will have the (integer) indices of items on each odd numbered line, with each item's score on the next even
+ *  numbered line. If regression is false, the each line of the input will correspond to a different document and each
+ *  number will be the items in the document. Consider the input:
+ *  1 3 4
+ *  2 2 5
+ *  1 7 9 20
+ *  1 3 4 2
+ *  If regression = true, this is parsed as having 2 documents, the first having three items {1, 3, 4} with respective scores {2, 2, 5} and the
+ *  second having 4 items {1, 7, 9, 20} with respective scores {1, 3, 4, 2}. If regression = false, this is parsed as having 4 documents, the first having
+ *  items {1, 3, 4}, the second having items {2 (twice), 5}, etc.
+ *  
+ *  The JSON file is printed on standard out.
+ */
 public class MakeJSON {
 	public static void main(String[] args) throws IOException {
     	//PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "out2.json" ) ) );
 		
 		//Needs to be changed depending on where file is located
-		StringBuffer filestem = new StringBuffer("/Users/andrewgambardella/Research/");
-		StringBuffer thisfile = filestem.append("documents-out");
+		String thisfile = args[0];
+		//Set to true if each item has a corresponding score, false otherwise
 		boolean regression = false;
+		if (args[1].equals("true")) {
+			regression = true;
+		}
 		File fixedFile = null;
 		try {
 			fixedFile = preprocess(thisfile.toString());

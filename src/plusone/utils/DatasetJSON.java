@@ -81,6 +81,7 @@ public class DatasetJSON {
 					this.folds[i][j] = new HashMap<Integer,Integer>();
 					items = user.getJSONArray( "items" );
 					try	{
+						//If successful, this is a regression file
 						scores = user.getJSONArray( "scores" );
 					} catch (JSONException e) {
 						scores = null;
@@ -110,6 +111,11 @@ public class DatasetJSON {
 		System.out.println("total number of papers: " + documents.size());
     }
 
+    /** This method is to be called in order to construct a datasetJSON
+     * 
+     * @param filename The path to the JSON file being loaded
+     * @return a DatasetJSON with its document, wordIndexer, and paperIndexer fields instantiated with the information contained in the JSON
+     */
     public static DatasetJSON loadDatasetFromPath(String filename) {
         DatasetJSON dataset = new DatasetJSON();
         dataset.loadInPlaceFromPath(filename);
