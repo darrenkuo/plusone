@@ -132,7 +132,7 @@ def count(words):
     word_count["total"] = num_words
     return word_count
 
-def plot_types(types):
+def plot_dist(types):
     """Plots a distribution as a bar graph.
     
     Given a distribution, plots a bar graph. Each bar is an element in the
