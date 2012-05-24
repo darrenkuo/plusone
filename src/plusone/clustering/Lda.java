@@ -30,6 +30,10 @@ public class Lda extends ClusteringTest {
 			Terms terms) {
 		super("Lda");
 		this.trainingSet = trainingSet;
+		for (PaperAbstract paper : trainingSet) {
+			paper.generateTf(0, null, false);
+		}
+		
 		this.wordIndexer = wordIndexer;
 		this.terms = terms;
 		train();
@@ -197,7 +201,7 @@ public class Lda extends ClusteringTest {
 	 */
 	private void createLdaInput(String filename, List<PaperAbstract> papers) {
 
-		System.out.print("created lda input in file: " + filename + " ... ");
+		System.out.print("creating lda input in file: " + filename + " ... ");
 
 		PlusoneFileWriter fileWriter = new PlusoneFileWriter(filename);
 
