@@ -107,7 +107,16 @@ public class Lda extends ClusteringTest {
 	}
 
 	
-
+	/**
+	 * Given a set of test documents, runs lda-c-dist inference to learn the
+	 * final gammas. Then, subtracts alpha from each gamma to find the expected
+	 * number of times each word appears per topic. Finally, multiplies each
+	 * gamma by beta to find the expected number of times a word appears for
+	 * each document.
+	 * 
+	 * @param testDocs	the list of documents to run prediction on
+	 * @return	the expected number of times each word appears per document
+	 */
 	public double[][] predict(List<PaperAbstract> testDocs){
 	
 		String testData = "lda/test.dat";
