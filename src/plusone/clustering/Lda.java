@@ -127,11 +127,11 @@ public class Lda extends ClusteringTest {
 
 		createLdaInput(testData, testDocs);
 		Utils.runCommand("lib/lda-c-dist/lda inf " + 
-				" lib/lda-c-dist/settings.txt " + "lda/final" + 
+				" lib/lda-c-dist/settings.txt " + "lda/final " + 
 				testData + " lda/output", false);
 		
 		double[][] gammasMatrix = readLdaResultFile("lda/output-gamma.dat",
-				testDocs.size(), false);
+				0, false);
 		double alpha = readAlpha("lda/final.other");
 		for (int i=0; i<gammasMatrix.length; i++) {
 			for (int j=0; j<gammasMatrix[i].length; j++) {
