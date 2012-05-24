@@ -15,7 +15,11 @@ public abstract class ClusteringTest implements ClusteringMethod {
 	return testName;
     }
 
+<<<<<<< HEAD
+    public double[] predict(PredictionPaper testPaper) { 
+=======
     public double[] predict(int k, PredictionPaper testPaper) { 
+>>>>>>> 51347e16ab32dde454feef1e42de9d758b272f16
 	return null;
     }
 

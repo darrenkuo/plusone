@@ -44,8 +44,8 @@ public class LSI extends ClusteringTest {
 
 	svd = new SVD(DIMENSION, trainingSet, numTerms);
     }
-
-    public Integer[] predict(int k, PredictionPaper testPaper) {
-	return svd.predict(k,testPaper);
+    @Override
+    public double[] predict(PredictionPaper testPaper) {
+	return svd.predict(testPaper);
     }
 }

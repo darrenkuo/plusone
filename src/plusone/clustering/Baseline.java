@@ -27,19 +27,21 @@ public class Baseline extends ClusteringTest {
     }
 
     @Override
-    public Integer[] predict(int k, PredictionPaper testPaper) {
-
-	List<Integer> lst = new ArrayList<Integer>();
+    public double[] predict(PredictionPaper testPaper) {
+    	double[] ret = new double[terms.size()];
 	
-	for (Terms.Term curTerm : terms.getSortedTermsIterable()) {
-	    Integer curWord = curTerm.id;
-	    if (lst.size() >= k) 
-		break;
+	for (int i=0;i<terms.size();i++) {
+		int id=terms.get(i).id;
+		if (id!=i)
+			System.out.println("in Baseline: the id of term is not the same as the index " +
+					"of it in the terms array!!");
+		double freq = terms.get(i).totalCount;
 
-	    if (testPaper.getTrainingTf(curWord) == 0.0)
-		lst.add(curWord);
+	    if (testPaper.getTrainingTf(id) != 0.0)
+	    	freq=0.0;
+	    ret[id]=freq;
 	}
 	
-	return (Integer[])lst.toArray(new Integer[lst.size()]);
+	return ret;
     }
 }

@@ -23,8 +23,9 @@ public class CO extends ClusteringTest {
 
     co = new LocalCOSample(docEnzs,termEnzs, dtNs, tdNs,trainingSet,terms);
     }
-
-    public Integer[] predict(int k, PredictionPaper testPaper) {
-	return co.predict(k,testPaper);
+    
+    @Override
+    public double[] predict(PredictionPaper testPaper) {
+	return co.predict(testPaper);
     }
 }

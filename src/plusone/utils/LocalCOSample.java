@@ -165,6 +165,23 @@ public class LocalCOSample {
 	}
     }
     
+    public double[] predict(PredictionPaper testPaper){
+    	double[] ret = new double[terms.size()];
+    	Map<Integer,Double> COscore=new HashMap<Integer,Double>();
+    	for (Integer id : testPaper.getTrainingWords()) {
+    	    double wt=(TermDocB[id].size()==0)?0:testPaper.getTrainingTf(id)*1.0/TermDocB[id].size();
+    	    sparseAddTo(COscore,wt,COSample[id]);
+    	}
+    	
+    	for (Map.Entry<Integer,Double> e:COscore.entrySet()){
+    	    int id = e.getKey();
+    	    double idf=terms.get(id).trainingIdf(trainingSet.size());
+    	    double score = e.getValue()*idf;
+    	    ret[id]=score;
+    	}
+    	return ret;
+    }
+    /*
     public Integer[] predict(int k, PredictionPaper testPaper) {
 	PriorityQueue<ItemAndScore> queue = 
 	    new PriorityQueue<ItemAndScore>(k+1);
@@ -197,6 +214,7 @@ public class LocalCOSample {
 	return results;
     }
 
+*/    
     // protected Map<Integer, Double> represent(PaperIF doc) {
     // 	Map<Integer, Double> ret = new HashMap<Integer, Double>();
     // 	for (Integer w : doc.getTrainingWords()) {

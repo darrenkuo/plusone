@@ -191,20 +191,25 @@ public class SVD {
 			result += mu[i][docId] * sigma[i] * beta[i][termId];
 		return result;
 	}
-
-	public Integer[] predict(int k, PredictionPaper testPaper) {
-		PriorityQueue<ItemAndScore> queue = 
-				new PriorityQueue<ItemAndScore>(k+1);
-
+	
+	public double[] projection(PaperAbstract paper){
 		double[] doct = new double[numTerms];
-		for (Integer word : testPaper.getTrainingWords()) {
-			doct[word] = testPaper.getTrainingTf(word);
+		for (Integer word : paper.getTrainingWords()) {
+			doct[word] = paper.getTrainingTf(word);
 		}
 
 		double[] dock = new double[DIMENSION];
 		for (int i = 0; i < dock.length; i ++) {
 			dock[i] = dotProduct(doct, beta[i]) / sigma[i];	    
 		}
+		return dock;
+	}
+	
+	public double[] predict(PredictionPaper testPaper) {
+	
+		double[] ret = new double[numTerms];
+		
+		double[] dock=projection((PaperAbstract)testPaper);
 
 		for (int i = 0; i < numTerms; i ++) {
 			if (testPaper.getTrainingTf(i) > 0)
@@ -213,19 +218,10 @@ public class SVD {
 			for (int j = 0; j < DIMENSION; j ++) {
 				score += dock[j] * beta[j][i];
 			}
-			//System.out.println("score: " + score);
-			if (queue.size() < k || score > queue.peek().score) {	    
-				if (queue.size() >= k)
-					queue.poll();
-				queue.add(new ItemAndScore(new Integer(i), score, true));
-			}
+			ret[i]=score;
+
 		}
 
-		Integer[] results = new Integer[Math.min(k, queue.size())];
-		for (int i = 0; i < k && !queue.isEmpty(); i ++) {
-			results[i] = (Integer)queue.poll().item;
-		}
-
-		return results;
+		return ret;
 	}
 }

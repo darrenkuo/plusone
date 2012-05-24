@@ -41,14 +41,22 @@ public class KNN extends ClusteringTest {
     }
     
     @Override
-    public Integer[] predict(int k, PredictionPaper testPaper) {
+    public double[] predict(PredictionPaper testPaper) {
 	Integer[] kList = kNbr(testPaper, K_CLOSEST);
-	    
-	List<Integer> words = 
-	    predictTopKWordsWithKList(kList, testPaper, k);
-	return words.toArray(new Integer[words.size()]);
+	
+	double[] ret = new double[terms.size()];
+	
+	for (int i = 0; i < kList.length; i++){
+	    Integer paperIndex = kList[i];
+	    TrainingPaper a = paperIndexer.get(paperIndex);
+
+	    for (Integer word : a.getTrainingWords()) {
+		ret[word] += a.getTrainingTf(word);
+	    }
+	}
+	return ret;
     }
-    
+   /* 
     protected List<Integer> predictTopKWordsWithKList
 	(Integer[] kList, PredictionPaper testDoc, int k) {
 	
@@ -86,11 +94,12 @@ public class KNN extends ClusteringTest {
 	
 	return results;
     }	
-        
+     */   
     /**
      * Gets the k closest neighbors using the similarity function
      * defined in PaperAbstract.
      */
+    /*
     public Integer[] kNbr1(PredictionPaper doc, int K_CLOSEST){
 	PriorityQueue<ItemAndScore> queue = 
 	    new PriorityQueue<ItemAndScore>(K_CLOSEST + 1);
@@ -114,7 +123,7 @@ public class KNN extends ClusteringTest {
 	}
 	
 	return results;
-    }
+    }*/
 
     public Integer[] kNbr(PredictionPaper doc, int K_CLOSEST) {
 	Integer[] allRank = similarityCache.getDistance(doc);
