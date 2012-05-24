@@ -75,7 +75,7 @@ public class CooccurSumIDF extends Algorithm {
 		this.trainingSet = trainingSet;
     	this.terms = terms;
     	
-		doccount = new int[WordIndex.size()];
+		doccount = new int[terms.size()];
 		
 		for( TrainingPaper t : trainingSet ) {
 			for( int word : t.getTrainingWords() ) {
@@ -83,7 +83,7 @@ public class CooccurSumIDF extends Algorithm {
 			}
 		}
 		
-		cooccur = new HashMap[WordIndex.size()];
+		cooccur = new HashMap[terms.size()];
 		
 		for( int i = 0; i < cooccur.length; i++ ) {
 			cooccur[i] = new HashMap<Integer,Integer>();
@@ -98,9 +98,9 @@ public class CooccurSumIDF extends Algorithm {
 		}
 	}
 	
-	public double[] predict( int k, PredictionPaper paper ) {
+	public double[] predict( PredictionPaper paper ) {
 
-		double[] scores = new double[WordIndex.size()];
+		double[] scores = new double[terms.size()];
 		
 		for( int w1 : ((PaperAbstract)paper).getTestingWords() ) {
 			if( doccount[w1] < 4 ) {
@@ -113,7 +113,7 @@ public class CooccurSumIDF extends Algorithm {
 		}
 		
 		for( int w = 0; w < scores.length; w++ ) {
-			scores[w] *= WordIndex.getIDF( w );
+			scores[w] *= WordIndex.getIDF( w ); //May need to be changed with switch to plusone's prediction method
 		}
 		
 		return scores;

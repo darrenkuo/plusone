@@ -142,9 +142,9 @@ public class KNN extends Algorithm {
     	}
 	}
 
-    public double[] predict( int k, PredictionPaper paper ) {
+    public double[] predict( PredictionPaper paper ) {
     	ItemAverage items = new ItemAverage(trainingSet, terms);
-    	itemAverages = items.predict(k, paper);
+    	itemAverages = items.predict( paper );
     	
     	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
     	
@@ -159,13 +159,13 @@ public class KNN extends Algorithm {
     		}
     	}
     	
-    	double[] scores = new double[WordIndex.size()];
+    	double[] scores = new double[terms.size()];
     	
     	while( !pq.isEmpty() ) {
     		Pair p = pq.poll();
     		TrainingPaper traindoc = trainingSet.get( p.doc );
     		
-    		for( int word = 0; word < WordIndex.size(); word++) {
+    		for( int word = 0; word < terms.size(); word++) {
     			if (traindoc.getTrainingTf(word) != null)
     				scores[word] += traindoc.getTrainingTf( word )/K;
     			else

@@ -123,13 +123,16 @@ def count(words):
     """
     word_count = {}
     num_words = 0
+    unique_words = 0
     for word in words:
         num_words += 1
         if word_count.has_key(word):
             word_count[word] += 1
         else:
             word_count[word] = 1
+            unique_words += 1
     word_count["total"] = num_words
+    word_count["unique"] = unique_words
     return word_count
 
 def plot_dist(types):
@@ -150,5 +153,7 @@ def plot_dist(types):
         bar(offset, type, width)
         offset += width
     xticks(np.arange(width / 2, width * len(types), .01), range(len(types)))
-    
-#hist(words, range(vocab_size + 1)
+
+def plot_hist(words):
+    word_count = count(words)
+    hist(words, range(word_count['unique'] + 1))

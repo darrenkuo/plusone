@@ -156,9 +156,9 @@ int K;
 		}
 	}
 
-    public double[] predict( int k, PredictionPaper paper ) {
+    public double[] predict( PredictionPaper paper ) {
     	ItemAverage items = new ItemAverage(trainingSet, terms);
-    	itemAverages = items.predict(k, paper);
+    	itemAverages = items.predict(paper);
     	
     	PriorityQueue<Pair> pq = new PriorityQueue<Pair>();
     	double sumOfSims = 0.0;
@@ -184,7 +184,7 @@ int K;
     		Pair p = pq.poll();
     		TrainingPaper traindoc = trainingSet.get( p.doc );
     		
-    		for( int word = 0; word < WordIndex.size(); word++) {
+    		for( int word = 0; word < terms.size(); word++) {
     			if (traindoc.getTrainingTf(word) != null)
     				scores[word] += (p.similarity*traindoc.getTrainingTf( word ))/sumOfSims;
     			else

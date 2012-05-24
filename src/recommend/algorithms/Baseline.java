@@ -40,7 +40,7 @@ public class Baseline extends Algorithm {
     	this.trainingSet = trainingSet;
     	this.terms = terms;
     	
-    	scores = new double[WordIndex.size()];
+    	scores = new double[terms.size()];
 		for (TrainingPaper t : trainingSet) {
 			for (Integer w : t.getTrainingWords()) {
 				scores[w] += t.getTrainingTf(w);
@@ -48,7 +48,7 @@ public class Baseline extends Algorithm {
 		}
     }
 	
-	public double[] predict(int k, PredictionPaper paper) {
+	public double[] predict( PredictionPaper paper) {
 		return scores;
 	}
 	

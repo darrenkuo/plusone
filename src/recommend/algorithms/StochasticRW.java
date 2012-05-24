@@ -111,9 +111,9 @@ public class StochasticRW extends Algorithm {
 	    }
     }
 	
-	public double[] predict( int k, PredictionPaper paper ) {
+	public double[] predict( PredictionPaper paper ) {
 
-		double[] scores = new double[WordIndex.size()];
+		double[] scores = new double[terms.size()];
 	    
 	    for( int start : ((PaperAbstract)paper).getTestingWords() ) {
 	    	if( neigh[start].length == 0 ) {

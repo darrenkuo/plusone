@@ -214,9 +214,9 @@ public class Cooccur2Max extends Algorithm {
 		}
 	}
 	
-	public double[] predict( int k, PredictionPaper paper ) {
+	public double[] predict( PredictionPaper paper ) {
 				
-		double[] scores = new double[WordIndex.size()];
+		double[] scores = new double[terms.size()];
 		
 		for( int g1 : ((PaperAbstract)paper).getTestingWords() ) {
 			long key = ((long)g1 << 32) + Integer.MAX_VALUE;

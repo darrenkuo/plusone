@@ -59,7 +59,7 @@ public class ItemAverage extends Algorithm {
     	
 		int avg = 0;
 		int count = 0;
-		scores = new double[WordIndex.size()];
+		scores = new double[terms.size()];
 		int[] doccount = new int[terms.size()];
 		
 		for( TrainingPaper t : trainingSet ) {
@@ -83,7 +83,7 @@ public class ItemAverage extends Algorithm {
 		}
 	}
 	
-	public double[] predict(int k, PredictionPaper paper) {
+	public double[] predict( PredictionPaper paper ) {
 		return scores;
 	}
 }
