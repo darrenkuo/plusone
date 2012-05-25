@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
@@ -173,7 +174,8 @@ public class Main {
 			}
 		}
 		json.put("tests", tests);
-		File out = new File(path, "experiment.json");
+		Date date = new Date();
+		File out = new File("data", "experiment" + date.getTime() +".json");
 
 		PlusoneFileWriter writer = new PlusoneFileWriter(out);
 		writer.write(json.toString());
