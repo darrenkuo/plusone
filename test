@@ -34,7 +34,7 @@ echo Output will go in $out_dir
 
 #0.1,0.3,0.5,0.7,0.9 \
 args=\
-"-Dplusone.dataFile=./data/$data \
+"-Dplusone.dataFile=$data \
  -Dplusone.crossValidation.FOLD=10 \
  -Dplusone.crossValidation.run=false \
  -Dplusone.testWordPercents=0.3 \

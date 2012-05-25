@@ -21,7 +21,7 @@ if "__main__" == __name__:
         heldout = m.group(1)
         heldouts.add(heldout)
         k = m.group(2)
-        if "1" != k: continue
+        if "3" != k: continue
         for filename in filenames:
             if ".out" != filename[-4:]: continue
             if filename not in table: table[filename] = {}
