@@ -140,7 +140,7 @@ public class Main {
 
 	private void outputResults(int[] ks, double[] twpNames, String path) throws JSONException{
 		JSONObject json = new JSONObject();
-		JSONObject tests = new JSONObject();
+		JSONArray tests = new JSONArray();
 		for (int i = 0; i < twpNames.length; i++) {
 			JSONObject testWordPercents = new JSONObject();
 			for(int ki=0;ki<ks.length;ki++){
@@ -158,6 +158,7 @@ public class Main {
 				for (Map.Entry<String,Results> entry : resultK.entrySet()){
 					JSONObject thisTest = new JSONObject();
 					thisTest.put("numPredictions", k);
+					thisTest.put("trainPercent", twpNames[i]);
 					double[] mean = entry.getValue().getResultsMean();
 					double[] variance = entry.getValue().getResultsVariance();
 					thisTest.put("Predicted_Mean" , mean[0]);
@@ -168,9 +169,8 @@ public class Main {
 					thisTest.put("tfidf score_Var" , variance[2]);
 					allTests.put(entry.getKey(), thisTest);
 				}
-				testWordPercents.put(twpNames[i] + "", allTests);
+				tests.put(allTests);
 			}
-			tests.put("trainPercent", testWordPercents);
 		}
 		json.put("tests", tests);
 		File out = new File(path, "experiment.json");
