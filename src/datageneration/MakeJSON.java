@@ -90,13 +90,6 @@ public class MakeJSON {
 		    }
 
 		    json.put("users", userArray);
-		    String[] itemIndex = seenItems.toArray(new String[0]);
-		    json.put("itemindex", new JSONArray(itemIndex));
-		    String[] userIndex = new String[hm.keySet().size()];
-		    for (int i = 0; i < hm.keySet().size(); i++) {
-		    	userIndex[i] = i  +"";
-		    }
-		    json.put("userindex", userIndex);
 	    	out.println( json.toString() );
 	    	out.close();
 		} else {
@@ -137,13 +130,6 @@ public class MakeJSON {
 		    }
 
 		    json.put("users", userArray);
-		    String[] itemIndex = seenItems.toArray(new String[0]);
-		    json.put("itemindex", new JSONArray(itemIndex));
-		    String[] userIndex = new String[hm.keySet().size()];
-		    for (int i = 0; i < hm.keySet().size(); i++) {
-		    	userIndex[i] = i  +"";
-		    }
-		    json.put("userindex", userIndex);
 	    	out.println( json.toString() );
 	    	out.close();
 		}

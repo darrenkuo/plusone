@@ -52,18 +52,10 @@ public class DatasetJSON {
 			this.num_users = json.getInt( "num_users" );
 			this.num_items = json.getInt( "num_items" );
 			
-			JSONArray itemindex = json.getJSONArray( "itemindex" );
 			JSONArray users = json.getJSONArray( "users" );
 			
 			for( int i = 0; i < num_items; i++ ) {
-				this.wordIndexer.fastAddAndGetIndex(itemindex.getString(i));
-			}
-			
-			JSONArray userindex = json.getJSONArray( "userindex" );
-			this.userindex = new String[num_users];
-			
-			for( int i = 0; i < num_users; i++ ) {
-				this.userindex[i] = userindex.getString( i );
+				this.wordIndexer.fastAddAndGetIndex(i + "");
 			}
 			
 			int index = 0;
