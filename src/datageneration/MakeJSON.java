@@ -24,12 +24,13 @@ public class MakeJSON {
     	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "out2.json" ) ) );
 		
     	//Location of the file
-		String thisfile = args[0];
+		//String thisfile = args[0];
+    	String thisfile = "/Users/andrewgambardella/Downloads/documents-out";
 		//Set to true if each item has a corresponding score, false otherwise
 		boolean regression = false;
-		if (args[1].equals("true")) {
+		/*if (args[1].equals("true")) {
 			regression = true;
-		}
+		}*/
 		File fixedFile = null;
 		try {
 			fixedFile = preprocess(thisfile.toString());
@@ -79,7 +80,7 @@ public class MakeJSON {
 		    	JSONArray scoresJSON = new JSONArray();
 		    	
 		    	for( Pair a : hm.get( name ) ) {
-		    		itemsJSON.put( seenItems.indexOf(a.movie + "") );
+		    		itemsJSON.put( a.movie );
 		    		scoresJSON.put( a.rating );
 		    	}
 		    	
@@ -128,7 +129,7 @@ public class MakeJSON {
 		    	JSONArray itemsJSON = new JSONArray();
 		    	
 		    	for( Integer a : hm.get( name ) ) {
-		    		itemsJSON.put( seenItems.indexOf(a.toString()) );
+		    		itemsJSON.put( a );
 		    	}
 		    	
 		    	user.put( "items", itemsJSON );

@@ -13,7 +13,8 @@ public class Test {
 		Terms terms;
 		
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_movielens5.json");
-		DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Desktop/documents-out.json");
+		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Desktop/documents-out.json");
+		DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Research/plusone/out2.json");
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_simple.json");
 		Indexer<String> wordIndexer = reader.getWordIndexer();
 		Indexer<PaperAbstract> paperIndexer = reader.getPaperIndexer();
@@ -21,6 +22,12 @@ public class Test {
 		Terms.Term[] termArray = new Terms.Term[wordIndexer.size()];
 		for (int i = 0; i < wordIndexer.size(); i++) {
 		    termArray[i] = new Terms.Term(i);
+		}
+		for (PaperAbstract d : documents) {
+			for (int i = 0; i < termArray.length; i++) {
+				if (d.tf.get(i) != null)
+				System.out.println("Document: " +d+ " term "+i+" tf " +d.tf.get(i));
+			}
 		}
 		terms = new Terms(termArray);
 		/*
