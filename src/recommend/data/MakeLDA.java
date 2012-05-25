@@ -13,10 +13,10 @@ import java.util.Scanner;
 public class MakeLDA {
 
 	public static void main(String[] args) throws IOException {
-		PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "LDA.txt" ) ) );
+		//PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "LDA.txt" ) ) );
 		
 		//Needs to be changed depending on where file is located
-		StringBuffer filestem = new StringBuffer("/Users/andrewgambardella/Research/");
+		StringBuffer filestem = new StringBuffer("/Users/andrewgambardella/Downloads/");
 		StringBuffer thisfile = filestem.append("documents-out");
 		boolean regression = false;
 		
@@ -35,11 +35,11 @@ public class MakeLDA {
 				String scoreLine = lines.nextLine();
 				String[] items = itemLine.split(" ");
 				String[] scores = scoreLine.split(" ");
-				out.print(items.length + " ");
+				System.out.print(items.length + " ");
 				for (int i = 0; i < items.length; i++) {
-					out.print(items[i] + ":" + scores[i] + " ");
+					System.out.print(items[i] + ":" + scores[i] + " ");
 				}
-				out.println();
+				System.out.println();
 			} else {
 				StringBuffer toBePrinted = new StringBuffer();
 				String itemLine = lines.nextLine();
@@ -61,7 +61,7 @@ public class MakeLDA {
 						distinctItems -= 1;
 					}
 				}
-				out.println(distinctItems + " " + toBePrinted.toString());
+				System.out.println(distinctItems + " " + toBePrinted.toString());
 			}
 		}
 	}

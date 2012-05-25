@@ -10,10 +10,10 @@ import plusone.clustering.Lda;
 public class Test {
 
 	public static void main(String[] args) {
-		/*Terms terms;
+		Terms terms;
 		
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_movielens5.json");
-		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Desktop/documents-out.json");
+		DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Desktop/documents-out.json");
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_simple.json");
 		Indexer<String> wordIndexer = reader.getWordIndexer();
 		Indexer<PaperAbstract> paperIndexer = reader.getPaperIndexer();
@@ -23,7 +23,7 @@ public class Test {
 		    termArray[i] = new Terms.Term(i);
 		}
 		terms = new Terms(termArray);
-		
+		/*
 		Lda alg = new Lda(documents, wordIndexer, terms,30);
 		double[][] test = alg.predict(documents);
 		for (int row=0; row<test.length; row++) {

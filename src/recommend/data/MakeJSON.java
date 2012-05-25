@@ -3,6 +3,10 @@ package recommend.data;
 import java.io.*;
 import java.util.*;
 
+import org.json.*;
+
+import recommend.data.MovieLens.Pair;
+
 /** Makes a JSON file corresponding to a file given by the string on the first line of the main method. If regression is true,
  *  the input will have the (integer) indices of items on each odd numbered line, with each item's score on the next even
  *  numbered line. If regression is false, the each line of the input will correspond to a different document and each
@@ -18,16 +22,17 @@ import java.util.*;
  *  The JSON file is printed on standard out.
  */
 public class MakeJSON {
-	public static void main(String[] args) throws IOException {
-    	//PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "out2.json" ) ) );
+	public static void main(String[] args) throws IOException, JSONException {
+    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "out2.json" ) ) );
 		
 		//Needs to be changed depending on where file is located
-		String thisfile = args[0];
+		//String thisfile = args[0];
+		String thisfile = "/Users/andrewgambardella/Downloads/documents-out";
 		//Set to true if each item has a corresponding score, false otherwise
 		boolean regression = false;
-		if (args[1].equals("true")) {
+		/*if (args[1].equals("true")) {
 			regression = true;
-		}
+		}*/
 		File fixedFile = null;
 		try {
 			fixedFile = preprocess(thisfile.toString());
@@ -47,88 +52,101 @@ public class MakeJSON {
 		int count = 0;
 		int numUsers = 0;
 		int numItems = 0;
-		System.out.print("{\"folds\":[");
 		if (regression) {
+			HashMap<Integer,ArrayList<Integer>> hm = new HashMap<Integer,ArrayList<Integer>>();
+			int users = 0;
+			int itemCount = 0;
+			ArrayList<String> seenItems = new ArrayList<String>();
 			while (lines.hasNextLine()) {
-				String thisLine = lines.nextLine();
-				if ((count % 2) == 0) {
-					String[] items = thisLine.split(" ");
-					System.out.print("[{\"id\":" + ((count/2) + 1) + ",\"items\":[");
-					for (int i = 0; i < items.length; i++) {
-						System.out.print(items[i]);
-						if (Integer.parseInt(items[i]) + 1 > numItems) {
-							numItems = Integer.parseInt(items[i]) + 1;
-						}
-						if (i != items.length - 1) {
-							System.out.print(",");
-						}
+				String itemLine = lines.nextLine();
+				String[] items = itemLine.split(" ");
+				ArrayList<Integer> itemList = new ArrayList<Integer>();
+				for (String s : items) {
+					itemList.add(Integer.parseInt(s));
+					if (!seenItems.contains(s)) {
+						seenItems.add(s);
+						itemCount++;
 					}
-					System.out.print("],");
-					count++;
-					numUsers++;
-				} else {
-					String[] scores = thisLine.split(" ");
-					System.out.print("\"scores\":[");
-					for (int i = 0; i < scores.length; i++) {
-						System.out.print(scores[i]);
-						if (i != scores.length - 1) {
-							System.out.print(",");
-						}
-					}
-					if (lines.hasNextLine()) {
-						System.out.print("]}],");
-					} else {
-						System.out.print("]}]],");
-					}
-					count++;
 				}
+				hm.put(users, itemList);
+				users++;
 			}
+			JSONObject json = new JSONObject();
+			json.put( "num_users", hm.keySet().size() );
+			json.put( "num_items", itemCount );
+			
+	    	JSONObject[] userArray = new JSONObject[hm.keySet().size()];
+		    for( Integer name : hm.keySet() ) {
+		    	JSONObject user = new JSONObject();
+		    	user.put( "id",  name );
+		    	JSONArray itemsJSON = new JSONArray();
+		    	
+		    	for( Integer a : hm.get( name ) ) {
+		    		itemsJSON.put( seenItems.indexOf(a.toString()) );
+		    	}
+		    	
+		    	user.put( "items", itemsJSON );
+		    	userArray[name] = user;
+		    }
+
+		    json.put("users", userArray);
+		    String[] itemIndex = seenItems.toArray(new String[0]);
+		    json.put("itemindex", new JSONArray(itemIndex));
+		    String[] userIndex = new String[hm.keySet().size()];
+		    for (int i = 0; i < hm.keySet().size(); i++) {
+		    	userIndex[i] = i  +"";
+		    }
+		    json.put("userindex", userIndex);
+	    	out.println( json.toString() );
+	    	out.close();
 		} else {
+			HashMap<Integer,ArrayList<Integer>> hm = new HashMap<Integer,ArrayList<Integer>>();
+			int users = 0;
+			int itemCount = 0;
+			ArrayList<String> seenItems = new ArrayList<String>();
 			while (lines.hasNextLine()) {
 				String thisLine = lines.nextLine();
 				String[] items = thisLine.split(" ");
-				System.out.print("[{\"id\":" + ((count) + 1) + ",\"items\":[");
-				for (int i = 0; i < items.length; i++) {
-					System.out.print(items[i]);
-					if (Integer.parseInt(items[i]) + 1 > numItems) {
-						numItems = Integer.parseInt(items[i]) + 1;
-					}
-					if (i != items.length - 1) {
-						System.out.print(",");
+				ArrayList<Integer> itemList = new ArrayList<Integer>();
+				for (String s : items) {
+					itemList.add(Integer.parseInt(s));
+					if (!seenItems.contains(s)) {
+						seenItems.add(s);
+						itemCount++;
 					}
 				}
-				if (lines.hasNextLine()) {
-					System.out.print("]}],");
-				} else {
-					System.out.print("]}]],");
-				}
-				count++;
-				numUsers++;
+				hm.put(users, itemList);
+				users++;
 			}
+			JSONObject json = new JSONObject();
+			json.put( "num_users", hm.keySet().size() );
+			json.put( "num_items", itemCount );
+			
+	    	JSONObject[] userArray = new JSONObject[hm.keySet().size()];
+		    for( Integer name : hm.keySet() ) {
+		    	JSONObject user = new JSONObject();
+		    	user.put( "id",  name );
+		    	JSONArray itemsJSON = new JSONArray();
+		    	
+		    	for( Integer a : hm.get( name ) ) {
+		    		itemsJSON.put( seenItems.indexOf(a.toString()) );
+		    	}
+		    	
+		    	user.put( "items", itemsJSON );
+		    	userArray[name] = user;
+		    }
+
+		    json.put("users", userArray);
+		    String[] itemIndex = seenItems.toArray(new String[0]);
+		    json.put("itemindex", new JSONArray(itemIndex));
+		    String[] userIndex = new String[hm.keySet().size()];
+		    for (int i = 0; i < hm.keySet().size(); i++) {
+		    	userIndex[i] = i  +"";
+		    }
+		    json.put("userindex", userIndex);
+	    	out.println( json.toString() );
+	    	out.close();
 		}
-		//items and scores printed
-		System.out.print("\"itemindex\":[");
-		for (int i = 1; i <= numItems; i++) {
-			System.out.print("\"" + i + "\"");
-			if (i != numItems) {
-				System.out.print(",");
-			}
-		}
-		System.out.print("],");
-		//itemindex printed
-		
-		System.out.print("\"num_folds\":5,");
-		System.out.print("\"num_items\":" + numItems + ",");
-		System.out.print("\"num_users\":" + numUsers + ",");
-		
-		System.out.print("\"userindex\":[");
-		for (int i = 1; i <= numUsers; i++) {
-			System.out.print("\"" + i + "\"");
-			if (i != numUsers) {
-				System.out.print(",");
-			}
-		}
-		System.out.print("]}");
 	}
 	
 	private static File preprocess(String filepath) throws IOException {

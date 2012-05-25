@@ -51,9 +51,9 @@ public class DatasetJSON {
 			
 			this.num_users = json.getInt( "num_users" );
 			this.num_items = json.getInt( "num_items" );
-			this.num_folds = json.getInt( "num_folds" );
 			
 			JSONArray itemindex = json.getJSONArray( "itemindex" );
+			JSONArray users = json.getJSONArray( "users" );
 			
 			for( int i = 0; i < num_items; i++ ) {
 				this.wordIndexer.fastAddAndGetIndex(itemindex.getString(i));
@@ -66,43 +66,34 @@ public class DatasetJSON {
 				this.userindex[i] = userindex.getString( i );
 			}
 			
-			JSONArray folds = json.getJSONArray( "folds" );
-			this.users = new HashMap[num_users];
-			this.folds = new HashMap[num_folds][];
 			int index = 0;
 			JSONArray items = null, scores = null;
 			
-			for( int i = 0; i < num_folds; i++ ) {
-				JSONArray fold = folds.getJSONArray( i );
-				this.folds[i] = new HashMap[fold.length()];
-				
-				for( int j = 0; j < fold.length(); j++ ) {
-					JSONObject user = fold.getJSONObject( j );
-					this.folds[i][j] = new HashMap<Integer,Integer>();
-					items = user.getJSONArray( "items" );
-					try	{
-						//If successful, this is a regression file
-						scores = user.getJSONArray( "scores" );
-					} catch (JSONException e) {
-						scores = null;
-					}
-					//put the jth user of the ith fold in folds[i][j]
-					for( int k = 0; k < items.length(); k++ ) {
-						if (scores == null) {
-							if (this.folds[i][j].get( items.getInt( k ) ) == null) {
-								this.folds[i][j].put( items.getInt( k ), 1 );
-							} else {
-								this.folds[i][j].put( items.getInt( k ), this.folds[i][j].get( items.getInt( k ) ) + 1 );
-							}
-						} else {
-							this.folds[i][j].put( items.getInt( k ), scores.getInt( k ) );
-						}
-					}
-					
-					PaperAbstract p = new PaperAbstract(index++, null, null, this.folds[i][j]);
-					documents.add(p);
-					paperIndexer.add(p);
+			for( int i = 0; i < num_users; i++ ) {
+				JSONObject user = users.getJSONObject( i );
+				HashMap<Integer, Integer> tf = new HashMap<Integer, Integer>();
+				items = user.getJSONArray( "items" );
+				try	{
+					//If successful, this is a regression file
+					scores = user.getJSONArray( "scores" );
+				} catch (JSONException e) {
+					scores = null;
 				}
+				//put the jth user of the ith fold in folds[i][j]
+				for( int j = 0; j < items.length(); j++ ) {
+					if (scores == null) {
+						if (tf.get( items.getInt( j ) ) == null) {
+							tf.put( items.getInt( j ), 1 );
+						} else {
+							tf.put( items.getInt( j ), tf.get( items.getInt( j ) ) + 1 );
+						}
+					} else {
+						tf.put( items.getInt( j ), scores.getInt( j ) );
+					}
+				}
+				PaperAbstract p = new PaperAbstract(index++, null, null, tf);
+				documents.add(p);
+				paperIndexer.add(p);
 			}
 		} catch(Exception e) {
 		    e.printStackTrace();
