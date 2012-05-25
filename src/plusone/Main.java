@@ -41,6 +41,9 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
+import org.json.*;
+
+
 public class Main {
 
 	//   private final static int nTrialsPerPaper = 12;
@@ -98,7 +101,7 @@ public class Main {
 		System.out.println("Data ready for experiment");
 	}
 
-	private void runExperiments(String path){
+	private void runExperiments(String path) throws JSONException{
 		Boolean crossValid = Boolean.getBoolean("plusone.crossValidation.run");
 
 		if (crossValid)
@@ -112,15 +115,15 @@ public class Main {
 		Arrays.sort(ks);
 		allResults = new Map[ks.length];
 		for (int twp = 0; twp < testWordPercents.length; twp++) {
-			double testWordPercent = testWordPercents[twp];	    
-			File twpDir = null;
-			try {
+			double testWordPercent = testWordPercents[twp];
+			//File twpDir = null;
+			/*try {
 				twpDir = new File(new File(path), 
 						testWordPercent + "");
 				if (!twpDir.exists()) twpDir.mkdir();
 			} catch(Exception e) {
 				e.printStackTrace();
-			}
+			}*/
 			System.out.println("processing testwordpercent: " + testWordPercent);
 			for (int i=0;i<ks.length;i++)
 				allResults[i]=new HashMap<String,Results>();
@@ -128,35 +131,57 @@ public class Main {
 			for (int testGroup=(crossValid ?0:FOLD-1);testGroup<FOLD;testGroup++){	    
 				setupData(testGroup,testWordPercent);
 
-				runClusteringMethods(twpDir, ks);
+				runClusteringMethods(ks);
 
 			}
-			outputResults(ks, twpDir);
 		}
-
+		outputResults(ks, testWordPercents, path);
 	}
 
-	private void outputResults(int[] ks, File outputDir){
-		for(int ki=0;ki<ks.length;ki++){
-			int k=ks[ki];
-			File kDir = null;
-			try {
-				kDir = new File(outputDir, k + "");
-				if (!kDir.exists()) kDir.mkdir();
-			} catch(Exception e) {
-				e.printStackTrace();
+	private void outputResults(int[] ks, double[] twpNames, String path) throws JSONException{
+		JSONObject json = new JSONObject();
+		JSONObject tests = new JSONObject();
+		for (int i = 0; i < twpNames.length; i++) {
+			JSONObject testWordPercents = new JSONObject();
+			for(int ki=0;ki<ks.length;ki++){
+				JSONObject allTests = new JSONObject();
+				int k=ks[ki];
+						/*
+				File kDir = null;
+				try {
+					kDir = new File(outputDir, k + "");
+					if (!kDir.exists()) kDir.mkdir();
+				} catch(Exception e) {
+					e.printStackTrace();
+				}*/
+				Map<String,Results> resultK=allResults[ki];
+				for (Map.Entry<String,Results> entry : resultK.entrySet()){
+					JSONObject thisTest = new JSONObject();
+					thisTest.put("numPredictions", k);
+					double[] mean = entry.getValue().getResultsMean();
+					double[] variance = entry.getValue().getResultsVariance();
+					thisTest.put("Predicted_Mean" , mean[0]);
+					thisTest.put("idf score_Mean" , mean[1]);
+					thisTest.put("tfidf score_Mean" , mean[2]);
+					thisTest.put("Predicted_Var" , variance[0]);
+					thisTest.put("idf score_Var" , variance[1]);
+					thisTest.put("tfidf score_Var" , variance[2]);
+					allTests.put(entry.getKey(), thisTest);
+				}
+				testWordPercents.put(twpNames[i] + "", allTests);
 			}
-			Map<String,Results> resultK=allResults[ki];
-			for (Map.Entry<String,Results> entry : resultK.entrySet()){
-				File out = new File(kDir, entry.getKey() + ".out");
-				Main.printResults(out, entry.getValue());
-			}
-
+			tests.put("trainPercent", testWordPercents);
 		}
+		json.put("tests", tests);
+		File out = new File(path, "experiment.json");
+
+		PlusoneFileWriter writer = new PlusoneFileWriter(out);
+		writer.write(json.toString());
+		writer.close();
 	}
 
 
-	public void runClusteringMethods(File outputDir, int[] ks) {
+	public void runClusteringMethods(int[] ks) {
 		int size = trainingSet.size() + testingSet.size();
 		// Baseline
 		if (testIsEnabled("baseline")) {
@@ -551,7 +576,7 @@ public class Main {
 	 * train percent - args[1]
 	 * test word percent - args[2] (currently ignored)
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws JSONException {
 
 		String data_file = System.getProperty("plusone.dataFile", "med.out");
 
