@@ -1,11 +1,19 @@
 import json
 import argparse
-#import src.datageneration.util as util
+import src.datageneration.util as util
 
 def parse(filename):
     with open(filename, 'r') as f:
         data = json.load(f)
-    #do something with f
+    predicted_means = {}
+    #this feels hacky--'tests's should not be hard-coded? we'll see
+    for test in data['tests']:
+        for key in test.keys():
+            predicted_means[str(key)] = test[key]['Predicted_Mean']
+    util.plot_dist(predicted_means.values(), labels=predicted_means.keys())
+    util.savefig(filename + '.pdf')
+    #util.show()
+    return data
 
 def main():
     parser = argparse.ArgumentParser(description="reads a json file and plots\
@@ -15,7 +23,7 @@ def main():
     
     args = parser.parse_args()
     print "reading file:", args.f
-    #parse(args.f)
+    return parse(args.f)
 
 if __name__ == '__main__':
-    main()
+    data = main()

@@ -20,3 +20,4 @@ bin/*
 *.pdf
 *.log
 *.pyc
+data/experiment*
