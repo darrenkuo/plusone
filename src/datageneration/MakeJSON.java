@@ -17,7 +17,7 @@ import org.json.*;
  *  second having 4 items {1, 7, 9, 20} with respective scores {1, 3, 4, 2}. If regression = false, this is parsed as having 4 documents, the first having
  *  items {1, 3, 4}, the second having items {2 (twice), 5}, etc.
  *  
- *  The JSON file is printed on standard out.
+ *  The JSON file is put into the plusone directory
  */
 public class MakeJSON {
 	public static void main(String[] args) throws IOException, JSONException {

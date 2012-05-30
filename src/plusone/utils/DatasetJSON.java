@@ -54,10 +54,6 @@ public class DatasetJSON {
 			
 			JSONArray users = json.getJSONArray( "users" );
 			
-			for( int i = 0; i < num_items; i++ ) {
-				this.wordIndexer.fastAddAndGetIndex(i + "");
-			}
-			
 			int index = 0;
 			JSONArray items = null, scores = null;
 			

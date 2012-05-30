@@ -23,12 +23,13 @@ public class Test {
 		for (int i = 0; i < wordIndexer.size(); i++) {
 		    termArray[i] = new Terms.Term(i);
 		}
+		/*
 		for (PaperAbstract d : documents) {
 			for (int i = 0; i < termArray.length; i++) {
 				if (d.tf.get(i) != null)
 				System.out.println("Document: " +d+ " term "+i+" tf " +d.tf.get(i));
 			}
-		}
+		}*/
 		terms = new Terms(termArray);
 		/*
 		Lda alg = new Lda(documents, wordIndexer, terms,30);

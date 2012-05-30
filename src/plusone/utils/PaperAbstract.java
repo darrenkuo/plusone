@@ -21,7 +21,7 @@ public class PaperAbstract implements TrainingPaper, PredictionPaper {
 
 	private Map<Integer, Integer> trainingTf;
 	private Map<Integer, Integer> testingTf;
-	public Map<Integer, Integer> tf;
+	private Map<Integer, Integer> tf;
 	public double norm;
 	public int group = 0; // Group # for cross-validation
 
