@@ -2,15 +2,18 @@ import json
 import argparse
 import src.datageneration.util as util
 
+TEST = 'tests'
+
 def parse(filename):
     with open(filename, 'r') as f:
         data = json.load(f)
-    predicted_means = {}
-    #this feels hacky--'tests's should not be hard-coded? we'll see
-    for test in data['tests']:
+    names = []
+    scores = []
+    for test in data[TEST]:
         for key in test.keys():
-            predicted_means[str(key)] = test[key]['Predicted_Mean']
-    util.plot_dist(predicted_means.values(), labels=predicted_means.keys())
+            names.append(str(key))
+            scores.append(test[key]['Predicted_Mean'])
+    util.plot_dist(scores, labels=names)
     util.savefig(filename + '.pdf')
     #util.show()
     return data
