@@ -117,14 +117,6 @@ public class Main {
 		allResults = new Map[ks.length];
 		for (int twp = 0; twp < testWordPercents.length; twp++) {
 			double testWordPercent = testWordPercents[twp];
-			//File twpDir = null;
-			/*try {
-				twpDir = new File(new File(path), 
-						testWordPercent + "");
-				if (!twpDir.exists()) twpDir.mkdir();
-			} catch(Exception e) {
-				e.printStackTrace();
-			}*/
 			System.out.println("processing testwordpercent: " + testWordPercent);
 			for (int i=0;i<ks.length;i++)
 				allResults[i]=new HashMap<String,Results>();
@@ -136,25 +128,22 @@ public class Main {
 
 			}
 		}
-		outputResults(ks, testWordPercents, path);
+		outputResults(ks, testWordPercents);
 	}
 
-	private void outputResults(int[] ks, double[] twpNames, String path) throws JSONException{
+	/** Outputs the results of the tests into the data folder.
+	 * 
+	 * @param ks an array containing how many words each test should predict
+	 * @param twpNames an array containing the percentage of held out words for each test
+	 * @throws JSONException
+	 */
+	private void outputResults(int[] ks, double[] twpNames) throws JSONException{
 		JSONObject json = new JSONObject();
 		JSONArray tests = new JSONArray();
 		for (int i = 0; i < twpNames.length; i++) {
-			JSONObject testWordPercents = new JSONObject();
 			for(int ki=0;ki<ks.length;ki++){
 				JSONObject allTests = new JSONObject();
 				int k=ks[ki];
-						/*
-				File kDir = null;
-				try {
-					kDir = new File(outputDir, k + "");
-					if (!kDir.exists()) kDir.mkdir();
-				} catch(Exception e) {
-					e.printStackTrace();
-				}*/
 				Map<String,Results> resultK=allResults[ki];
 				for (Map.Entry<String,Results> entry : resultK.entrySet()){
 					JSONObject thisTest = new JSONObject();
@@ -382,6 +371,7 @@ public class Main {
 			allScores = test.predict(testingSet);
 		}
 
+		double[][] results = new double[ks.length][4];
 
 		for (int id=0;id<testingSet.size();id++){
 			PredictionPaper testingPaper=testingSet.get(id);
@@ -414,26 +404,27 @@ public class Main {
 			for (int ki = 0; ki < ks.length; ki ++) {
 				int k = ks[ki];
 
-				double[] results = {0.0, 0.0, 0.0, 0.0};
-				MetadataLogger.TestMetadata meta = getMetadataLogger().getTestMetadata("k=" + k + test.testName);
-				test.addMetadata(meta);
-				List<Double> predictionScores = new ArrayList<Double>();
+//				MetadataLogger.TestMetadata meta = getMetadataLogger().getTestMetadata("k=" + k + test.testName);
+//				test.addMetadata(meta);
+//				List<Double> predictionScores = new ArrayList<Double>();
 
 				Integer[] predict = topPrdcts.subList(0, k).toArray(new Integer[k]);
 
 				double[] result = evaluate(testingPaper, predict, size, k);
-				for (int j = 0; j < 4; ++j) results[j] += result[j];
-				predictionScores.add(result[0]);
+				for (int j = 0; j < 4; ++j) results[ki][j] += result[j];
+			}
+		}
+				//				predictionScores.add(result[0]);
 
-				meta.createListValueEntry("predictionScore", predictionScores.toArray());
-				meta.createSingleValueEntry("numPredict", k);
-
+//				meta.createListValueEntry("predictionScore", predictionScores.toArray());
+//				meta.createSingleValueEntry("numPredict", k);
+		for (int ki=0;ki<ks.length;ki++){
 				//File out = new File(kDir, test.testName + ".out");
-				this.logResult(ki, test.getName(), new double[]{results[0]/k/testingSet.size(), 
-					results[1]/k/testingSet.size(), results[2]/k/testingSet.size()});
+				int k=ks[ki];
+				this.logResult(ki, test.getName(), new double[]{results[ki][0]/k/testingSet.size(), 
+					results[ki][1]/k/testingSet.size(), results[ki][2]/k/testingSet.size()});
 				//Main.printResults(out, new double[]{results[0]/results[3], 
 				//		results[1], results[2]});
-			}
 		}
 		System.out.println("[" + test.testName + "] took " +
 				(System.currentTimeMillis() - t1) / 1000.0 

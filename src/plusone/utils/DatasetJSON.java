@@ -71,16 +71,16 @@ public class DatasetJSON {
 				} catch (JSONException e) {
 					scores = null;
 				}
-				//put the jth user of the ith fold in folds[i][j]
 				for( int j = 0; j < items.length(); j++ ) {
+					String jthItem = items.getString( j );
 					if (scores == null) {
-						if (tf.get( items.getInt( j ) ) == null) {
-							tf.put( items.getInt( j ), 1 );
+						if ( !tf.keySet().contains(this.wordIndexer.fastIndexOf(jthItem))) {
+							tf.put( this.wordIndexer.fastAddAndGetIndex(jthItem), 1 );
 						} else {
-							tf.put( items.getInt( j ), tf.get( items.getInt( j ) ) + 1 );
+							tf.put( this.wordIndexer.fastIndexOf(jthItem), tf.get( this.wordIndexer.fastIndexOf(jthItem) ) + 1 );
 						}
 					} else {
-						tf.put( items.getInt( j ), scores.getInt( j ) );
+						tf.put( this.wordIndexer.fastAddAndGetIndex(jthItem), scores.getInt( j ) );
 					}
 				}
 				PaperAbstract p = new PaperAbstract(index++, null, null, tf);

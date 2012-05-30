@@ -14,7 +14,7 @@ public class Test {
 		
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_movielens5.json");
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Desktop/documents-out.json");
-		DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Research/plusone/out2.json");
+		DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Research/plusone/data/out2.json");
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_simple.json");
 		Indexer<String> wordIndexer = reader.getWordIndexer();
 		Indexer<PaperAbstract> paperIndexer = reader.getPaperIndexer();

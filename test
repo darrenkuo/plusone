@@ -25,11 +25,11 @@ echo $userdata
 #   cd $basedir
 #fi
 
-out_dir=experiment-$(date -u +%F.%T%Z)
+out_dir=.
 if [ "$2" ];then
     out_dir=$2
 fi
-mkdir $out_dir || exit
+#mkdir $out_dir || exit
 echo Output will go in $out_dir
 
 #0.1,0.3,0.5,0.7,0.9 \
