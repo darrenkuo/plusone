@@ -164,7 +164,9 @@ public class Main {
 		}
 		json.put("tests", tests);
 		Date date = new Date();
-		File out = new File("data", "experiment" + date.getTime() +".json");
+		String outName = "experiment" + date.getTime() +".json";
+		File out = new File("data", outName);
+		System.out.println("Wrote to " + outName);
 
 		PlusoneFileWriter writer = new PlusoneFileWriter(out);
 		writer.write(json.toString());
