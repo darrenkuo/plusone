@@ -283,6 +283,12 @@ public class Lda extends ClusteringTest {
 		return results;
 	}
 	
+	/**
+	 * Reads in the value of alpha from a *.other file, contained in the LDA output
+	 * 
+	 * @param filename the path to a *.other file
+	 * @return the numerical value of alpha
+	 */
 	private double readAlpha(String filename) {
 		FileInputStream filecontents = null;
 		try {

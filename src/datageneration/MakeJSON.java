@@ -13,8 +13,8 @@ import org.json.*;
  *  2 2 5
  *  1 7 9 20
  *  1 3 4 2
- *  If regression = true, this is parsed as having 2 documents, the first having three items {1, 3, 4} with respective scores {2, 2, 5} and the
- *  second having 4 items {1, 7, 9, 20} with respective scores {1, 3, 4, 2}. If regression = false, this is parsed as having 4 documents, the first having
+ *  If args[1] = true, this is parsed as having 2 documents, the first having three items {1, 3, 4} with respective scores {2, 2, 5} and the
+ *  second having 4 items {1, 7, 9, 20} with respective scores {1, 3, 4, 2}. If args[1] = false, this is parsed as having 4 documents, the first having
  *  items {1, 3, 4}, the second having items {2 (twice), 5}, etc.
  *  
  *  The JSON file is put into the plusone directory
@@ -27,9 +27,9 @@ public class MakeJSON {
     	String thisfile = args[0];
 		//Set to true if each item has a corresponding score, false otherwise
 		boolean regression = false;
-		/*if (args[1].equals("true")) {
+		if (args[1].equals("true")) {
 			regression = true;
-		}*/
+		}
 		File fixedFile = null;
 		try {
 			fixedFile = preprocess(thisfile.toString());

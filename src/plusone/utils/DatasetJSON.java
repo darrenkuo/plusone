@@ -1,17 +1,11 @@
 package plusone.utils;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.Random;
 import org.json.*;
 
 public class DatasetJSON {
@@ -31,7 +25,6 @@ public class DatasetJSON {
 	public int num_users, num_items, num_folds;
 	public String[] itemindex, userindex;
 	public HashMap<Integer,Integer>[] users;
-	public HashMap<Integer,Integer>[][] folds;
 	
     List<PaperAbstract> documents = new ArrayList<PaperAbstract>();
     public List<PaperAbstract> getDocuments() { return documents; }
