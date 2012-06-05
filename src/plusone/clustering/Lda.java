@@ -147,7 +147,7 @@ public class Lda extends ClusteringTest {
 				result[row][col] = results.get(row, col);
 			}
 		}
-		
+				
 		return result;
 	}
 	                
@@ -303,5 +303,25 @@ public class Lda extends ClusteringTest {
 		alphaLine = lines.nextLine();
 		String[] splitLine = alphaLine.split(" ");
 		return Double.parseDouble(splitLine[1]);
+	}
+	
+	/**
+	 * Returns the perplexity for the test set
+	 * 
+	 * @param testDocs the testing documents
+	 * @return the perplexity for testDocs
+	 */
+	private double getPerplexity(List<PredictionPaper> testDocs) {
+		SimpleMatrix probPerDoc = gammas.mult(beta);
+		double numerator = 0, denominator = 0;
+		
+		for (int i=0; i<probPerDoc.numRows(); i++) {
+			for (int j=0; j<probPerDoc.numCols(); j++) {
+				numerator += Math.log(probPerDoc.get(i, j));
+				denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
+			}
+		}
+
+		return Math.exp(-1*numerator/denominator);
 	}
 }
