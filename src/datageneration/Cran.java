@@ -14,30 +14,36 @@ import org.json.JSONObject;
 public class Cran {
 
 	/**
-	 * @param args
+	 * Makes a json from the cran dataset at
+	 * http://www.dataminingresearch.com/index.php/2010/09/classic3-classic4-datasets/
+	 * Replace all instances of "cran" in the source with "cacm", "cisi", or "med" 
+	 * and change the number of iterations in the first for loop to run
+	 * this program on another dataset
+	 * 
+	 * @param args unused
 	 * @throws JSONException 
 	 */
 	public static void main(String[] args) throws Throwable {
 		File input;
-    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "cran.json" ) ) );
+    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "cacm.json" ) ) );
     	ArrayList<String> stopWords = makeStopWords();
 		HashMap<Integer, ArrayList<String>> hm = new HashMap<Integer,ArrayList<String>>();
-		for (int i = 1; i <= 1399; i++) {
+		for (int i = 1; i <= 3204; i++) {
 			ArrayList<String> thisDoc = new ArrayList<String>();
 			if (i < 10)
-				input = new File("data/classic/cran.00000" + i);
+				input = new File("data/classic/cacm.00000" + i);
 			else if (i < 100)
-				input = new File("data/classic/cran.0000" + i);
+				input = new File("data/classic/cacm.0000" + i);
 			else if (i < 1000)
-				input = new File("data/classic/cran.000" + i);
+				input = new File("data/classic/cacm.000" + i);
 			else
-				input = new File("data/classic/cran.00" + i);
+				input = new File("data/classic/cacm.00" + i);
 			Scanner in = null;
 			try {
 				in = new Scanner(input);
 				while (in.hasNext()) {
 					String word = in.next();
-					if (!stopWords.contains(word))
+					if (!stopWords.contains(word.toLowerCase()))
 						thisDoc.add(word);
 				}
 				hm.put(i, thisDoc);

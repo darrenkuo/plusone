@@ -41,16 +41,13 @@ public class DatasetJSON {
 		try {
 			BufferedReader in = new BufferedReader( new FileReader( filename ) );
 			JSONObject json = new JSONObject( in.readLine() );
-			
-			this.num_users = json.getInt( "num_users" );
-			this.num_items = json.getInt( "num_items" );
-			
+						
 			JSONArray users = json.getJSONArray( "users" );
 			
 			int index = 0;
 			JSONArray items = null, scores = null;
 			
-			for( int i = 0; i < num_users; i++ ) {
+			for( int i = 0; i < users.length(); i++ ) {
 				JSONObject user = users.getJSONObject( i );
 				HashMap<Integer, Integer> tf = new HashMap<Integer, Integer>();
 				items = user.getJSONArray( "items" );
