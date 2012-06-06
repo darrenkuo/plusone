@@ -21,7 +21,7 @@ import org.json.*;
  */
 public class MakeJSON {
 	public static void main(String[] args) throws IOException, JSONException {
-    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "data/out2.json" ) ) );
+    	PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( "data/" + args[0] + ".json" ) ) );
 		
     	//Location of the file
     	String thisfile = args[0];

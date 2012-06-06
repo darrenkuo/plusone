@@ -148,6 +148,7 @@ public class Lda extends ClusteringTest {
 			}
 		}
 				
+		System.out.println("Perplexity is " + getPerplexity(testDocs));
 		return result;
 	}
 	                
@@ -312,12 +313,19 @@ public class Lda extends ClusteringTest {
 	 * @return the perplexity for testDocs
 	 */
 	private double getPerplexity(List<PredictionPaper> testDocs) {
-		SimpleMatrix probPerDoc = gammas.mult(beta);
+		FileInputStream filecontents = null;
+		try {
+			filecontents = new FileInputStream("lda/output-lda-lhood.dat");
+		} catch (FileNotFoundException e) {
+			System.out.println("Could not locate output-lda-lhood");
+			System.exit(1);
+		}
+		Scanner logLhoods = new Scanner(filecontents);
+
 		double numerator = 0, denominator = 0;
-		
-		for (int i=0; i<probPerDoc.numRows(); i++) {
-			for (int j=0; j<probPerDoc.numCols(); j++) {
-				numerator += Math.log(probPerDoc.get(i, j));
+		for (int i=0; i<testDocs.size(); i++) {
+			numerator += Double.parseDouble(logLhoods.nextLine());
+			for (int j=0; j<terms.size(); j++) {
 				denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
 			}
 		}

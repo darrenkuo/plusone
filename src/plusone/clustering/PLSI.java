@@ -223,6 +223,7 @@ public class PLSI extends ClusteringTest{
 			for (int j=0;j<numTopics;j++)
 				score+=termDistr[j][i]*distr[j];
 			ret[i]= score;
+			//System.out.println("PLSI PERPLEXITY " + getPerplexity(testPaper));
 		}
 
 
@@ -246,6 +247,24 @@ public class PLSI extends ClusteringTest{
 		for (int i=0;i<x.length;i++)
 			dist+=(x[i]-y[i])*(x[i]-y[i]);
 		return Math.sqrt(dist);
+	}
+	
+	private double getPerplexity(PredictionPaper testPaper) {
+		double numerator = 0;
+		for (int i=0;i<trainingSet.size();i++)
+			for (PLSIEntry x:DocTerm[i]){
+				double temp =0;
+				for (int j=0;j<numTopics;j++){
+					temp+=topicDistr[j]*termDistr[j][x.termID]*docDistr[j][x.docID];
+				}
+				numerator+=Math.log(temp);
+			}
+		
+		double denominator = 0;
+		for (int i=0; i<vocabSize; i++) {
+			denominator += ((PaperAbstract)testPaper).getTestingTf(i);
+		}
+		return Math.exp(-1*numerator/denominator);
 	}
 
 
