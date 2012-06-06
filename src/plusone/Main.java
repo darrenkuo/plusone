@@ -84,7 +84,10 @@ public class Main {
 			else
 				trainingSet.add((TrainingPaper)documents.get(i));		
 		}
-
+		
+		System.out.println("Training size:" + trainingSet.size());
+		System.out.println("Testing size:" + testingSet.size());
+		
 		// Held out words
 		Terms.Term[] terms = new Terms.Term[wordIndexer.size()];
 		for (int i = 0; i < wordIndexer.size(); i++) {

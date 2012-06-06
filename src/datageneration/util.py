@@ -42,8 +42,26 @@ class Poisson(object):
             k += 1
             p *= rand()
         return k - 1
+
+def get_cdf(dist):
+    """Calculates the cdf of a distribution.
     
-def sample(dist):
+    Given a distribution, calculates (and stores) the cdf for quick sampling.
+    
+    Args:
+        dist:    distribution to construct a cdf from
+    
+    Returns: 
+        cdf to sample from
+    """
+    cdf = []
+    total = 0
+    for i in range(len(dist)):
+        total += dist[i]
+        cdf.append(total)
+    return cdf
+
+def sample(cdf):
     """Takes a distribution and samples from it. 
     
     Given a list of probabilities (that obey a distribution), samples from it 
@@ -61,17 +79,54 @@ def sample(dist):
     Sample usage:
         sample([.5, .5])    sample a distribution with two elements, 
                             each equally likely
-        returns: 0
     """
     p = rand()
-    res = 0
-    for i in range(len(dist)):
-        res += dist[i]
-        if res > p:
-            return i
-    #for debugging purposes only *SHOULD NOT REACH THIS LINE*
-    print res, p
+    #this line is for rounding errors which will cause binary_search to return
+    #an index that is out of bounds
+    if p == 1.0:
+        return cdf[-1]
+    else:
+        return binary_search(cdf, p)
+
+def binary_search(elements, to_find, lo=0, hi=None):
+    """Performs a binary search on an array.
     
+    Unlike standard binary search, this will return the index of the nearest
+    index (rounding down) if the element to find is between two values. This is
+    because here binary_search is being used for the purpose of sampling from a
+    cdf (see anomaly below).
+    
+    Args:
+        elements:
+            an array of values
+        to_find:
+            the value desired
+        lo:
+            the leftward bound of the search
+        hi:
+            the rightward bound of the search
+    
+    Returns:
+        the index corresponding to where to_find is in elements; if to_find is
+        between two indices, returns the lower one
+        
+    **ANOMALY**
+    binary_search will return len(elements) if to_find is equal to the last
+    element of elements (ie if to_find == 1.0)
+    """
+    if hi is None:
+        hi = len(elements)
+    while lo < hi:
+        mid = (lo+hi)//2
+        midval = elements[mid]
+        if midval < to_find:
+            lo = mid+1
+        elif midval > to_find: 
+            hi = mid
+        else:
+            return hi
+    return hi
+
 def normalize(dist):
     """Normalizes an array so it obeys a multinomial distribution.
     
@@ -155,12 +210,22 @@ def plot_dist(types, color='b', labels=None, bottom=0):
         offset += width
     xticks(np.arange(width / 2, width * len(types), .01), labels)
 
-def plot_dists(types, color='b', labels=None):
+def plot_dists(types, color='b', labels=None, scale=1.0):
+    """plots several distributions vertically stacked for easier visualization
+    
+    TODO: scale y-axis so labels make sense
+    """
     bottom = 0
     for type in types:
-        plot_dist(type, color, labels, bottom)
-        bottom += (max(type) * 1.1)
+        if len(type) > 100:
+            plot(type + bottom)
+        else:
+            plot_dist(type, color, labels, bottom)
+        if scale == 1.0:
+            to_add = scale
+        else:
+            to_add = max(type) * 1.1
+        bottom += to_add
 
-def plot_hist(words, color='b'):
-    word_count = count(words)
-    hist(words, range(word_count['unique'] + 1), color=color)
+def plot_hist(words, vocab_size, color='b'):
+    hist(words, range(vocab_size + 1), color=color)

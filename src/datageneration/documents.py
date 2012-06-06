@@ -1,4 +1,5 @@
 import argparse
+import pickle
 
 import random
 from random import random as rand
@@ -48,9 +49,9 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
     """
     p = Poisson(words_per_doc)
     if alpha == None:
-        alpha = [1]*num_topics
+        alpha = [0.001]*num_topics
     if beta == None:
-        beta = [1]*vocab_size
+        beta = [0.01]*vocab_size
     if len(alpha) != num_topics or len(beta) != vocab_size:
         print "ERROR: dirichlet parameters unequal:"
         print "alpha supplied:", len(alpha), "(needed", num_topics, ")"
@@ -61,9 +62,16 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
                      for t in range(num_topics)]
     else:
         word_dist = [dirichlet(beta) for i in range(num_topics)]
+    word_cdfs = []
+    for topic in word_dist:
+        word_cdfs.append(get_cdf(topic))
+    topic_cdfs = []
     docs = []
     topic_dists = []
+    doc_index = 0
     for i in range(num_docs):
+        if doc_index % 100 == 0:
+            print "reached document", doc_index
         words_per_doc = p.sample()
         doc = []
         if plsi:
@@ -71,13 +79,16 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
         else:
             topic_dist = dirichlet(alpha)
         topic_dists.append(topic_dist)
+        topic_cdf = get_cdf(topic_dist)
+        topic_cdfs.append(topic_cdf)
         for word in range(words_per_doc):
             if rand() < noise:
                 doc.append(rsample(range(vocab_size), 1))
             else:
-                topic = sample(topic_dist)
-                doc.append(sample(word_dist[topic]))
+                topic = sample(topic_cdf)
+                doc.append(sample(word_cdfs[topic]))
         docs.append(doc)
+        doc_index += 1
     return docs, word_dist, topic_dists
 
 def write(data, args):
@@ -85,10 +96,10 @@ def write(data, args):
     
     Writes three files, one containing the generated data, one containing the
     model used to generate the data, and one containing the options given at
-    the command line.
+    the command line. Also dumps to a pickle file for future reading.
     
     Returns:
-        none, but writes three files
+        none, but writes three text files and one pickle file
     
     FILES
     -----
@@ -102,6 +113,9 @@ def write(data, args):
         file containing the exact command that was given to run this program 
         from the command line, ie "python documents.py [options...]"
         Note: does not end in a newline character
+    results.pickle:
+        file containing the documents, the topic*word distributions, and the
+        document*topic distributions
     """
     docs, words, topics = data
     with open('output/documents-out', 'w') as f:
@@ -128,6 +142,8 @@ def write(data, args):
         f.write("-s " + str(args.s) + " ")
         if args.plsi:
             f.write(str("-plsi"))
+    with open('output/results.pickle', 'w') as f:
+        pickle.dump([docs, words, topics], f)
 
 def main():
     parser = argparse.ArgumentParser(description="Document generator. Default\

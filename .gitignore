@@ -21,3 +21,5 @@ bin/*
 *.log
 *.pyc
 data/experiment*
+data/out2.json
+*.pickle
