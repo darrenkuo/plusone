@@ -68,8 +68,6 @@ public class MakeJSON {
 				users++;
 			}
 			JSONObject json = new JSONObject();
-			json.put( "num_users", hm.keySet().size() );
-			json.put( "num_items", itemCount );
 			
 	    	JSONObject[] userArray = new JSONObject[hm.keySet().size()];
 		    for( Integer name : hm.keySet() ) {
@@ -111,8 +109,6 @@ public class MakeJSON {
 				users++;
 			}
 			JSONObject json = new JSONObject();
-			json.put( "num_users", hm.keySet().size() );
-			json.put( "num_items", itemCount );
 			
 	    	JSONObject[] userArray = new JSONObject[hm.keySet().size()];
 		    for( Integer name : hm.keySet() ) {
