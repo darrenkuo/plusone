@@ -210,7 +210,7 @@ def plot_dist(types, color='b', labels=None, bottom=0):
         offset += width
     xticks(np.arange(width / 2, width * len(types), .01), labels)
 
-def plot_dists(types, color='b', labels=None, scale=1.0):
+def plot_dists(types, color='b', labels=None, scale=0):
     """plots several distributions vertically stacked for easier visualization
     
     TODO: scale y-axis so labels make sense

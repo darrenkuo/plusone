@@ -12,7 +12,7 @@ import util
 from util import *
 
 def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
-                  alpha=None, beta=None, noise=-1, plsi=False):
+                  alpha=0.001, beta=0.01, noise=-1, plsi=False):
     """Generates documents according to plsi or lda
     
     Args:
@@ -25,10 +25,15 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
             determines the average words in a documents
         vocab_size: 
             the number of words in the vocabulary
+        DIRICHLET PARAMETERS
+        ---------------------
+        Assumes symmetric dirichlet distributions (ie all elements in the
+        parameter vector have the same value)
+        ---------------------
         alpha: 
-            parameters to dirichlet distribution for topics
+            parameter to dirichlet distribution for topics
         beta: 
-            parameters to dirichlet distribution for words
+            parameter to dirichlet distribution for words
         noise: 
             given as a probability; each word will be replaced with a random
             word with noise probability
@@ -48,15 +53,10 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
             each row is the distribution for a different document
     """
     p = Poisson(words_per_doc)
-    if alpha == None:
-        alpha = [0.001]*num_topics
-    if beta == None:
-        beta = [0.01]*vocab_size
-    if len(alpha) != num_topics or len(beta) != vocab_size:
-        print "ERROR: dirichlet parameters unequal:"
-        print "alpha supplied:", len(alpha), "(needed", num_topics, ")"
-        print "beta supplied:", len(beta), "(needed", vocab_size, ")" 
-        return
+    
+    alpha = [alpha] * num_topics
+    beta = [beta] * num_topics
+
     if plsi:
         word_dist = [normalize([rand() for w in range(vocab_size)])
                      for t in range(num_topics)]
@@ -65,6 +65,7 @@ def generate_docs(num_topics, num_docs, words_per_doc=50, vocab_size=30,
     word_cdfs = []
     for topic in word_dist:
         word_cdfs.append(get_cdf(topic))
+    
     topic_cdfs = []
     docs = []
     topic_dists = []
@@ -158,6 +159,12 @@ def main():
                         help="average number of words per document (50)")
     parser.add_argument('-m', action="store", type=int, default=30,
                         help="size of the vocabulary (30)")
+    parser.add_argument('-a', action="store", metavar='alpha', 
+                        type=float, default=0.1, 
+                        help="dirichlet parameter for topics (0.1)")
+    parser.add_argument('-b', action="store", metavar='beta', 
+                        type=float, default=0.01, 
+                        help="dirichlet parameter for words (0.01)")
     parser.add_argument('-s', action="store", metavar='noise', type=float, 
                         default=0, help="probability each word is generated\
                         randomly (0)")
@@ -172,6 +179,9 @@ def main():
     print "n    = ", args.n, "(number of documents)"
     print "l    = ", args.l, "(average number of words)"
     print "m    = ", args.m, "(size of vocabulary)"
+    if args.plsi:
+        print "a    = ", args.a, "(topics dirichlet parameter)"
+        print "b    = ", args.b, "(words dirichlet parameter)"
     print "s    = ", args.s, "(noise probability)"
     print "plsi = ", args.plsi, "(whether to draw from plsi or lda model)"
     print ""
@@ -181,7 +191,7 @@ def main():
     else:
         noise = args.s
     
-    data = generate_docs(args.k, args.n, args.l, args.m, 
+    data = generate_docs(args.k, args.n, args.l, args.m, args.a, args.b,
                          noise=noise, plsi=args.plsi)
     if args.w:
         print "writing data to file...",
