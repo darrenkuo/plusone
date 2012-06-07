@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.ejml.simple.SimpleMatrix;
@@ -27,6 +28,7 @@ public class Lda extends ClusteringTest {
 	private int numTopics;
 	private SimpleMatrix beta;
 	private SimpleMatrix gammas;
+	private Map<PaperAbstract, Integer> indices;
 	//flag to take true parameters (only for synthesized data)
 	private static boolean CHEAT;
 
@@ -38,6 +40,12 @@ public class Lda extends ClusteringTest {
 		this.terms = terms;
 		this.numTopics=numTopics;
 		train();
+	}
+
+	public Lda(List<TrainingPaper> trainingSet, Indexer<String> wordIndexer,
+			Terms terms, int numTopics, Map<PaperAbstract, Integer> indices) {
+		this(trainingSet, wordIndexer, terms, numTopics);
+		this.indices = indices;
 	}
 
 	/**

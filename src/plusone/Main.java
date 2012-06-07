@@ -57,6 +57,7 @@ public class Main {
 	private static MetadataLogger metadataLogger;
 	private static Random randGen;
 
+	private Map<PaperAbstract, Integer> indices;
 	private Map<String,Results>[] allResults;
 	// Document sets
 	public List<TrainingPaper> trainingSet;
@@ -79,6 +80,7 @@ public class Main {
 		trainingSet=new ArrayList<TrainingPaper>();
 		testingSet = new ArrayList<PredictionPaper>();
 		for (int i = 0; i < documents.size(); i ++) {
+			indices.put(documents.get(i), i);
 			if (documents.get(i).getGroup()==testGroup)
 				testingSet.add((PredictionPaper)documents.get(i));
 			else
@@ -242,7 +244,8 @@ public class Main {
 			int[] dimensions = parseIntList(System.getProperty("plusone.lda.dimensions", 
 					"20"));
 			for (int dk = 0; dk < dimensions.length; dk ++) {
-				lda = new Lda(trainingSet, wordIndexer, terms,dimensions[dk]);
+				lda = new Lda(trainingSet, wordIndexer, terms, dimensions[dk],
+						indices);
 				runClusteringMethod(lda, ks, size, true);
 
 			}
