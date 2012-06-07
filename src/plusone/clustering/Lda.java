@@ -66,7 +66,7 @@ public class Lda extends ClusteringTest {
 				+ " lib/lda-c-dist/settings.txt " + trainingData
 				+ " random lda", false);
 
-		CHEAT = false; 	//CHANGE TO false WHEN TRAINING ON REAL DATA
+		CHEAT = true; 	//CHANGE TO false WHEN TRAINING ON REAL DATA
 		double[][] betaMatrix;
 		if (CHEAT) {
 			System.out.println("We are cheating and using the true beta");
@@ -92,6 +92,27 @@ public class Lda extends ClusteringTest {
 	@Override
 	public double[][] predict(List<PredictionPaper> testDocs){
 	
+		if (CHEAT) {
+			double[][] gammasMatrix = getRealGamma("src/datageneration/output/"
+					+ "documents_model-out");
+			gammas = new SimpleMatrix(gammasMatrix);
+			SimpleMatrix results = gammas.mult(beta);
+			double[][] result = new double[testDocs.size()][wordIndexer.size()];
+			System.out.println(testDocs.size() + " " + wordIndexer.size());
+			int row = 0;
+			for (PredictionPaper doc : testDocs) {
+				int paperIndex = indices.get(doc);
+				int col = 0;
+				for (String word : wordIndexer) {
+					int wordIndex = new Integer(word);
+					result[row][col] = results.get(paperIndex, wordIndex);
+					col++;
+				}
+				row++;
+			}
+			return result;
+		}
+		
 		String testData = "lda/test.dat";
 
 		createLdaInputTest(testData, testDocs);

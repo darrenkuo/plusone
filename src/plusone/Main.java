@@ -611,6 +611,7 @@ public class Main {
 		for (PaperAbstract paper:dataset.getDocuments())
 			paper.setGroup(randGen.nextInt(FOLD));
 
+		main.indices = new HashMap<PaperAbstract, Integer>();
 		main.runExperiments(experimentPath);
 		/* These values can be set on the command line.  For example, to set
 		 * testWordPercents to {0.4,0.5}, pass the command-line argument
