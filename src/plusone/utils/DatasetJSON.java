@@ -76,8 +76,6 @@ public class DatasetJSON {
 		} catch(Exception e) {
 		    e.printStackTrace();
 		}
-
-		System.out.println("total number of papers: " + documents.size());
     }
 
     /** This method is to be called in order to construct a datasetJSON
