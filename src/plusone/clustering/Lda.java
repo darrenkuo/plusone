@@ -109,7 +109,6 @@ public class Lda extends ClusteringTest {
 			}
 		}
 				
-		System.out.println("Perplexity is " + getPerplexity(testDocs));
 		return result;
 	}
 
@@ -206,6 +205,42 @@ public class Lda extends ClusteringTest {
 	}
 	
 	/**
+	 * Only used for synthesized data. Reads in the distribution matrix that was
+	 * used to generate the data.
+	 * @param filename	location of stored matrix
+	 * @return 			the gamma matrix from which the documents were generated
+	 */
+	private double[][] getRealGamma(String filename) {
+		double[][] res = null;
+		List<String[]> topics = new ArrayList<String[]>();
+		FileInputStream filecontents = null;
+		try {
+			filecontents = new FileInputStream(filename);
+		} catch (FileNotFoundException e) {
+			System.out.println("Check your filepath");
+			System.exit(1);
+		}
+		Scanner gammas = new Scanner(filecontents);
+		String gammaRow;
+		while(!(gammaRow = gammas.nextLine()).equals("V")) {
+		}
+		while (gammas.hasNextLine()) {
+			gammaRow = gammas.nextLine();
+			topics.add(gammaRow.trim().split(" "));
+		}
+		
+		res = new double[topics.size()][];
+		for (int i = 0; i < topics.size(); i++) {
+			res[i] = new double[topics.get(i).length];
+			for (int j = 0; j < topics.get(i).length; j++) {
+				res[i][j] = new Double(topics.get(i)[j]);
+			}
+		}
+
+		return res;
+	}
+	
+	/**
 	 * Takes a file output by lda-c-dist and stores it in a matrix.
 	 * 
 	 * @param filename	file to be read
@@ -277,19 +312,22 @@ public class Lda extends ClusteringTest {
 	 * @param testDocs the testing documents
 	 * @return the perplexity for testDocs
 	 */
-	private double getPerplexity(List<PredictionPaper> testDocs) {
-		FileInputStream filecontents = null;
-		try {
-			filecontents = new FileInputStream("lda/output-lda-lhood.dat");
-		} catch (FileNotFoundException e) {
-			System.out.println("Could not locate output-lda-lhood");
-			System.exit(1);
-		}
-		Scanner logLhoods = new Scanner(filecontents);
-
+	public double getPerplexity(List<PredictionPaper> testDocs) {
+		double[][] betaMatrix = getRealBeta("src/datageneration/output/documents_model-out");
+		double[][] gammaMatrix = getRealGamma("src/datageneration/output/documents_model-out");
 		double numerator = 0, denominator = 0;
 		for (int i=0; i<testDocs.size(); i++) {
-			numerator += Double.parseDouble(logLhoods.nextLine());
+			double docProb = 0;
+			int index = testDocs.get(i).getIndex();
+			double[] topicDistribution = gammaMatrix[index];
+			for (int j = 0; j < numTopics; j++) {
+				for (int k = 0; k < terms.size(); k++) {
+					int wc = ((PaperAbstract)testDocs.get(i)).getTestingTf(k);
+					docProb += wc*betaMatrix[j][k]*topicDistribution[j];
+				}
+			}
+			if (docProb != 0)
+				numerator += Math.log(docProb);
 			for (int j=0; j<terms.size(); j++) {
 				denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
 			}
