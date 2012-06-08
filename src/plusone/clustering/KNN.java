@@ -1,25 +1,13 @@
 package plusone.clustering;
 
-import plusone.Main;
-
 import plusone.utils.Indexer;
-import plusone.utils.ItemAndScore;
 import plusone.utils.KNNSimilarityCache;
 import plusone.utils.PaperAbstract;
 import plusone.utils.PredictionPaper;
 import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Set;
 
 public class KNN extends ClusteringTest {
 

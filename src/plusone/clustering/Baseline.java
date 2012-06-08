@@ -1,19 +1,10 @@
 package plusone.clustering;
 
-import plusone.Main;
-import plusone.utils.Indexer;
-import plusone.utils.ItemAndScore;
-import plusone.utils.PaperAbstract;
-import plusone.utils.PlusoneFileWriter;
 import plusone.utils.PredictionPaper;
-import plusone.utils.SVD;
 import plusone.utils.Terms;
 import plusone.utils.TrainingPaper;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
 
 public class Baseline extends ClusteringTest {
     

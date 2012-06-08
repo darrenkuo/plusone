@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Random;
 
 public class Dataset {
     final static String index_pattern_string = "#INDEX ([\\d]+)";

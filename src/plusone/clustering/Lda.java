@@ -350,21 +350,18 @@ public class Lda extends ClusteringTest {
 			SimpleMatrix realGammas = new SimpleMatrix(gammaMatrix);
 			SimpleMatrix probMatrix = realGammas.mult(realBetas);
 			
-			double numerator = 0, denominator = 0;	
+			double numerator = 0, denominator = 0;
 			for (int i=0; i<testDocs.size(); i++) {
 				double docProb = 0;
 				int row = indices.get(testDocs.get(i));
 				for (Integer j : ((PaperAbstract)testDocs.get(i)).getTrainingWords()) {
 					docProb += Math.log(probMatrix.get(row, j));
 				}
-				System.out.println("Probablity for document #"+i+" " +docProb);//
 				numerator += docProb;
 				for (int j=0; j<terms.size(); j++) {
 					denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
 				}
 			}
-	
-			System.out.println(Math.exp(-1*numerator/denominator));
 			return Math.exp(-1*numerator/denominator);
 		} else {
 			FileInputStream filecontents = null;

@@ -108,7 +108,7 @@ public class Main {
 		System.out.println("Data ready for experiment");
 	}
 
-	private void runExperiments(String path) throws JSONException{
+	private void runExperiments(String path) {
 		Boolean crossValid = Boolean.getBoolean("plusone.crossValidation.run");
 
 		if (crossValid)
@@ -143,43 +143,47 @@ public class Main {
 	 * @param twpNames an array containing the percentage of held out words for each test
 	 * @throws JSONException
 	 */
-	private void outputResults(int[] ks, double[] twpNames) throws JSONException{
-		JSONObject json = new JSONObject();
-		JSONArray tests = new JSONArray();
-		for (int i = 0; i < twpNames.length; i++) {
-			for(int ki=0;ki<ks.length;ki++){
-				JSONObject allTests = new JSONObject();
-				int k=ks[ki];
-				Map<String,Results> resultK=allResults[ki];
-				for (Map.Entry<String,Results> entry : resultK.entrySet()){
-					JSONObject thisTest = new JSONObject();
-					thisTest.put("numPredictions", k);
-					thisTest.put("trainPercent", twpNames[i]);
-					double[] mean = entry.getValue().getResultsMean();
-					double[] variance = entry.getValue().getResultsVariance();
-					thisTest.put("Predicted_Mean" , mean[0]);
-					thisTest.put("idf score_Mean" , mean[1]);
-					thisTest.put("tfidf score_Mean" , mean[2]);
-					thisTest.put("Predicted_Var" , variance[0]);
-					thisTest.put("idf score_Var" , variance[1]);
-					thisTest.put("tfidf score_Var" , variance[2]);
-					if (entry.getKey().equals("Lda")) {
-						thisTest.put("Perplexity", ldaPerplexity);
+	private void outputResults(int[] ks, double[] twpNames) {
+		try {
+			JSONObject json = new JSONObject();
+			JSONArray tests = new JSONArray();
+			for (int i = 0; i < twpNames.length; i++) {
+				for(int ki=0;ki<ks.length;ki++){
+					JSONObject allTests = new JSONObject();
+					int k=ks[ki];
+					Map<String,Results> resultK=allResults[ki];
+					for (Map.Entry<String,Results> entry : resultK.entrySet()){
+						JSONObject thisTest = new JSONObject();
+						thisTest.put("numPredictions", k);
+						thisTest.put("trainPercent", twpNames[i]);
+						double[] mean = entry.getValue().getResultsMean();
+						double[] variance = entry.getValue().getResultsVariance();
+						thisTest.put("Predicted_Mean" , mean[0]);
+						thisTest.put("idf score_Mean" , mean[1]);
+						thisTest.put("tfidf score_Mean" , mean[2]);
+						thisTest.put("Predicted_Var" , variance[0]);
+						thisTest.put("idf score_Var" , variance[1]);
+						thisTest.put("tfidf score_Var" , variance[2]);
+						if (entry.getKey().equals("Lda")) {
+							thisTest.put("Perplexity", ldaPerplexity);
+						}
+						allTests.put(entry.getKey(), thisTest);
 					}
-					allTests.put(entry.getKey(), thisTest);
+					tests.put(allTests);
 				}
-				tests.put(allTests);
 			}
+			json.put("tests", tests);
+			Date date = new Date();
+			String outName = "experiment" + date.getTime() +".json";
+			File out = new File("data", outName);
+			System.out.println("Wrote to " + outName);
+	
+			PlusoneFileWriter writer = new PlusoneFileWriter(out);
+			writer.write(json.toString());
+			writer.close();
+		} catch (JSONException e) {
+			System.out.println("Error writing to output");
 		}
-		json.put("tests", tests);
-		Date date = new Date();
-		String outName = "experiment" + date.getTime() +".json";
-		File out = new File("data", outName);
-		System.out.println("Wrote to " + outName);
-
-		PlusoneFileWriter writer = new PlusoneFileWriter(out);
-		writer.write(json.toString());
-		writer.close();
 	}
 
 
@@ -582,7 +586,7 @@ public class Main {
 	 * train percent - args[1]
 	 * test word percent - args[2] (currently ignored)
 	 */
-	public static void main(String[] args) throws JSONException {
+	public static void main(String[] args) {
 
 		String data_file = System.getProperty("plusone.dataFile", "med.out");
 

@@ -1,6 +1,5 @@
 package plusone.clustering;
 
-import java.io.File;
 import java.util.List;
 
 import plusone.utils.PredictionPaper;
