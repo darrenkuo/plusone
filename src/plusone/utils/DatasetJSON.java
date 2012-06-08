@@ -1,6 +1,7 @@
 package plusone.utils;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +23,6 @@ public class DatasetJSON {
     }
 
     /* Member fields. */
-	public int num_users, num_items, num_folds;
 	public String[] itemindex, userindex;
 	public HashMap<Integer,Integer>[] users;
 	
@@ -48,10 +48,12 @@ public class DatasetJSON {
 			JSONObject json = new JSONObject( in.readLine() );
 						
 			JSONArray users = json.getJSONArray( "users" );
+			if (isIndexed(filename)) {
+				initializeIndexer(filename);
+			}
 			
 			int index = 0;
 			JSONArray items = null, scores = null;
-			
 			for( int i = 0; i < users.length(); i++ ) {
 				JSONObject user = users.getJSONObject( i );
 				HashMap<Integer, Integer> tf = new HashMap<Integer, Integer>();
@@ -62,6 +64,7 @@ public class DatasetJSON {
 				} catch (JSONException e) {
 					scores = null;
 				}
+
 				for( int j = 0; j < items.length(); j++ ) {
 					String jthItem = items.getString( j );
 					if (scores == null) {
@@ -92,5 +95,64 @@ public class DatasetJSON {
         DatasetJSON dataset = new DatasetJSON();
         dataset.loadInPlaceFromPath(filename);
         return dataset;
+    }
+    
+    
+    /**
+     * Returns true if the input is already indexed
+     * 
+     * @param filename filename path to the JSON file (should be passed from loadDatasetFromPath)
+     * @return
+     */
+    private boolean isIndexed(String filename) {
+    	try {
+			BufferedReader in = new BufferedReader( new FileReader( filename ) );
+	    	JSONObject json = new JSONObject( in.readLine() );
+			JSONArray users = json.getJSONArray( "users" );
+			for (int i = 0; i < users.length(); i++) {
+				JSONObject user = users.getJSONObject( i );
+				JSONArray items = user.getJSONArray( "items" );
+				for (int j = 0; j < items.length(); j++) {
+					try {
+						int unused = new Integer(items.getString(j));
+					} catch (NumberFormatException e) {
+						return false;
+					}
+				}
+			}
+			return true;
+    	} catch (Exception e) {
+    		System.out.println("Something went wrong with isIndexed");
+    		return false;
+    	}
+    }
+    
+    /**
+     * If we have pre-indexed files, initialize the indexer with those indices
+     * @param filename filename path to the JSON file (should be passed from loadDatasetFromPath)
+     */
+    private void initializeIndexer(String filename) {
+    	int maxIndex = -1;
+    	try {
+			BufferedReader in = new BufferedReader( new FileReader( filename ) );
+	    	JSONObject json = new JSONObject( in.readLine() );
+			JSONArray users = json.getJSONArray( "users" );
+			for (int i = 0; i < users.length(); i++) {
+				JSONObject user = users.getJSONObject( i );
+				JSONArray items = user.getJSONArray( "items" );
+				for (int j = 0; j < items.length(); j++) {
+					if (Integer.parseInt(items.getString(j)) > maxIndex) {
+						maxIndex = Integer.parseInt(items.getString(j));
+					}
+				}
+
+			}
+    	} catch (Exception e) {
+    		System.out.println("Couldn't initialize indexer for pre-indexed files");
+    	}
+    	System.out.println("Max index is " + maxIndex);
+    	for (int i = 0; i < maxIndex; i++) {
+    		this.wordIndexer.fastAddAndGetIndex(i  +"");
+    	}
     }
 }

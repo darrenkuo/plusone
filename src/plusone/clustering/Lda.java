@@ -355,13 +355,15 @@ public class Lda extends ClusteringTest {
 				double docProb = 0;
 				int row = indices.get(testDocs.get(i));
 				for (Integer j : ((PaperAbstract)testDocs.get(i)).getTrainingWords()) {
-					docProb += Math.log(probMatrix.get(row, j));
+					int tf = ((PaperAbstract)testDocs.get(i)).getTrainingTf(j);
+					docProb += tf*Math.log(probMatrix.get(row, j));
 				}
 				numerator += docProb;
 				for (int j=0; j<terms.size(); j++) {
-					denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
+					denominator += ((PaperAbstract)testDocs.get(i)).getTrainingTf(j);
 				}
 			}
+			System.out.println(Math.exp(-1*numerator/denominator));
 			return Math.exp(-1*numerator/denominator);
 		} else {
 			FileInputStream filecontents = null;
