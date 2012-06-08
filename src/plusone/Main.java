@@ -62,7 +62,8 @@ public class Main {
 	// Document sets
 	public List<TrainingPaper> trainingSet;
 	public List<PredictionPaper> testingSet;
-
+	
+	private double ldaPerplexity;
 
 	private static int FOLD; // cross validation parameter
 	private static DatasetJSON dataset;
@@ -162,6 +163,9 @@ public class Main {
 					thisTest.put("Predicted_Var" , variance[0]);
 					thisTest.put("idf score_Var" , variance[1]);
 					thisTest.put("tfidf score_Var" , variance[2]);
+					if (entry.getKey().equals("Lda")) {
+						thisTest.put("Perplexity", ldaPerplexity);
+					}
 					allTests.put(entry.getKey(), thisTest);
 				}
 				tests.put(allTests);
@@ -239,7 +243,7 @@ public class Main {
 			}
 		}
 		//lda
-		Lda lda;
+		Lda lda = null;
 		if (testIsEnabled("lda")){
 			int[] dimensions = parseIntList(System.getProperty("plusone.lda.dimensions", 
 					"20"));
@@ -249,6 +253,7 @@ public class Main {
 				runClusteringMethod(lda, ks, size, true);
 
 			}
+			ldaPerplexity = lda.getPerplexity();
 		}
 		// KNNSVDish
 		int[] closest_k_svdish = parseIntList(System.getProperty("plusone.closestKSVDishValues", 

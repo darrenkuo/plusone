@@ -31,6 +31,7 @@ public class Lda extends ClusteringTest {
 	private Map<PaperAbstract, Integer> indices;
 	//flag to take true parameters (only for synthesized data)
 	private static boolean CHEAT;
+	private List<PredictionPaper> testDocs;
 
 	public Lda(List<TrainingPaper> trainingSet, Indexer<String> wordIndexer,
 			Terms terms, int numTopics) {
@@ -91,7 +92,7 @@ public class Lda extends ClusteringTest {
 	 */
 	@Override
 	public double[][] predict(List<PredictionPaper> testDocs){
-	
+		this.testDocs = testDocs;
 		if (CHEAT) {
 			double[][] gammasMatrix = getRealGamma("src/datageneration/output/"
 					+ "documents_model-out");
@@ -336,12 +337,12 @@ public class Lda extends ClusteringTest {
 	}
 	
 	/**
-	 * Returns the perplexity for the test set
+	 * Returns the perplexity for the test set. Can only be run after the predict method.
 	 * 
 	 * @param testDocs the testing documents
 	 * @return the perplexity for testDocs
 	 */
-	public double getPerplexity(List<PredictionPaper> testDocs) {
+	public double getPerplexity() {
 		double[][] betaMatrix = getRealBeta("src/datageneration/output/documents_model-out");
 		double[][] gammaMatrix = getRealGamma("src/datageneration/output/documents_model-out");
 		double numerator = 0, denominator = 0;
