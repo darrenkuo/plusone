@@ -343,26 +343,48 @@ public class Lda extends ClusteringTest {
 	 * @return the perplexity for testDocs
 	 */
 	public double getPerplexity() {
-		double[][] betaMatrix = getRealBeta("src/datageneration/output/documents_model-out");
-		double[][] gammaMatrix = getRealGamma("src/datageneration/output/documents_model-out");
-		double numerator = 0, denominator = 0;
-		for (int i=0; i<testDocs.size(); i++) {
-			double docProb = 0;
-			int index = testDocs.get(i).getIndex();
-			double[] topicDistribution = gammaMatrix[index];
-			for (int j = 0; j < numTopics; j++) {
-				for (int k = 0; k < terms.size(); k++) {
-					int wc = ((PaperAbstract)testDocs.get(i)).getTestingTf(k);
-					docProb += wc*betaMatrix[j][k]*topicDistribution[j];
+		if (CHEAT) {
+			double[][] betaMatrix = getRealBeta("src/datageneration/output/documents_model-out");
+			double[][] gammaMatrix = getRealGamma("src/datageneration/output/documents_model-out");
+			SimpleMatrix realBetas = new SimpleMatrix(betaMatrix);
+			SimpleMatrix realGammas = new SimpleMatrix(gammaMatrix);
+			SimpleMatrix probMatrix = realGammas.mult(realBetas);
+			
+			double numerator = 0, denominator = 0;	
+			for (int i=0; i<testDocs.size(); i++) {
+				double docProb = 0;
+				int row = indices.get(testDocs.get(i));
+				for (Integer j : ((PaperAbstract)testDocs.get(i)).getTrainingWords()) {
+					docProb += Math.log(probMatrix.get(row, j));
+				}
+				System.out.println("Probablity for document #"+i+" " +docProb);//
+				numerator += docProb;
+				for (int j=0; j<terms.size(); j++) {
+					denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
 				}
 			}
-			if (docProb != 0)
-				numerator += Math.log(docProb);
-			for (int j=0; j<terms.size(); j++) {
-				denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
+	
+			System.out.println(Math.exp(-1*numerator/denominator));
+			return Math.exp(-1*numerator/denominator);
+		} else {
+			FileInputStream filecontents = null;
+			try {
+				filecontents = new FileInputStream("lda/output-lda-lhood.dat");
+			} catch (FileNotFoundException e) {
+				System.out.println("Could not locate output-lda-lhood");
+				System.exit(1);
 			}
-		}
+			Scanner logLhoods = new Scanner(filecontents);
 
-		return Math.exp(-1*numerator/denominator);
+			double numerator = 0, denominator = 0;
+			for (int i=0; i<testDocs.size(); i++) {
+				numerator += Double.parseDouble(logLhoods.nextLine());
+				for (int j=0; j<terms.size(); j++) {
+					denominator += ((PaperAbstract)testDocs.get(i)).getTestingTf(j);
+				}
+			}
+
+			return Math.exp(-1*numerator/denominator);
+		}
 	}
 }

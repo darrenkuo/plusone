@@ -36,7 +36,12 @@ public class DatasetJSON {
 	new Indexer<PaperAbstract>();
     public Indexer<PaperAbstract> getPaperIndexer() { return paperIndexer; }
 
-    /* Private method used by loadDataset. */
+    /** Reads in the JSON file and fills in documents, wordIndexer, and
+     * paperIndexer appropriately. Will automatically change its behavior when
+     * presented with a regression task.
+     * 
+     * @param filename path to the JSON file (should be passed from loadDatasetFromPath)
+     */
     void loadInPlaceFromPath(String filename) {	
 		try {
 			BufferedReader in = new BufferedReader( new FileReader( filename ) );

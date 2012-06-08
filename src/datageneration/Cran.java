@@ -44,7 +44,7 @@ public class Cran {
 				in = new Scanner(input);
 				while (in.hasNext()) {
 					String word = in.next();
-					/* NOTE: COMMEND OUT THIS NEXT WHILE LOOP IF NOT ACTUALLY
+					/* NOTE: COMMENT OUT THIS NEXT WHILE LOOP IF NOT ACTUALLY
 					 * MAKING A JSON FROM THE CRAN DATASET.
 					 */
 					while(beginning) {

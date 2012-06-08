@@ -14,7 +14,7 @@ public class Test {
 		
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_movielens5.json");
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Desktop/documents-out.json");
-		DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Research/plusone/data/out2.json");
+		DatasetJSON reader = DatasetJSON.loadDatasetFromPath("/Users/andrewgambardella/Research/plusone/data/documents-out.json");
 		//DatasetJSON reader = DatasetJSON.loadDatasetFromPath("data/reg_simple.json");
 		Indexer<String> wordIndexer = reader.getWordIndexer();
 		Indexer<PaperAbstract> paperIndexer = reader.getPaperIndexer();
@@ -23,6 +23,7 @@ public class Test {
 		for (int i = 0; i < wordIndexer.size(); i++) {
 		    termArray[i] = new Terms.Term(i);
 		}
+
 		/*
 		for (PaperAbstract d : documents) {
 			for (int i = 0; i < termArray.length; i++) {
