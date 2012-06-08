@@ -81,11 +81,12 @@ public class Main {
 		trainingSet=new ArrayList<TrainingPaper>();
 		testingSet = new ArrayList<PredictionPaper>();
 		for (int i = 0; i < documents.size(); i ++) {
-			indices.put(documents.get(i), i);
-			if (documents.get(i).getGroup()==testGroup)
+			if (documents.get(i).getGroup()==testGroup) {
 				testingSet.add((PredictionPaper)documents.get(i));
-			else
-				trainingSet.add((TrainingPaper)documents.get(i));		
+				indices.put(documents.get(i), i);
+			} else {
+				trainingSet.add((TrainingPaper)documents.get(i));
+			}
 		}
 		
 		System.out.println("Training size:" + trainingSet.size());

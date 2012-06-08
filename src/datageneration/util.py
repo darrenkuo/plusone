@@ -2,6 +2,7 @@
 """
 import numpy as np
 import operator
+import pickle
 
 import math
 from math import e
@@ -229,3 +230,44 @@ def plot_dists(types, color='b', labels=None, scale=0):
 
 def plot_hist(words, vocab_size, color='b'):
     hist(words, range(vocab_size + 1), color=color)
+    
+def perplexity(docs, probabilities, indices=None):
+    if indices == None:
+        indices = range(len(docs))
+    numerator, denominator = 0.0, 0.0
+    for i in indices:
+        p = 0
+        words = int(len(docs[i]) * 0.7)
+        for word in docs[i][:words]:
+            p += np.log(probabilities[i, word])
+        numerator += p
+        denominator += words
+        print i, p, words
+    print denominator
+    perp = np.exp(-(numerator / denominator))
+    print "LDA perplexity:", perp
+    return perp
+
+def get_probabilities(pickle_file):
+    if len(pickle_file) >= 6 and pickle_file[-6:] != "pickle":
+        with open('src/datageneration/output/documents_model-out', 'r') as f:
+            v = False
+            rbeta = []
+            rgamma = []
+            for line in f.readlines():
+                if line == 'V\n':
+                    v = True
+                    continue
+                if v:
+                    rgamma.append([float(word) for word in line.strip(' \n').split(' ')])
+                else:
+                    rbeta.append([float(word) for word in line.strip(' \n').split(' ')])
+        rbeta = np.matrix(rbeta)
+        rgamma = np.matrix(rgamma)
+        probabilities = rgamma * rbeta
+    else:
+        with open(pickle_file, 'r') as f:
+            docs, words, topics = pickle.load(f)
+        probabilities = np.matrix(topics) * np.matrix(words)
+    
+    return probabilities

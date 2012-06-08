@@ -54,29 +54,29 @@ public class Lda extends ClusteringTest {
 	 * parameter (in this case, all alphas to the dirichlet are equal)
 	 */
 	private void train() {
-		try {
-			new File("lda").mkdir();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		String trainingData = "lda/train.dat";
-
-		createLdaInput(trainingData, trainingSet);
-		Utils.runCommand("lib/lda-c-dist/lda est 1 " + numTopics
-				+ " lib/lda-c-dist/settings.txt " + trainingData
-				+ " random lda", false);
-
 		CHEAT = true; 	//CHANGE TO false WHEN TRAINING ON REAL DATA
-		double[][] betaMatrix;
+		double[][] betaMatrix = null;
 		if (CHEAT) {
 			System.out.println("We are cheating and using the true beta");
 			betaMatrix = getRealBeta("src/datageneration/output/" + 
 					"documents_model-out");
-			implantRealBeta(betaMatrix, "lda/final.beta");
 		} else {
+			try {
+				new File("lda").mkdir();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	
+			String trainingData = "lda/train.dat";
+	
+			createLdaInput(trainingData, trainingSet);
+			Utils.runCommand("lib/lda-c-dist/lda est 1 " + numTopics
+					+ " lib/lda-c-dist/settings.txt " + trainingData
+					+ " random lda", false);
+		
 			betaMatrix = readLdaResultFile("lda/final.beta", 0, true);
 		}
+		
 		beta = new SimpleMatrix(betaMatrix);
 	}
 
@@ -93,52 +93,55 @@ public class Lda extends ClusteringTest {
 	@Override
 	public double[][] predict(List<PredictionPaper> testDocs){
 		this.testDocs = testDocs;
+		double[][] result = null;
 		if (CHEAT) {
+			System.out.println("we are cheating and using true parameters " +
+					"for prediction");	
 			double[][] gammasMatrix = getRealGamma("src/datageneration/output/"
 					+ "documents_model-out");
 			gammas = new SimpleMatrix(gammasMatrix);
-			SimpleMatrix results = gammas.mult(beta);
-			double[][] result = new double[testDocs.size()][wordIndexer.size()];
-			System.out.println(testDocs.size() + " " + wordIndexer.size());
+			SimpleMatrix probabilities = gammas.mult(beta);
+			result = new double[testDocs.size()][wordIndexer.size()];
+			
 			int row = 0;
 			for (PredictionPaper doc : testDocs) {
 				int paperIndex = indices.get(doc);
 				int col = 0;
 				for (String word : wordIndexer) {
 					int wordIndex = new Integer(word);
-					result[row][col] = results.get(paperIndex, wordIndex);
+					result[row][col] = probabilities.get(paperIndex, wordIndex);
 					col++;
 				}
 				row++;
 			}
-			return result;
-		}
-		
-		String testData = "lda/test.dat";
-
-		createLdaInputTest(testData, testDocs);
-		Utils.runCommand("lib/lda-c-dist/lda inf " + 
-				" lib/lda-c-dist/settings.txt " + "lda/final " + 
-				testData + " lda/output", false);
-		
-		double[][] gammasMatrix = readLdaResultFile("lda/output-gamma.dat",
-				0, false);
-		double alpha = readAlpha("lda/final.other");
-		for (int i=0; i<gammasMatrix.length; i++) {
-			for (int j=0; j<gammasMatrix[i].length; j++) {
-				gammasMatrix[i][j] -= alpha;
+		} else {
+			
+			String testData = "lda/test.dat";
+	
+			createLdaInputTest(testData, testDocs);
+			Utils.runCommand("lib/lda-c-dist/lda inf " + 
+					" lib/lda-c-dist/settings.txt " + "lda/final " + 
+					testData + " lda/output", false);
+			
+			double[][] gammasMatrix = readLdaResultFile("lda/output-gamma.dat",
+					0, false);
+			double alpha = readAlpha("lda/final.other");
+			for (int i=0; i<gammasMatrix.length; i++) {
+				for (int j=0; j<gammasMatrix[i].length; j++) {
+					gammasMatrix[i][j] -= alpha;
+				}
+			}
+			gammas = new SimpleMatrix(gammasMatrix);
+			SimpleMatrix probabilities = gammas.mult(beta);
+			
+			result = new double[probabilities.numRows()]
+			                    [probabilities.numCols()];
+			for (int row=0; row<probabilities.numRows(); row++) {
+				for (int col=0; col<probabilities.numCols(); col++) {
+					result[row][col] = probabilities.get(row, col);
+				}
 			}
 		}
-		gammas = new SimpleMatrix(gammasMatrix);
-		SimpleMatrix results = gammas.mult(beta);
-		
-		double[][] result = new double[results.numRows()][results.numCols()];
-		for (int row=0; row<results.numRows(); row++) {
-			for (int col=0; col<results.numCols(); col++) {
-				result[row][col] = results.get(row, col);
-			}
-		}
-				
 		return result;
 	}
 
